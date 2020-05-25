@@ -1,42 +1,31 @@
 var mysql = require("../database/database");
-exports.getProducts = (req, res) => {
-  mysql
-    .execute(
-      `SELECT p.*,sb.*,pt.* FROM ecommerce.product p
-  left join sub_product_type sb ON sb.SubProductTypeId=p.SubProductTypeId
-  left join product_type pt ON pt.ProductTypeId=sb.ProductTypeId`
-    )
-    .then((rows, err) => {
-      if (err) {
-        res.send(err);
-      } else {
-        res.end(JSON.stringify(rows[0]));
-      }
-      res.end();
-    });
+exports.getProductCategory = (req, res) => {
+  mysql.execute(`SELECT * FROM product_type `).then((rows, err) => {
+    if (err) {
+      res.send(err);
+    } else {
+      res.end(JSON.stringify(rows[0]));
+    }
+    res.end();
+  });
 };
-exports.getProductsById = (req, res) => {
+exports.getProductCategoryById = (req, res) => {
   mysql
-    .execute(
-      `SELECT p.*,sb.*,pt.* FROM ecommerce.product p
-  left join sub_product_type sb ON sb.SubProductTypeId=p.SubProductTypeId
-  left join product_type pt ON pt.ProductTypeId=sb.ProductTypeId where p.ProductId=?`,
-      [req.params.id]
-    )
-    .then((rows, err) => {
-      if (err) {
-        res.send(err);
-      } else {
-        res.end(JSON.stringify(rows[0]));
-      }
-      res.end();
-    });
-};
-exports.deleteProductById = (req, res) => {
-  mysql
-    .execute(`DELETE FROM  ecommerce.product where ProductId=?`, [
+    .execute(`SELECT * FROM product_type where ProductTypeID=?`, [
       req.params.id,
     ])
+    .then((rows, err) => {
+      if (err) {
+        res.send(err);
+      } else {
+        res.end(JSON.stringify(rows[0]));
+      }
+      res.end();
+    });
+};
+exports.deleteProductCategory = (req, res) => {
+  mysql
+    .execute(`DELETE FROM  product_type where ProductTypeID=?`, [req.params.id])
     .then((rows, err) => {
       if (err) {
         res.send(err);
