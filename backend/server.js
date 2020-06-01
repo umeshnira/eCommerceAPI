@@ -4,7 +4,12 @@ var express = require("express"),
 var url = require("url");
 var bodyParser = require("body-parser");
 var app = express();
-const productRoutes = require("./routes/product");
+
+const productRoutes = require("./routes/product.routes");
+const authRoutes = require("./routes/auth.routes");
+const productTypeRoutes = require("./routes/productType.routes");
+const subProductTypeRoutes = require("./routes/subProductType.routes");
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.set("port", process.env.PORT || 8100);
@@ -20,7 +25,17 @@ function supportCrossOriginScript(req, res, next) {
   res.header("Access-Control-Allow-Headers", "Content-Type", "Authorization");
   next();
 }
+
 app.use("/products", productRoutes);
+app.use("/subProductType", subProductTypeRoutes);
+app.use("/productType", productTypeRoutes);
+app.use("/auth",authRoutes);
+
+
+
+
+
+
 
 // app.options('/submitIssue', supportCrossOriginScript);
 // app.post('/submitIssue', supportCrossOriginScript, function (req, res) {

@@ -4,7 +4,7 @@ config.db = {};
 
 config.db.host = "localhost";
 config.db.user = "root";
-config.db.password = "rootpassword";
+config.db.password = "Warning@123";
 config.db.database = "ecommerce";
 const pool = mysql.createConnection({
   host: config.db.host,
