@@ -1,39 +1,30 @@
 const mysql = require("../database/database.config");
 
-exports.getAllProductCategories = (res) => {
+exports.getAllProductCategories = () => {
 
   return mysql.execute(
       `SELECT * FROM product_type `
     )
-    .then((rows, err) => {
-      res.send(JSON.stringify(rows[0])) ? rows : res.end(err);
-    });
 
 }
 
-exports.getProductCategoryById = (req, res) => {
+exports.getProductCategoryById = (req) => {
 
   return mysql.execute(
       `SELECT * FROM product_type where ProductTypeID=?`,
       [
         req.params.id,
       ])
-    .then((rows, err) => {
-      res.send(JSON.stringify(rows[0])) ? rows : res.send(err);
-    });
 
 }
 
-exports.deleteProductCategoryById = (req,res) => {
+exports.deleteProductCategoryById = (req) => {
 
    return mysql.execute(
        `DELETE FROM  product_type where ProductTypeID=?`,
        [
          req.params.id
        ])
-     .then((rows, err) => {
-       res.send(err) ? err : res.send('Deleted product category successfully');
-     });
 
 };
 

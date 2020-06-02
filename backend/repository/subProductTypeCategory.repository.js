@@ -19,27 +19,21 @@ exports.addSubProductTypeCategory = (model) => {
 
 };
 
-exports.getAllSubProductTyepCategories = (res) => {
+exports.getAllSubProductTyepCategories = () => {
 
   return mysql.execute(
-      `SELECT * FROM sub_product_type `
-    )
-    .then((rows, err) => {
-      res.send(JSON.stringify(rows[0])) ? rows : res.end(err);
-    });
+    `SELECT * FROM sub_product_type `
+  )
 
 }
 
-exports.getSubProductTyepCategoryById = (req, res) => {
+exports.getSubProductTyepCategoryById = (req) => {
 
   return mysql.execute(
-      `SELECT * FROM sub_product_type where SubProductTypeId=?`,
-      [
-        req.params.id,
-      ])
-    .then((rows, err) => {
-      res.send(JSON.stringify(rows[0])) ? rows : res.end(err);
-    });
+    `SELECT * FROM sub_product_type where SubProductTypeId=?`,
+    [
+      req.params.id,
+    ])
 
 };
 

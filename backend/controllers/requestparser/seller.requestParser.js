@@ -1,6 +1,6 @@
-exports.parse = (reqMoodel) => {
+exports.parse = (reqModel) => {
 
-  let value = reqMoodel;
+  let value = reqModel;
 
   let model = {
     sellerName: value.sellerName,

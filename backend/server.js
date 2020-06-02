@@ -1,6 +1,7 @@
 var express = require("express"),
   path = require("path"),
   http = require("http");
+var cors = require("cors");
 var url = require("url");
 var bodyParser = require("body-parser");
 var app = express();
@@ -10,6 +11,7 @@ const authRoutes = require("./routes/auth.routes");
 const productTypeRoutes = require("./routes/productType.routes");
 const subProductTypeRoutes = require("./routes/subProductType.routes");
 
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.set("port", process.env.PORT || 8100);
@@ -18,17 +20,11 @@ app.listen(app.get("port"), function () {
   console.log("Express server listening on port " + app.get("port"));
 });
 
-function supportCrossOriginScript(req, res, next) {
-  res.status(200);
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE");
-  res.header("Access-Control-Allow-Headers", "Content-Type", "Authorization");
-  next();
-}
+
 
 app.use("/products", productRoutes);
-app.use("/subProductType", subProductTypeRoutes);
-app.use("/productType", productTypeRoutes);
+app.use("/subProductTypes", subProductTypeRoutes);
+app.use("/productTypes", productTypeRoutes);
 app.use("/auth",authRoutes);
 
 

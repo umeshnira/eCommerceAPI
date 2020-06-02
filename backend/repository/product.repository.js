@@ -1,26 +1,20 @@
 const mysql = require("../database/database.config");
 
-exports.getAllProduct = (res) => {
+exports.getAllProduct = () => {
 
   return mysql.execute(
-      `SELECT * FROM product `
-    )
-    .then((rows, err) => {
-      res.send(JSON.stringify(rows[0])) ? rows : res.end(err);
-    });
+    `SELECT * FROM product `
+  )
 
 }
 
-exports.getProductById = (req, res) => {
+exports.getProductById = (req) => {
 
   return mysql.execute(
-      `SELECT * FROM product where ProductId=?`,
-      [
-        req.params.id,
-      ])
-    .then((rows, err) => {
-      res.send(JSON.stringify(rows[0])) ? rows : res.send(err);
-    });
+    `SELECT * FROM product where ProductId=?`,
+    [
+      req.params.id,
+    ])
 
 }
 
@@ -36,7 +30,7 @@ exports.deleteProductById = (req) => {
 
 };
 
-exports.addProduct = (model, res) => {
+exports.addProduct = (model) => {
 
   return mysql.execute(
     `INSERT INTO product (
@@ -55,18 +49,18 @@ exports.addProduct = (model, res) => {
 
 };
 
-  exports.editProductById = (model, req) => {
+exports.editProductById = (model, req) => {
 
-    return mysql.execute(
-      `UPDATE product set 
+  return mysql.execute(
+    `UPDATE product set 
       ProductName =? , 
       ProductDescription =? 
       WHERE ProductId = ?`,
-      [
-        model.productName,
-        model.productDescription,
-        req.params.id
-      ]
-    )
+    [
+      model.productName,
+      model.productDescription,
+      req.params.id
+    ]
+  )
 
-  };
+};

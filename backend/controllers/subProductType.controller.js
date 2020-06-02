@@ -11,8 +11,7 @@ exports.addSubProductTypeCategory = async (req, res) => {
   
       const model = await subProductTypeParser.subProductTypeCategoryModel(req);
       const newSubProductTypeCategory = await subProductTypeCategoryRepository.addSubProductTypeCategory(model);
-      res.send("Sub product category added successfully");
-      res.end();
+      res.status(200).send("Sub product category added successfully");
   
     } catch (error) {
       console.log(error);
@@ -24,7 +23,8 @@ exports.addSubProductTypeCategory = async (req, res) => {
   
     try {
   
-      const subProductTypeCategories = await subProductTypeCategoryRepository.getAllSubProductTyepCategories(res);
+      const subProductTypeCategories = await subProductTypeCategoryRepository.getAllSubProductTyepCategories();
+      res.status(200).send(JSON.stringify(rows[0]));
      
     } catch (error) {
       console.log(error);
@@ -36,7 +36,8 @@ exports.addSubProductTypeCategory = async (req, res) => {
   
     try {
   
-      const subProductTypeCategory = await subProductTypeCategoryRepository.getSubProductTyepCategoryById(req,res);
+      const subProductTypeCategory = await subProductTypeCategoryRepository.getSubProductTyepCategoryById(req);
+      res.status(200).send(JSON.stringify(rows[0]));
      
     } catch (error) {
       console.log(error);
@@ -50,7 +51,7 @@ exports.addSubProductTypeCategory = async (req, res) => {
   
       const model = await subProductTypeParser.subProductTypeCategoryModel(req);
       const updatedSubProductTypeCategory = await subProductTypeCategoryRepository.editSubProductTyepCategoryById(model,req);
-      res.send("Sub product category updated successfully");
+      res.status(200).send("Sub product category updated successfully");
      
     } catch (error) {
       console.log(error);
@@ -63,7 +64,7 @@ exports.addSubProductTypeCategory = async (req, res) => {
     try {
   
       const deletedSubProductTypeCategory = await subProductTypeCategoryRepository.deleteSubProductTypeCategoryById(req);
-      res.send("Deleted Sub product category of id  " +req.params.id + " successfully");
+      res.status(200).send("Deleted Sub product category of id  " +req.params.id + " successfully");
      
     } catch (error) {
       console.log(error);

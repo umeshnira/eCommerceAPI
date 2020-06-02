@@ -1,16 +1,11 @@
 var mysql = require("mysql2");
-var config = {};
-config.db = {};
+const config = require('../config.json');
 
-config.db.host = "localhost";
-config.db.user = "root";
-config.db.password = "Warning@123";
-config.db.database = "ecommerce";
 const pool = mysql.createConnection({
-  host: config.db.host,
-  user: config.db.user,
-  password: config.db.password,
-  database: config.db.database,
+  host: config.dbSettings.host,
+  user: config.dbSettings.user,
+  password: config.dbSettings.password,
+  database: config.dbSettings.database,
   multipleStatements: true,
 });
 

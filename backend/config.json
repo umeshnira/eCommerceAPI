@@ -1,0 +1,10 @@
+{
+
+  "dbSettings": {
+    "host": "localhost",
+    "user": "root",
+    "password": "Warning@123",
+    "database": "ecommerce"
+  }
+
+}
