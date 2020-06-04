@@ -1,7 +1,6 @@
 const mysql = require("../database/database.config");
 
-
-exports.addSubProductTypeCategory = (model) => {
+exports.addSubProductType = (model) => {
 
   return mysql.query(
     `INSERT INTO SUB_PRODUCT_TYPE (
@@ -12,48 +11,47 @@ exports.addSubProductTypeCategory = (model) => {
          values (?,?,?)`,
     [
       model.productTypeId,
-      model.name,
-      model.description,
+      model.subProductTypeName,
+      model.subProductTypeDescription,
     ]
   )
-
 };
 
-exports.getAllSubProductTyepCategories = () => {
+exports.getAllSubProductTypes = () => {
 
   return mysql.execute(
     `SELECT * FROM sub_product_type `
   )
+};
 
-}
-
-exports.getSubProductTyepCategoryById = (req) => {
+exports.getSubProductTypeById = (req) => {
 
   return mysql.execute(
     `SELECT * FROM sub_product_type where SubProductTypeId=?`,
     [
       req.params.id,
-    ])
-
+    ]
+  )
 };
 
-exports.editSubProductTyepCategoryById = (model, req) => {
+exports.editSubProductTypeById = (model, req) => {
 
   return mysql.execute(
     `UPDATE sub_product_type set 
+      ProductTypeId =?,
       SubProductTypeName =? , 
       SubProductTypeDescription =? 
       WHERE SubProductTypeId = ?`,
     [
-      model.name,
-      model.description,
+      model.productTypeId,
+      model.subProductTypeName,
+      model.subProductTypeDescription,
       req.params.id
     ]
   )
-
 };
 
-exports.deleteSubProductTypeCategoryById = (req) => {
+exports.deleteSubProductTypeById = (req) => {
 
   return mysql.execute(
     `DELETE FROM  sub_product_type where SubProductTypeId=?`,
@@ -61,5 +59,4 @@ exports.deleteSubProductTypeCategoryById = (req) => {
       req.params.id
     ]
   )
-
 };

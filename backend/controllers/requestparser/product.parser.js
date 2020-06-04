@@ -1,14 +1,11 @@
-exports.productModel = (req) => {
-  
-    let value = req.body;
+exports.productModel = (value) => {
 
-    let model = {
+  let model = {
+    subProductTypeId: value.subProductTypeId,
+    productName: value.productName,
+    productDescription: value.productDescription,
+    isDeleted: value.isDeleted
+  }
 
-        subProductTypeId : value.subProductTypeId,
-        productName : value.productName,
-        productDescription : value.productDescription
-
-    }
-
-    return model;
+  return model;
 }

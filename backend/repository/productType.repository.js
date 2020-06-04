@@ -1,60 +1,58 @@
 const mysql = require("../database/database.config");
 
-exports.getAllProductCategories = () => {
+exports.getAllProductTypes = () => {
 
   return mysql.execute(
-      `SELECT * FROM product_type `
-    )
-
-}
-
-exports.getProductCategoryById = (req) => {
-
-  return mysql.execute(
-      `SELECT * FROM product_type where ProductTypeID=?`,
-      [
-        req.params.id,
-      ])
-
-}
-
-exports.deleteProductCategoryById = (req) => {
-
-   return mysql.execute(
-       `DELETE FROM  product_type where ProductTypeID=?`,
-       [
-         req.params.id
-       ])
-
+    `SELECT * FROM product_type `
+  )
 };
 
-exports.addProductCategory = (model) => {
+exports.getProductTypeById = (req) => {
 
-    return mysql.query(
-      `INSERT INTO product_type (
+  return mysql.execute(
+    `SELECT * FROM product_type where ProductTypeID=?`,
+    [
+      req.params.id,
+    ]
+  )
+};
+
+exports.deleteProductTypeById = (req) => {
+
+  return mysql.execute(
+    `DELETE FROM  product_type where ProductTypeID=?`,
+    [
+      req.params.id
+    ]
+  )
+};
+
+exports.addProductType = (model) => {
+
+  return mysql.query(
+    `INSERT INTO product_type (
         ProductTypeName,
         ProductTypeDescription
         )
            values (?,?)`,
-      [
-        model.name,
-        model.description
-      ]
-    )
-  
-  };
+    [
+      model.productTypeName,
+      model.productTypeDescription
+    ]
+  )
+};
 
-  exports.editProductCategoryById = (model, req) => {
+exports.editProductTypeById = (model, req) => {
 
-    return mysql.execute(
-      `UPDATE product_type set 
+  return mysql.execute(
+    `UPDATE product_type set 
       ProductTypeName =? , 
       ProductTypeDescription =? 
       WHERE ProductTypeId = ?`,
-      [
-        model.name,
-        model.description,
-        req.params.id
-      ])
-
-  };
+    [
+      model.productTypeName,
+      model.productTypeDescription,
+      req.params.id
+    ]
+  )
+};

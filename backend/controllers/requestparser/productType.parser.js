@@ -1,11 +1,11 @@
 exports.productTypeModel = (req) => {
 
-    let value = req.body;
+  let value = req.body;
 
-    let model = {
-        name : value.productTypeName,
-        description : value.productTypeDescription
-    }
+  let model = {
+    productTypeName: value.productTypeName,
+    productTypeDescription: value.productTypeDescription
+  }
 
-    return model;
+  return model;
 }

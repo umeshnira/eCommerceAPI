@@ -13,7 +13,9 @@ const subProductTypeRoutes = require("./routes/subProductType.routes");
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({
+  extended: false
+}));
 app.set("port", process.env.PORT || 8100);
 app.use(express.static(path.join(__dirname, "../dist/ECommerceApplication")));
 app.listen(app.get("port"), function () {
@@ -25,7 +27,7 @@ app.listen(app.get("port"), function () {
 app.use("/products", productRoutes);
 app.use("/subProductTypes", subProductTypeRoutes);
 app.use("/productTypes", productTypeRoutes);
-app.use("/auth",authRoutes);
+app.use("/auth", authRoutes);
 
 
 

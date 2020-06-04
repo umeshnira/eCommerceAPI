@@ -1,8 +1,7 @@
 const mysql = require("../database/database.config");
-
+var myDate = new Date();
 
 exports.addSeller = (model) => {
-
 
   return mysql.query(
     `INSERT INTO SELLER (
@@ -17,9 +16,10 @@ exports.addSeller = (model) => {
             PanCard, 
             BankAcNo, 
             ISFCCode,
-            Password
+            Password,
+            CreatedDate
             )
-     values (?,?,?,?,?,?,?,?,?,?,?,?)`,
+     values (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     [
       model.sellerName,
       model.address,
@@ -32,10 +32,8 @@ exports.addSeller = (model) => {
       model.pancard,
       model.bankActNo,
       model.ifscCode,
-      model.password
+      model.password,
+      myDate
     ]
-
   )
-
-
 };

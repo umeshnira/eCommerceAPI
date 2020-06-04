@@ -1,16 +1,12 @@
-exports.parse = (reqMoodel) => {
+exports.parse = (reqModel) => {
 
-    let value = reqMoodel;
-    console.log('client',value);
-  
-    let model = {
-      userName: value.userName,
-      password: value.password,
-      role: value.role,
-      isDeleted: value.isDeleted,
-    }
-  
-    return model;
-  
+  let model = {
+    userName: reqModel.userName,
+    password: reqModel.password,
+    role: reqModel.role,
+    isDeleted: reqModel.isDeleted,
   }
-  
+
+  return model;
+
+}

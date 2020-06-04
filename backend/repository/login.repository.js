@@ -1,5 +1,4 @@
 const mysql = require("../database/database.config");
-const authController = require('../controllers/auth.controller')
 
 exports.addLoginDetails = (model, userId) => {
 
@@ -14,11 +13,10 @@ exports.addLoginDetails = (model, userId) => {
          values (?,?,?,?,?)`,
     [
       userId,
-      model.email ? model.email : model.userName,
+      model.email,
       model.password,
       model.role,
       model.isDeleted,
     ]
-
   )
 }

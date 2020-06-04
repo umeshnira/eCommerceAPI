@@ -1,22 +1,21 @@
 const mysql = require("../database/database.config");
+var myDate = new Date();
 
-exports.getAllProduct = () => {
+exports.getAllProducts = () => {
 
-  return mysql.execute(
+  return mysql.query(
     `SELECT * FROM product `
   )
-
-}
+};
 
 exports.getProductById = (req) => {
 
-  return mysql.execute(
+  return mysql.query(
     `SELECT * FROM product where ProductId=?`,
     [
       req.params.id,
     ])
-
-}
+};
 
 exports.deleteProductById = (req) => {
 
@@ -26,8 +25,6 @@ exports.deleteProductById = (req) => {
       req.params.id
     ]
   )
-
-
 };
 
 exports.addProduct = (model) => {
@@ -36,17 +33,18 @@ exports.addProduct = (model) => {
     `INSERT INTO product (
         SubProductTypeId,
         ProductName,
-        ProductDescription
+        ProductDescription,
+        CreatedDate
         )
-           values( ? , ? , ? )
+           values( ? , ? , ?, ? )
            `,
     [
       model.subProductTypeId,
       model.productName,
-      model.productDescription
+      model.productDescription,
+      myDate
     ]
   )
-
 };
 
 exports.editProductById = (model, req) => {
@@ -62,5 +60,4 @@ exports.editProductById = (model, req) => {
       req.params.id
     ]
   )
-
 };

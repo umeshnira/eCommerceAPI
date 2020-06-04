@@ -1,21 +1,19 @@
 exports.parse = (reqModel) => {
 
-  let value = reqModel;
-
   let model = {
-    sellerName: value.sellerName,
-    address: value.address,
-    landmark: value.landmark,
-    pincode: value.pincode,
-    email: value.email,
-    isDeleted: value.isDeleted,
-    phoneNo: value.phoneNo,
-    aadharcard: value.aadharcard,
-    pancard: value.pancard,
-    bankActNo: value.bankActNo,
-    ifscCode: value.ifscCode,
-    password: value.password,
-    role: value.role
+    sellerName: reqModel.sellerName,
+    address: reqModel.address,
+    landmark: reqModel.landmark,
+    pincode: reqModel.pincode,
+    email: reqModel.email,
+    isDeleted: reqModel.isDeleted,
+    phoneNo: reqModel.phoneNo,
+    aadharcard: reqModel.aadharcard,
+    pancard: reqModel.pancard,
+    bankActNo: reqModel.bankActNo,
+    ifscCode: reqModel.ifscCode,
+    password: reqModel.password,
+    role: reqModel.role
   }
 
   return model;

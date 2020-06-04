@@ -1,72 +1,95 @@
 const productTypeParser = require("../controllers/requestparser/productType.parser");
 const productTypeRepository = require("../repository/productType.repository");
+const productTypeValidator = require('../controllers/validator/productType.validator');
 
 
 // Apis of product_type
 
-exports.getAllProductCategories = async (req, res) => {
+exports.getAllProductTypes = async (req, res) => {
 
   try {
 
-    const productCategories = await productTypeRepository.getAllProductCategories();
-    res.status(200).send(JSON.stringify(rows[0]));
+    const productTypes = await productTypeRepository.getAllProductTypes();
+
+    if (productTypes[0].length > 0) {
+      res.status(200).json(productTypes[0]);
+    } else {
+      res.status(404).send('Data Not Found');
+    }
 
   } catch (error) {
     console.log(error);
-    res.send(error);
+    res.status(500).send(error.message);
   }
 
 };
 
-exports.getProductCategoryById = async (req, res) => {
+exports.getProductTypeById = async (req, res) => {
 
   try {
 
-    const productCategoryById = await productTypeRepository.getProductCategoryById(req);
-    res.status(200).send(JSON.stringify(rows[0]));
+    const productTypeById = await productTypeRepository.getProductTypeById(req);
+
+    if (productTypeById[0].length > 0) {
+      res.status(200).json(productTypeById[0]);
+    } else {
+      res.status(404).send('Data Not Found');
+    }
 
   } catch (error) {
     console.log(error);
-    res.send(error);
+    res.status(500).send(error.message);
   }
 };
 
-exports.deleteProductCategory = async (req, res) => {
+exports.deleteProductType = async (req, res) => {
   try {
 
-    const deletedProductCategory = await productTypeRepository.deleteProductCategoryById(req);
+    const deletedProductType = await productTypeRepository.deleteProductTypeById(req);
     res.status(200).send('Deleted Product Category successfully');
 
   } catch (error) {
     console.log(error);
-    res.send(error);
+    res.status(500).send(error.message);
   }
 };
 
-exports.addProductCategory = async (req, res) => {
+exports.addProductType = async (req, res) => {
 
   try {
 
-    const model = productTypeParser.productTypeModel(req);
-    const newproductCategory = await productTypeRepository.addProductCategory(model);
-    res.status(200).send("Product type added successfully");
+    const model = await productTypeParser.productTypeModel(req);
+
+    const validationResult = await productTypeValidator.productTypeModelValidation(model);
+    if (validationResult.length > 0) {
+      res.status(400).send(validationResult);
+    } else {
+      const newProductType = await productTypeRepository.addProductType(model);
+      res.status(200).send("Product type added successfully");
+    }
 
   } catch (error) {
     console.log(error);
-    res.send(error);
+    res.status(500).send(error.message);
   }
 };
 
-exports.editProductCategoryById = async (req, res) => {
+exports.editProductTypeById = async (req, res) => {
 
   try {
 
-    const model = productTypeParser.productTypeModel(req);
-    const updatedProductTypeCategory = await productTypeRepository.editProductCategoryById(model, req);
-    res.status(200).send("Product type updated successfully");
+    const model = await productTypeParser.productTypeModel(req);
+
+    const validationResult = await productTypeValidator.productTypeModelValidation(model);
+    if (validationResult.length > 0) {
+      res.status(400).send(validationResult);
+    } else {
+      const updatedProductType = await productTypeRepository.editProductTypeById(model, req);
+      res.status(200).send("Product type updated successfully");
+    }
 
   } catch (error) {
     console.log(error);
-    res.send(error);
+    res.status(500).send(error.message);
   }
 };
