@@ -6,7 +6,6 @@ exports.parse = (reqModel) => {
     landmark: reqModel.landmark,
     pincode: reqModel.pincode,
     email: reqModel.email,
-    isDeleted: reqModel.isDeleted,
     phoneNo: reqModel.phoneNo,
     aadharcard: reqModel.aadharcard,
     pancard: reqModel.pancard,

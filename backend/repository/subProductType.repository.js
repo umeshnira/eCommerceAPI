@@ -1,4 +1,5 @@
 const mysql = require("../database/database.config");
+var date = new Date();
 
 exports.addSubProductType = (model) => {
 
@@ -6,13 +7,15 @@ exports.addSubProductType = (model) => {
     `INSERT INTO SUB_PRODUCT_TYPE (
             ProductTypeId,
             SubProductTypeName,
-            SubProductTypeDescription
+            SubProductTypeDescription,
+            CreatedDate
                 )
-         values (?,?,?)`,
+         values (?,?,?,?)`,
     [
       model.productTypeId,
       model.subProductTypeName,
       model.subProductTypeDescription,
+      date
     ]
   )
 };
@@ -60,3 +63,21 @@ exports.deleteSubProductTypeById = (req) => {
     ]
   )
 };
+
+exports.getSubProductTypesAganistProductTypeId = (req) => {
+
+  const getSubProductTypeQuery =
+    `select sub_product_type.subProductTypeId, 
+     sub_product_type.subProductTypeName, 
+     product_type.productTypeId, 
+     product_type.productTypeName 
+     from 
+     sub_product_type 
+     INNER JOIN 
+     product_type
+     ON 
+     sub_product_type.ProductTypeId = product_type.ProductTypeId
+     WHERE 
+     sub_product_type.ProductTypeId = ?`;
+  return mysql.query(getSubProductTypeQuery, [req.params.id]);
+}

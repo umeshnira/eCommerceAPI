@@ -7,5 +7,6 @@ router.get("/getAllSubProdctTypes", subProductTypeController.getAllSubProductTyp
 router.get("/getSubProdctTypeById/:id", subProductTypeController.getSubProductTypeById);
 router.put("/editSubProductTypeById/:id", subProductTypeController.editSubProductTypeById);
 router.delete("/deleteSubProductTypeById/:id", subProductTypeController.deleteSubProductTypeById);
+router.get("/getSubProductTypesAganistProductTypeId/:id", subProductTypeController.getSubProductTypesAganistProductTypeId);
 
 module.exports = router;

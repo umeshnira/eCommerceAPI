@@ -94,3 +94,71 @@ exports.deleteSubProductTypeById = async (req, res) => {
     res.status(500).send(error.message);
   }
 };
+
+exports.getSubProductTypesAganistProductTypeId = async (req, res) => {
+  try {
+    
+    const list = await subProductTypeRepository.getSubProductTypesAganistProductTypeId(req);
+    if(list[0].length > 0){
+    res.status(200).json(list[0]);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+} 
+ 
+createModel = (result) => {
+resultItem = [];
+items=[];
+  for (item in result){
+    
+    var productType = {
+      id: result[item].productTypeId,
+      name: result[item].productTypeName,
+      subProductType : {
+        id: result[item].subProductTypeId,
+        name: result[item].subproductTypeName
+      } 
+    }
+    resultItem.push(productType);
+  }
+
+    
+console.log('item',resultItem);
+}
+
+
+// createModel = async (results) => {
+//   try{
+//     var source = [];
+//     var items = [];
+//   for (i = 0; i < results.length; i++) {
+//     var item = results[i];
+//     var label = item["productTypeName"];
+//     console.log('ll',label);
+//     var parentid = item["productTypeId"];
+//     var id = item["subproductTypeId"];
+
+//     if (items[parentid]) {
+//       var item = { parentid: parentid, label: label, item: item };
+
+//       if (!items[parentid].items) {
+//           items[parentid].items = [];
+//       }
+
+//       items[parentid].items[items[parentid].items.length] = item;
+//       items[id] = item;
+
+//   }
+//   else {
+//       items[id] = { parentid: parentid, label: label, item: item };
+//       source[id] = items[id];
+//  }
+// }
+// return items
+//   }
+//   catch(error) 
+//   {
+//     console.log(error);
+//   }
+// }

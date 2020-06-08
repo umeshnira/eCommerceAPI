@@ -7,14 +7,12 @@ exports.addClient = (model) => {
     `INSERT INTO CLIENT (
             UserName,
             Password,
-            IsDeleted,
             CreatedDate
             )
-     values (?,?,?,?)`,
+     values (?,?,?)`,
     [
       model.userName,
       model.password,
-      model.isDeleted,
       myDate
     ]
   )

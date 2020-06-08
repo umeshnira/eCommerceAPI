@@ -13,7 +13,7 @@ exports.addLoginDetails = (model, userId) => {
          values (?,?,?,?,?)`,
     [
       userId,
-      model.email,
+      model.email ? model.email : model.userName,
       model.password,
       model.role,
       model.isDeleted,

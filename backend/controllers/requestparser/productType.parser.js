@@ -4,7 +4,7 @@ exports.productTypeModel = (req) => {
 
   let model = {
     productTypeName: value.productTypeName,
-    productTypeDescription: value.productTypeDescription
+    productTypeDescription: value.productTypeDescription,
   }
 
   return model;

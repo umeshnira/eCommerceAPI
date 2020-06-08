@@ -1,4 +1,5 @@
 const mysql = require("../database/database.config");
+var date = new Date();
 
 exports.getAllProductTypes = () => {
 
@@ -32,12 +33,14 @@ exports.addProductType = (model) => {
   return mysql.query(
     `INSERT INTO product_type (
         ProductTypeName,
-        ProductTypeDescription
+        ProductTypeDescription,
+        CreatedDate
         )
-           values (?,?)`,
+           values (?,?,?)`,
     [
       model.productTypeName,
-      model.productTypeDescription
+      model.productTypeDescription,
+      date
     ]
   )
 };

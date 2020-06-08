@@ -10,7 +10,6 @@ exports.addSeller = (model) => {
             LandMark, 
             Pincode, 
             Email, 
-            IsDeleted, 
             PhoneNo, 
             AadharCard, 
             PanCard, 
@@ -19,14 +18,13 @@ exports.addSeller = (model) => {
             Password,
             CreatedDate
             )
-     values (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+     values (?,?,?,?,?,?,?,?,?,?,?,?)`,
     [
       model.sellerName,
       model.address,
       model.landmark,
       model.pincode,
       model.email,
-      model.isDeleted,
       model.phoneNo,
       model.aadharcard,
       model.pancard,

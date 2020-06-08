@@ -19,8 +19,7 @@ exports.addRegistrationDetails = async (req, res) => {
       if (validationResult.length > 0) {
         res.status(400).send(validationResult);
       } else {
-        addSeller(seller);
-        res.status(200).send("Registration completed Successfully");
+        addSeller(seller, res);
       }
 
     } else if (reqModel.role === 'Client') {
@@ -30,8 +29,7 @@ exports.addRegistrationDetails = async (req, res) => {
       if (validationResult.length > 0) {
         res.status(400).send(validationResult);
       } else {
-        addClient(client);
-        res.status(200).send("Registration completed Successfully");
+        addClient(client, res);
       }
 
     } else {
@@ -46,19 +44,33 @@ exports.addRegistrationDetails = async (req, res) => {
 };
 
 
-addSeller = async (sellerModel) => {
+addSeller = async (sellerModel, res) => {
 
-  const newSeller = await sellerRepository.addSeller(sellerModel);
-  const insertId = newSeller[0].insertId;
-  const login = await loginRepository.addLoginDetails(sellerModel, insertId);
+  try {
 
+    const newSeller = await sellerRepository.addSeller(sellerModel);
+    const insertId = newSeller[0].insertId;
+    const login = await loginRepository.addLoginDetails(sellerModel, insertId);
+    res.status(200).json({"message": "Registration completed Successfully"});
+    res.send(body);
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
 
 }
 
-addClient = async (clientModel) => {
+addClient = async (clientModel, res) => {
 
-  const newClient = await clientRepository.addClient(clientModel);
-  const insertId = newClient[0].insertId;
-  const login = await loginRepository.addLoginDetails(clientModel, insertId);
+  try {
+
+    const newClient = await clientRepository.addClient(clientModel);
+    const insertId = newClient[0].insertId;
+    const login = await loginRepository.addLoginDetails(clientModel, insertId);
+    res.status(200).json({"message": "Registration completed Successfully"});
+    res.send(body);
+  } catch (error) {
+    res.status(500).send(error.message);
+    console.log(error);
+  }
 
 }
