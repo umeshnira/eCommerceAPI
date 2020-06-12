@@ -1,4 +1,4 @@
-var mysql = require("mysql2");
+import mysql from 'mysql2';
 const config = require('../config.json');
 
 const pool = mysql.createConnection({

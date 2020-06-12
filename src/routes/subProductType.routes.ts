@@ -1,5 +1,5 @@
+import * as express from 'express';
 const subProductTypeController = require("../controllers/subProductType.controller");
-const express = require("express");
 const router = express.Router();
 
 router.post("/addSubProductType", subProductTypeController.addSubProductType);

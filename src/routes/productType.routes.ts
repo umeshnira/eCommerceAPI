@@ -1,5 +1,5 @@
+import * as express from 'express';
 const productTypeController = require("../controllers/productType.controller");
-const express = require("express");
 const router = express.Router();
 
 router.get("/getAllProductTypes", productTypeController.getAllProductTypes);

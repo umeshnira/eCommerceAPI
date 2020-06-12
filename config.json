@@ -7,7 +7,7 @@
     "database": "ecommerce"
   },
   "environment": {
-    "port": "8100"
+    "port": "8101"
   }
 
 }

@@ -1,4 +1,5 @@
-const mysql = require("../database/database.config");
+// const mysql = require("../database/database.config");
+import mysql from 'mysql2';
 var myDate = new Date();
 
 exports.addClient = (model) => {
