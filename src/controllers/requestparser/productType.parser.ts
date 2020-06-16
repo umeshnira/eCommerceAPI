@@ -1,11 +1,18 @@
-exports.productTypeModel = (req) => {
 
-  let value = req.body;
+class Modelparser {
 
-  let model = {
-    productTypeName: value.productTypeName,
-    productTypeDescription: value.productTypeDescription,
+  static productTypeModel = (req) => {
+
+    const value = req.body;
+
+    const model = {
+      name: value.name,
+      description: value.description,
+      createdBy: value.createdBy
+    }
+
+    return model;
   }
-
-  return model;
 }
+
+export default Modelparser;

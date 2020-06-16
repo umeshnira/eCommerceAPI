@@ -1,11 +1,18 @@
-exports.parse = (reqModel) => {
 
-  let model = {
-    userName: reqModel.userName,
-    password: reqModel.password,
-    role: reqModel.role
+class ClientParser {
+
+  static parse = (req) => {
+
+    const value = req.body;
+
+    const model = {
+      userName: value.userName,
+      password: value.password,
+      role: value.role
+    }
+
+    return model;
+
   }
-
-  return model;
-
 }
+export default ClientParser;

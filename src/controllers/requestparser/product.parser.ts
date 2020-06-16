@@ -1,11 +1,18 @@
-exports.productModel = (value) => {
+class ProductPArser {
 
-  let model = {
-    subProductTypeId: value.subProductTypeId,
-    productName: value.productName,
-    productDescription: value.productDescription,
-    isDeleted: value.isDeleted
+  static productModel = (req) => {
+
+    const value = req.body;
+
+    const model = {
+      subProductTypeId: value.subProductTypeId,
+      productName: value.productName,
+      productDescription: value.productDescription,
+      isDeleted: value.isDeleted
+    }
+
+    return model;
   }
-
-  return model;
 }
+
+export default ProductPArser;

@@ -1,0 +1,31 @@
+{
+   "application": {
+      "environment": "DEV"
+   },
+   "database": {
+      "type": "mysql",
+      "host": "localhost",
+      "port": 3306,
+      "username": "root",
+      "password": "Warning@123",
+      "database": "ecommerce",
+      "synchronize": true,
+      "logging": false,
+      "sslCertifciate": "../ssl/BaltimoreCyberTrustRoot.crt.pem",
+      "entities": [
+         "src/entity/**/*.ts",
+         "entity/**/*.js"
+      ],
+      "migrations": [
+         "src/migration/**/*.ts"
+      ],
+      "subscribers": [
+         "src/subscriber/**/*.ts"
+      ],
+      "cli": {
+         "entitiesDir": "src/entity",
+         "migrationsDir": "src/migration",
+         "subscribersDir": "src/subscriber"
+      }
+   }
+}
