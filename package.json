@@ -9,7 +9,7 @@
     "scripts": {
         "prebuild": "tslint -c tslint.json -p tsconfig.json --fix",
         "build": "tsc",
-        "start": "nodemon --watch './src/**/*.ts' --exec ts-node ./src/server.ts",
+        "start": "ts-node-dev --respawn --transpileOnly ./src/server.ts",
         "migration:run": "ts-node ./node_modules/typeorm/cli.js migration:run"
     },
     "dependencies": {
@@ -33,6 +33,7 @@
         "@types/node": "^14.0.13",
         "nodemon": "^2.0.4",
         "ts-node": "^8.10.2",
+        "ts-node-dev": "^1.0.0-pre.48",
         "tslint": "^6.1.2",
         "typescript": "^3.9.5"
     }

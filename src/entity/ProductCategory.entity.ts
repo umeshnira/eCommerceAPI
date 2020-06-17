@@ -9,37 +9,35 @@ import {
 import { Length } from 'class-validator';
 
 @Entity()
-@Unique(['username'])
 
-export class ClientEntity {
+export class ProductCategories {
 
     @PrimaryGeneratedColumn()
     id: number;
 
     @Column()
-    @Length(4, 20)
-    username: string;
+    category_id: number;
 
     @Column()
-    @Length(4, 100)
-    password: string;
+    product_id: number;
 
     @Column({ type: 'boolean', default: false })
-    isDeleted: boolean;
+    status: boolean;
 
     @Column()
     @CreateDateColumn()
-    createdDate: Date;
+    inserted_at: Date;
 
     @Column()
     @Length(4, 20)
-    createdBy: string;
+    inserted_by: string;
 
     @Column()
     @UpdateDateColumn()
-    modifiedDate: Date;
+    updated_at: Date;
 
-    @Column({ nullable: true })
+    @Column({nullable: true})
     @Length(4, 100)
-    modifiedBy: string;
+    updated_by: string;
+
 }

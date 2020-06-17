@@ -10,7 +10,7 @@ import { Length } from 'class-validator';
 
 @Entity()
 
-export class ProductCategoryEntity {
+export class Categories {
 
     @PrimaryGeneratedColumn()
     id: number;
@@ -19,27 +19,26 @@ export class ProductCategoryEntity {
     @Length(4, 20)
     name: string;
 
-    @Column()
-    @Length(4, 100)
-    description: string;
+    @Column({nullable: true})
+    parent_category_id: number;
 
     @Column({ type: 'boolean', default: false })
-    isDeleted: boolean;
+    status: boolean;
 
     @Column()
     @CreateDateColumn()
-    createdDate: Date;
+    inserted_at: Date;
 
     @Column()
     @Length(4, 20)
-    createdBy: string;
+    inserted_by: string;
 
     @Column()
     @UpdateDateColumn()
-    modifiedDate: Date;
+    updated_at: Date;
 
     @Column({nullable: true})
     @Length(4, 100)
-    modifiedBy: string;
+    updated_by: string;
 
 }

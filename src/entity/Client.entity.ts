@@ -11,7 +11,7 @@ import { Length } from 'class-validator';
 @Entity()
 @Unique(['email'])
 
-export class SellerEntity {
+export class Clients {
 
     @PrimaryGeneratedColumn()
     id: number;
@@ -21,60 +21,42 @@ export class SellerEntity {
     name: string;
 
     @Column()
-    @Length(4, 20)
+    @Length(4, 100)
     address: string;
 
     @Column()
-    @Length(4, 20)
+    @Length(4, 100)
     landmark: string;
 
     @Column()
     @Length(4, 20)
-    pincode: string;
+    pin_code: string;
 
     @Column()
     @Length(4, 20)
     email: string;
 
     @Column()
-    phone: number;
+    @Length(4, 20)
+    phone: string;
 
     @Column({ type: 'boolean', default: false })
-    isDeleted: boolean;
-
-    @Column()
-    @Length(4, 20)
-    aadharcard: string;
-
-    @Column()
-    @Length(4, 20)
-    pancard: string;
-
-    @Column()
-    @Length(4, 20)
-    bankActNo: string;
-
-    @Column()
-    @Length(4, 100)
-    isfcCode: string;
-
-    @Column()
-    @Length(4, 100)
-    password: string;
+    status: boolean;
 
     @Column()
     @CreateDateColumn()
-    createdDate: Date;
+    inserted_at: Date;
 
     @Column()
     @Length(4, 20)
-    createdBy: string;
+    inserted_by: string;
 
     @Column()
     @UpdateDateColumn()
-    modifiedDate: Date;
+    updated_at: Date;
 
     @Column({ nullable: true })
     @Length(4, 100)
-    modifiedBy: string;
+    updated_by: string;
 }
+

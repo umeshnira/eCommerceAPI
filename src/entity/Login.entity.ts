@@ -7,20 +7,25 @@ import {
     UpdateDateColumn
 } from 'typeorm';
 import { Length } from 'class-validator';
-import { UserRole } from './RoleEntity';
+import { UserRole } from './Role.entity';
 
 
 @Entity()
-@Unique(['username'])
+@Unique(['user_name'])
 
-export class LoginEntity {
+export class Login {
 
     @PrimaryGeneratedColumn()
     id: number;
 
     @Column()
+    // tslint:disable-next-line: variable-name
+    user_id: number;
+
+    @Column()
     @Length(4, 20)
-    username: string;
+    // tslint:disable-next-line: variable-name
+    user_name: string;
 
     @Column()
     @Length(4, 100)
@@ -33,21 +38,25 @@ export class LoginEntity {
     role: UserRole;
 
     @Column({ type: 'boolean', default: false })
-    isDeleted: boolean;
+    status  : boolean;
 
     @Column()
     @CreateDateColumn()
-    createdDate: Date;
+    // tslint:disable-next-line: variable-name
+    inserted_at: Date;
 
     @Column()
     @Length(4, 20)
-    createdBy: string;
+    // tslint:disable-next-line: variable-name
+    inserted_by: string;
 
     @Column()
     @UpdateDateColumn()
-    modifiedDate: Date;
+    // tslint:disable-next-line: variable-name
+    updated_at: Date;
 
     @Column({ nullable: true })
     @Length(4, 100)
-    modifiedBy: string;
+    // tslint:disable-next-line: variable-name
+    updated_by: string;
 }

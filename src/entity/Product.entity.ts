@@ -10,13 +10,10 @@ import { Length } from 'class-validator';
 
 @Entity()
 
-export class ProductEntity {
+export class Products {
 
     @PrimaryGeneratedColumn()
     id: number;
-
-    @Column()
-    productCategoryId: number;
 
     @Column()
     @Length(4, 20)
@@ -27,22 +24,42 @@ export class ProductEntity {
     description: string;
 
     @Column({ type: 'boolean', default: false })
-    isDeleted: boolean;
+    status: boolean;
+
+    @Column()
+    batch_no: number;
 
     @Column()
     @CreateDateColumn()
-    createdDate: Date;
+    exp_date: Date;
 
     @Column()
     @Length(4, 20)
-    createdBy: string;
+    star_rate: string;
+
+    @Column("blob")
+    bar_code: Blob;
+
+    @Column("text")
+    about: Text;
+
+    @Column({ type: 'boolean', default: true })
+    is_returnable: boolean;
+
+    @Column()
+    @Length(4, 20)
+    inserted_by: string;
+
+    @Column()
+    @CreateDateColumn()
+    inserted_at: Date;
 
     @Column()
     @UpdateDateColumn()
-    modifiedDate: Date;
+    updated_at: Date;
 
     @Column({ nullable: true })
     @Length(4, 100)
-    modifiedBy: string;
+    updated_by: string;
 
 }
