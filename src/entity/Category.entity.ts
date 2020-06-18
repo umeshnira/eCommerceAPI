@@ -4,9 +4,11 @@ import {
     Column,
     Unique,
     CreateDateColumn,
-    UpdateDateColumn
+    UpdateDateColumn,
+    OneToMany
 } from 'typeorm';
 import { Length } from 'class-validator';
+import { ProductCategories } from '.';
 
 @Entity()
 
@@ -41,4 +43,6 @@ export class Categories {
     @Length(4, 100)
     updated_by: string;
 
+    @OneToMany(type => ProductCategories, category => category.category, {eager:true})
+    category: ProductCategories[]
 }

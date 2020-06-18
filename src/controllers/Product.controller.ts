@@ -90,7 +90,7 @@ class ProductController {
             return;
         }
 
-        res.status(204).send();
+        res.status(204).send('Updated category');
     };
 
     static deleteCategory = async (req: Request, res: Response) => {
@@ -128,6 +128,10 @@ class ProductController {
         const productRepository = getRepository(Products);
         const productCategoryRepository = getRepository(ProductCategories);
 
+        let product = new Products();
+        product = productModel;
+        const productCategory = new ProductCategories();
+
         const errors = await validate(productModel);
         if (errors.length > 0) {
             res.status(400).send(errors);
@@ -135,9 +139,12 @@ class ProductController {
         }
 
         try {
-            const result = await productRepository.save(productModel);
-            productCategoryModel.product_id = result.id;
-            await productCategoryRepository.save(productCategoryModel);
+
+            const result = await productRepository.save(product);
+            productCategory.products = product;
+            productCategory.category = productCategoryModel.category_id;
+            productCategory.inserted_by = productCategoryModel.inserted_by;
+            await productCategoryRepository.save(productCategory);
         } catch (e) {
             res.status(409).send(e.message);
             return;
@@ -151,12 +158,86 @@ class ProductController {
         const productRepository = getRepository(Products);
 
         try {
-            const categories = await productRepository.find({ select: ['id', 'name', 'description'] });
-            res.status(200).json(categories);
+            const products = await productRepository
+                .find({ select: ['id', 'name', 'description'] });
+            res.status(200).json(products);
         } catch (error) {
             res.status(500).send(error.message);
         }
     };
+
+    static getAllProductAganistCategoryId = async (req: Request, res: Response) => {
+
+        const categoryId = req.params.id;
+        const productRepository = getRepository(Products);
+
+        try {
+            const products = await productRepository
+                .find({
+                    select: ['id', 'name', 'description'],
+                    where: { category_id: categoryId }
+                });
+            res.status(200).json(products);
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
+
+    static updateProduct = async (req: Request, res: Response) => {
+
+        const productModel = req.body as ProductModel;
+        const productId = req.params.id;
+        const productRepository = getRepository(Products);
+
+        try {
+            await productRepository.findOneOrFail(productId);
+        } catch (error) {
+            res.status(404).send('Product not found');
+            return;
+        }
+
+        try {
+            const result = await getConnection()
+                .createQueryBuilder()
+                .update(Products)
+                .set({ name: productModel.name })
+                .where("id = :id", { id: productId })
+                .execute();
+        } catch (e) {
+            res.status(409).send('Product name already in use');
+            console.log(e.message);
+            return;
+        }
+
+        res.status(204).send('Updated Product');
+    };
+
+    static deleteProduct = async (req: Request, res: Response) => {
+
+        const productId = req.params.id;
+        const productRepository = getRepository(Products);
+        let product: Products;
+
+        try {
+            product = await productRepository.findOneOrFail(productId);
+        } catch (error) {
+            res.status(404).send('Category not found');
+            return;
+        }
+
+        try {
+            await getConnection()
+                .createQueryBuilder()
+                .delete()
+                .from(Products)
+                .where("id = :id", { id: productId })
+                .execute();
+        } catch (error) {
+
+        }
+        res.status(201).send('Deleted Category');
+    };
+
 
 
 }

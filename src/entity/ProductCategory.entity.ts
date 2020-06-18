@@ -4,9 +4,15 @@ import {
     Column,
     Unique,
     CreateDateColumn,
-    UpdateDateColumn
+    UpdateDateColumn,
+    OneToOne,
+    JoinColumn,
+    ManyToOne,
+    OneToMany
 } from 'typeorm';
 import { Length } from 'class-validator';
+import { Categories } from './Category.entity';
+import { Products } from './Product.entity';
 
 @Entity()
 
@@ -15,11 +21,19 @@ export class ProductCategories {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
-    category_id: number;
+    // @Column()
+    // category_id: number;
 
-    @Column()
-    product_id: number;
+    @ManyToOne(type => Categories)
+    @JoinColumn({ name: "category_id",referencedColumnName: "id"})
+    category: Categories;
+
+    // @Column()
+    // product_id: number;
+
+    @OneToOne(type => Products, {eager:true})
+    @JoinColumn({ name: "product_id", referencedColumnName: "id"})
+    products: Products;
 
     @Column({ type: 'boolean', default: false })
     status: boolean;

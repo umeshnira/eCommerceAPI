@@ -7,7 +7,13 @@ const router = Router();
 router.post('/', [], ProductController.createProduct);
 
 // List categories
-// router.get('/', [], ProductController.getAllParentCategoriesByName);
+router.get('/', [], ProductController.getAllProducts);
+
+router.put('/', [], ProductController.updateProduct);
+
+router.delete('/', [], ProductController.deleteProduct);
+
+router.get('/:id([0-9]+)/products', [], ProductController.getAllProductAganistCategoryId);
 
 
 export default router;
