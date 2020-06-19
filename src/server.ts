@@ -10,8 +10,8 @@ import cors from 'cors';
 import xss from 'xss-clean';
 import compression from 'compression';
 import routes from './routes';
-import settings from './settings/app-settings.json';
-import { EnvironmentType } from './settings/enums/environment-type.enum';
+import settings from './config/app-settings.json';
+import { EnvironmentType } from './config/enums/environment-type.enum';
 
 createConnection(getDataBaseConnection()).then(() => {
     const app = express();
@@ -22,7 +22,7 @@ createConnection(getDataBaseConnection()).then(() => {
     app.use(compression({ filter: shouldCompress }));
     app.use(xss());
 
-    app.use('/products', routes);
+    app.use('/ecommerce', routes);
     app.get('/TypeORM/helloworld', function (req, res) {
         res.send('helloworld')
     });

@@ -1,2 +1,4 @@
-export * from './Auth.controller';
 export * from './Product.controller';
+export * from './categories.controller';
+export * from './sellers.controller';
+export * from './clients.controller';

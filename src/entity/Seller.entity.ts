@@ -60,10 +60,6 @@ export class Sellers {
     ifsc_code: string;
 
     @Column()
-    @Length(4, 100)
-    password: string;
-
-    @Column()
     @CreateDateColumn()
     inserted_at: Date;
 

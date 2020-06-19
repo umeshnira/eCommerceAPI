@@ -11,7 +11,5 @@ export class ProductModel {
     about: Text;
     is_returnable: boolean;
     inserted_by: string;
-    inserted_at: Date;
     updated_by: string;
-    updated_at: Date;
 }

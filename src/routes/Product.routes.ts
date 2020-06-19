@@ -1,19 +1,21 @@
 import { Router } from 'express';
-import ProductController from '../controllers/Product.controller';
+import productController from '../controllers/Product.controller';
 
 const router = Router();
 
 // Create a new product category
-router.post('/', [], ProductController.createProduct);
+router.post('/', [], productController.createProduct);
 
 // List categories
-router.get('/', [], ProductController.getAllProducts);
+router.get('/', [], productController.getAllProducts);
 
-router.put('/', [], ProductController.updateProduct);
+router.get('/:id([0-9]+)', [], productController.getProduct);
 
-router.delete('/', [], ProductController.deleteProduct);
+router.put('/:id([0-9]+)', [], productController.updateProduct);
 
-router.get('/:id([0-9]+)/products', [], ProductController.getAllProductAganistCategoryId);
+router.delete('/:id([0-9]+)', [], productController.deleteProduct);
+
+router.get('/:id([0-9]+)', [], productController.getAllProductAganistCategoryId);
 
 
 export default router;

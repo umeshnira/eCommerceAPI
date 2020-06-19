@@ -7,117 +7,6 @@ import { CategoryModel, ProductModel, ProductCategoryModel } from '../models';
 
 class ProductController {
 
-    // Apis of categories
-
-    static createCategory = async (req: Request, res: Response) => {
-
-        const categoryModel = req.body as CategoryModel;
-        const categoryRepository = getRepository(Categories);
-
-        const errors = await validate(categoryModel);
-        if (errors.length > 0) {
-            res.status(400).send(errors);
-            return;
-        }
-
-        try {
-            await categoryRepository.save(categoryModel);
-        } catch (e) {
-            res.status(409).send(e.message);
-            return;
-        }
-
-        res.status(201).send('Category created');
-    };
-
-    static getAllParentCategories = async (req: Request, res: Response) => {
-
-        const parentCategoryRepository = getRepository(Categories);
-
-        try {
-            const categories = await parentCategoryRepository
-                .find({
-                    select: ['id', 'name'],
-                    where: { parent_category_id: IsNull() }
-                });
-            res.status(200).json(categories);
-        } catch (error) {
-            res.status(500).send(error.message);
-        }
-    };
-
-    static getsubCategoriesAganistCategoryId = async (req: Request, res: Response) => {
-
-        const categoryId = req.params.id;
-        const parentCategoryRepository = getRepository(Categories);
-
-        try {
-            const categories = await parentCategoryRepository
-                .find({
-                    select: ['parent_category_id', 'id', 'name'],
-                    where: { parent_category_id: categoryId }
-                });
-
-            res.status(200).json(categories);
-        } catch (error) {
-            res.status(500).send(error.message);
-        }
-    };
-
-    static updateCategory = async (req: Request, res: Response) => {
-
-        const model = req.body as CategoryModel;
-        const categoryId = req.params.id;
-        const categoryRepository = getRepository(Categories);
-
-        try {
-            await categoryRepository.findOneOrFail(categoryId);
-        } catch (error) {
-            res.status(404).send('Category not found');
-            return;
-        }
-
-        try {
-            const result = await getConnection()
-                .createQueryBuilder()
-                .update(Categories)
-                .set({ name: model.name })
-                .where("id = :id", { id: categoryId })
-                .execute();
-        } catch (e) {
-            res.status(409).send('category name already in use');
-            console.log(e.message);
-            return;
-        }
-
-        res.status(204).send('Updated category');
-    };
-
-    static deleteCategory = async (req: Request, res: Response) => {
-
-        const categoryId = req.params.id;
-        const categoryRepository = getRepository(Categories);
-        let category: Categories;
-
-        try {
-            category = await categoryRepository.findOneOrFail(categoryId);
-        } catch (error) {
-            res.status(404).send('Category not found');
-            return;
-        }
-
-        try {
-            await getConnection()
-                .createQueryBuilder()
-                .delete()
-                .from(Categories)
-                .where("id = :id", { id: categoryId })
-                .execute();
-        } catch (error) {
-
-        }
-        res.status(201).send('Deleted Category');
-    };
 
     // Apis of products
 
@@ -128,8 +17,7 @@ class ProductController {
         const productRepository = getRepository(Products);
         const productCategoryRepository = getRepository(ProductCategories);
 
-        let product = new Products();
-        product = productModel;
+        const product = new Products();
         const productCategory = new ProductCategories();
 
         const errors = await validate(productModel);
@@ -140,10 +28,11 @@ class ProductController {
 
         try {
 
+            await ProductController.modelMapping(productModel, product);
             const result = await productRepository.save(product);
             productCategory.products = product;
-            productCategory.category = productCategoryModel.category_id;
-            productCategory.inserted_by = productCategoryModel.inserted_by;
+            productCategory.category = productCategoryModel?.category_id;
+            productCategory.inserted_by = productCategoryModel?.inserted_by;
             await productCategoryRepository.save(productCategory);
         } catch (e) {
             res.status(409).send(e.message);
@@ -155,12 +44,39 @@ class ProductController {
 
     static getAllProducts = async (req: Request, res: Response) => {
 
-        const productRepository = getRepository(Products);
 
         try {
-            const products = await productRepository
-                .find({ select: ['id', 'name', 'description'] });
-            res.status(200).json(products);
+
+            const productRepository = getRepository(Products);
+            const products = await productRepository.createQueryBuilder("products").getMany()
+            if (products) {
+                res.status(200).json(products);
+            } else {
+                res.status(404).send('Resource Not Found');
+            }
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
+
+    static getProduct = async (req: Request, res: Response) => {
+
+        try {
+
+            const productId = req.params?.id;
+            const productRepository = getRepository(Products);
+            const product = await productRepository.createQueryBuilder()
+                .select("product")
+                .from(Products, "product")
+                .where("product.id = :id", { id: productId })
+                .getOne();
+
+            if (product) {
+                res.status(200).json(product);
+            } else {
+                res.status(404).send('Resource Not Found');
+            }
+
         } catch (error) {
             res.status(500).send(error.message);
         }
@@ -185,31 +101,37 @@ class ProductController {
 
     static updateProduct = async (req: Request, res: Response) => {
 
-        const productModel = req.body as ProductModel;
         const productId = req.params.id;
+        const productModel = req.body as ProductModel;
+        const product = new Products();
         const productRepository = getRepository(Products);
+
+        const errors = await validate(productModel);
+        if (errors.length > 0) {
+            res.status(400).send(errors);
+            return;
+        }
 
         try {
             await productRepository.findOneOrFail(productId);
         } catch (error) {
-            res.status(404).send('Product not found');
+            res.status(404).send('Resource not found');
             return;
         }
 
         try {
-            const result = await getConnection()
+            const model = await ProductController.modelMapping(productModel, product);
+            await productRepository
                 .createQueryBuilder()
                 .update(Products)
-                .set({ name: productModel.name })
+                .set(model)
                 .where("id = :id", { id: productId })
                 .execute();
-        } catch (e) {
-            res.status(409).send('Product name already in use');
-            console.log(e.message);
-            return;
+            res.status(201).send("Updated Product");
+        } catch (error) {
+            res.status(500).send(error.message);
         }
 
-        res.status(204).send('Updated Product');
     };
 
     static deleteProduct = async (req: Request, res: Response) => {
@@ -221,7 +143,7 @@ class ProductController {
         try {
             product = await productRepository.findOneOrFail(productId);
         } catch (error) {
-            res.status(404).send('Category not found');
+            res.status(404).send('Resource not found');
             return;
         }
 
@@ -229,17 +151,44 @@ class ProductController {
             await getConnection()
                 .createQueryBuilder()
                 .delete()
+                .from(ProductCategories)
+                .where("product_id = :id", { id: productId })
+                .execute();
+            await getConnection()
+                .createQueryBuilder()
+                .delete()
                 .from(Products)
                 .where("id = :id", { id: productId })
                 .execute();
-        } catch (error) {
 
+        } catch (error) {
+            res.status(500).send(error.message);
+            return;
         }
-        res.status(201).send('Deleted Category');
+        res.status(201).send('Deleted Product');
     };
 
+    static modelMapping = async (model, entityModel) => {
 
+        if (entityModel instanceof Products) {
+            entityModel.name = model?.name;
+            entityModel.description = model?.description;
+            entityModel.batch_no = model?.batch_no;
+            entityModel.exp_date = model?.exp_date;
+            entityModel.bar_code = model?.bar_code;
+            entityModel.about = model?.about;
+            entityModel.status = model?.status;
+            entityModel.star_rate = model?.star_rate;
+            entityModel.is_returnable = model?.is_returnable;
+            entityModel.inserted_by = model?.inserted_by;
+            entityModel.updated_by = model?.updated_by;
+
+        }
+
+        return entityModel;
+
+    }
 
 }
-
 export default ProductController;
+

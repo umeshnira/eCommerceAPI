@@ -43,6 +43,6 @@ export class Categories {
     @Length(4, 100)
     updated_by: string;
 
-    @OneToMany(type => ProductCategories, category => category.category, {eager:true})
+    @OneToMany(type => ProductCategories, category => category.category)
     category: ProductCategories[]
 }

@@ -31,7 +31,7 @@ export class ProductCategories {
     // @Column()
     // product_id: number;
 
-    @OneToOne(type => Products, {eager:true})
+    @OneToOne(type => Products)
     @JoinColumn({ name: "product_id", referencedColumnName: "id"})
     products: Products;
 

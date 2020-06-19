@@ -6,7 +6,7 @@ export class SellerModel {
   name: string = '';
   address: string = '';
   landmark: string = '';
-  pin_code: string = '';
+  pincode: string = '';
   email: string = '';
   status: boolean = false;
   phone: string = '';
