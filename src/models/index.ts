@@ -4,3 +4,7 @@ export * from './login.model';
 export * from './category.model';
 export * from  './product.model';
 export * from  './product-category.model';
+export * from  './product-images.model';
+export * from  './product-offers.model';
+export * from  './product-prices.model';
+export * from  './product-quantity.model';

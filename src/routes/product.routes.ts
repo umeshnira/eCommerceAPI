@@ -15,7 +15,7 @@ router.put('/products/:id([0-9]+)', [], productController.updateProduct);
 
 router.delete('/products/:id([0-9]+)', [], productController.deleteProduct);
 
-router.get('/products/:id([0-9]+)', [], productController.getAllProductAganistCategoryId);
+router.get('/categories/:id([0-9]+)/products/:id([0-9]+)', [], productController.getAllProductAganistCategoryId);
 
 
 export default router;

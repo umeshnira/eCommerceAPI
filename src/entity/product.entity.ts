@@ -5,9 +5,12 @@ import {
     Unique,
     CreateDateColumn,
     UpdateDateColumn,
+    OneToMany,
+    OneToOne
 
 } from 'typeorm';
 import { Length } from 'class-validator';
+import { ProductImages, ProductQuantity, ProductOffers, ProductPrices } from '.';
 
 @Entity()
 
@@ -63,4 +66,15 @@ export class Products {
     @Length(4, 100)
     updated_by: string;
 
+    @OneToMany(type => ProductImages, image => image.products)
+    image: ProductImages[]
+
+    @OneToOne(type => ProductQuantity, quantity => quantity.products)
+    quantity: ProductQuantity[]
+
+    @OneToOne(type => ProductOffers, offers => offers.products)
+    offers: ProductOffers[]
+
+    @OneToOne(type => ProductPrices, price => price.products)
+    price: ProductPrices[]
 }

@@ -3,4 +3,8 @@ export * from  './client.entity';
 export * from  './login.entity';
 export * from  './product.entity';
 export * from  './product-category.entity';
+export * from  './product-images.entity';
+export * from  './product-offers.entity';
+export * from  './product-prices.entity';
+export * from  './product-quantity.entity';
 export * from  './seller.entity';

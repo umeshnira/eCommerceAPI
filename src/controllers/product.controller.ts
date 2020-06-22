@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { getRepository, IsNull, Equal, getConnection } from 'typeorm';
 import { validate } from 'class-validator';
 import { ProductCategories, Categories, Products } from '../entity';
-import { CategoryModel, ProductModel, ProductCategoryModel } from '../models';
+import { CategoryModel, ProductModel, ProductCategoryModel, ProductOffersModel, ProductQuantityModel, ProductPricesModel  } from '../models';
 
 class ProductController {
 
@@ -68,6 +68,9 @@ class ProductController {
 
         const productModel = req.body as ProductModel;
         const productCategoryModel = req.body as ProductCategoryModel;
+        const productOffersModel = req.body.offer as ProductOffersModel;
+        const productQuantityModel = req.body.quantity as ProductQuantityModel;
+        const productPricesModel = req.body.price as ProductCategoryModel;
 
         const errors = await validate(productModel);
         if (errors.length > 0) {
@@ -84,9 +87,18 @@ class ProductController {
 
             const product = await new ProductModel().getMappedEntity(productModel);
             const productCategory = await new ProductCategoryModel().getMappedEntity(productCategoryModel);
+            const productOffers = await new ProductOffersModel().getMappedEntity(productOffersModel);
+            const productQuantity = await new ProductQuantityModel().getMappedEntity(productQuantityModel);
+            const productPrices = await new ProductCategoryModel().getMappedEntity(productPricesModel);
             productCategory.products = product;
+            productOffers.products = product;
+            productQuantity.products = product;
+            productPrices.products = product;
             const result = await queryRunner.manager.save(product);
             await queryRunner.manager.save(productCategory);
+            await queryRunner.manager.save(productOffers);
+            await queryRunner.manager.save(productQuantity);
+            await queryRunner.manager.save(productPrices);
 
             await queryRunner.commitTransaction();
         } catch (error) {
