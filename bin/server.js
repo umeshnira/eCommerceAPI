@@ -15,8 +15,8 @@ const cors_1 = __importDefault(require("cors"));
 const xss_clean_1 = __importDefault(require("xss-clean"));
 const compression_1 = __importDefault(require("compression"));
 const routes_1 = __importDefault(require("./routes"));
-const app_settings_json_1 = __importDefault(require("./settings/app-settings.json"));
-const environment_type_enum_1 = require("./settings/enums/environment-type.enum");
+const app_settings_json_1 = __importDefault(require("./config/app-settings.json"));
+const environment_type_enum_1 = require("./config/enums/environment-type.enum");
 typeorm_1.createConnection(getDataBaseConnection()).then(() => {
     const app = express_1.default();
     app.use(cors_1.default());
@@ -24,8 +24,8 @@ typeorm_1.createConnection(getDataBaseConnection()).then(() => {
     app.use(express_1.default.json());
     app.use(compression_1.default({ filter: shouldCompress }));
     app.use(xss_clean_1.default());
-    app.use('/TypeORM/DB', routes_1.default);
-    app.get('/TypeORM/helloworld', function (req, res) {
+    app.use('/ecommerce', routes_1.default);
+    app.get('/ecommerce/helloworld', function (req, res) {
         res.send('helloworld');
     });
     const PORT = process.env.PORT || 1337;
@@ -55,7 +55,7 @@ function getDataBaseConnection() {
         database: app_settings_json_1.default.database.database,
         synchronize: app_settings_json_1.default.database.synchronize,
         logging: app_settings_json_1.default.database.logging,
-        ssl: { ca: fs_1.default.readFileSync(path_1.default.resolve(__dirname, app_settings_json_1.default.database.sslCertifciate)).toString() },
+        // ssl: { ca: fs.readFileSync(path.resolve(__dirname, settings.database.sslCertifciate)).toString() },
         entities: app_settings_json_1.default.database.entities,
         migrations: app_settings_json_1.default.database.migrations,
         subscribers: app_settings_json_1.default.database.subscribers,

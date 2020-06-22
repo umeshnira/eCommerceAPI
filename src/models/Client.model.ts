@@ -14,7 +14,7 @@ export class ClientModel {
     inserted_by: string = '';
     updated_by: string = '';
 
-   
+
 
   }
 
@@ -29,8 +29,7 @@ export class ClientModel {
     entity.phone = clientModel?.phone;
     entity.inserted_by= clientModel?.inserted_by;
     entity.updated_by = clientModel?.updated_by;
-  
+
     return entity;
-  
+
   }
-  

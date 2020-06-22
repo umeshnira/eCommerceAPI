@@ -7,7 +7,7 @@ import {
     UpdateDateColumn
 } from 'typeorm';
 import { Length } from 'class-validator';
-import { UserRole } from './Role.entity';
+import { UserRole } from '../enums';
 
 
 @Entity()

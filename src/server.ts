@@ -23,7 +23,7 @@ createConnection(getDataBaseConnection()).then(() => {
     app.use(xss());
 
     app.use('/ecommerce', routes);
-    app.get('/TypeORM/helloworld', function (req, res) {
+    app.get('/ecommerce/helloworld', function (req, res) {
         res.send('helloworld')
     });
     const PORT = process.env.PORT || 1337;

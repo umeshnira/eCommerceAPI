@@ -10,18 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateAdminUser1547919837483 = void 0;
-const typeorm_1 = require("typeorm");
-const User_1 = require("../entity/User");
 class CreateAdminUser1547919837483 {
     up(queryRunner) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = new User_1.User();
-            user.username = "admin";
-            user.password = "admin";
-            user.hashPassword();
-            user.role = "ADMIN";
-            const userRepository = typeorm_1.getRepository(User_1.User);
-            yield userRepository.save(user);
         });
     }
     down(queryRunner) {

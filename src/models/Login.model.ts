@@ -1,4 +1,4 @@
-import { UserRole } from "../entity";
+import { UserRole } from "../enums";
 
 export class LoginModel {
     id: number;
@@ -22,9 +22,9 @@ export class LoginModel {
     //     entity.role = this?.role;
     //     entity.inserted_by= this?.inserted_by;
     //     entity.updated_by = this?.updated_by;
-      
+
     //     return entity;
-      
+
     //   }
 }
 
