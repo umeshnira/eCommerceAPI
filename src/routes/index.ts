@@ -7,10 +7,10 @@ import subCategories from './sub-categories.routes';
 
 const routes = Router();
 
-routes.use('/categories', category);
-routes.use('/subcategories', subCategories);
-routes.use('/products', product);
-routes.use('/sellers', sellers);
-routes.use('/clients', clients);
+routes.use('/', category);
+routes.use('/', subCategories);
+routes.use('/', product);
+routes.use('/', sellers);
+routes.use('/', clients);
 
 export default routes;

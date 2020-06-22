@@ -3,15 +3,15 @@ import sellersController from '../controllers/sellers.controller';
 
 const router = Router();
 
-// Create a new client
-router.post('/', [], sellersController.createSeller);
+router.get('/sellers', [], sellersController.getAllSellers);
 
-router.get('/', [], sellersController.getAllSellers);
+router.get('/sellers/:id([0-9]+)', [], sellersController.getSeller);
 
-router.get('/:id([0-9]+)', [], sellersController.getSeller);
+// Create a new seller
+router.post('/sellers', [], sellersController.createSeller);
 
-router.delete('/:id([0-9]+)', [], sellersController.deleteSeller);
+router.delete('/sellers/:id([0-9]+)', [], sellersController.deleteSeller);
 
-router.put('/:id([0-9]+)', [], sellersController.updateSeller);
+router.put('/sellers/:id([0-9]+)', [], sellersController.updateSeller);
 
 export default router;

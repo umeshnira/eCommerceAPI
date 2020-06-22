@@ -48,22 +48,6 @@ class SubCategoriesController {
         res.status(201).send('SubCategory created');
     };
 
-    // static getSubCategories = async (req: Request, res: Response) => {
-
-    //     const parentCategoryRepository = getRepository(Categories);
-
-    //     try {
-    //         const categories = await parentCategoryRepository
-    //             .find({
-    //                 select: ['id', 'name'],
-    //                 where: { parent_category_id: IsNull() }
-    //             });
-    //         res.status(200).json(categories);
-    //     } catch (error) {
-    //         res.status(500).send(error.message);
-    //     }
-    // };
-
     static getSubCategory = async (req: Request, res: Response) => {
 
         try {
@@ -82,6 +66,37 @@ class SubCategoriesController {
                 res.status(404).send('Resource Not Found');
             }
 
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
+
+    static getsubCategoriesByCategoryId = async (req: Request, res: Response) => {
+
+        const categoryId = req.params.id;
+
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+
+        try {
+
+            const categories = await queryRunner.query(
+                `WITH RECURSIVE category_path (id, name,parent_category_id) AS
+            (
+              SELECT id, name,parent_category_id
+                FROM categories
+                WHERE parent_category_id = ${categoryId}
+              UNION ALL
+              SELECT c.id, c.name,c.parent_category_id
+                FROM category_path AS cp JOIN categories AS c
+                  ON cp.id = c.parent_category_id
+            )
+            SELECT * FROM category_path
+            ORDER BY parent_category_id;`
+            );
+
+            res.status(200).json(categories);
         } catch (error) {
             res.status(500).send(error.message);
         }

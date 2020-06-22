@@ -3,14 +3,14 @@ import subCategoryController from '../controllers/sub-categories.controller';
 
 const router = Router();
 
-router.post('/', [], subCategoryController.createSubCategory);
+router.get('/subcategories/:id([0-9]+)', [], subCategoryController.getSubCategory);
 
-// router.get('/', [], subCategoryController.getSubCategories);
+router.get('/categories/:id([0-9]+)/:id([0-9]+)/subcategories', [], subCategoryController.getsubCategoriesByCategoryId);
 
-router.get('/:id([0-9]+)', [], subCategoryController.getSubCategory);
+router.post('/subcategories', [], subCategoryController.createSubCategory);
 
-router.patch('/:id([0-9]+)', [], subCategoryController.updateSubCategory);
+router.patch('/subcategories/:id([0-9]+)', [], subCategoryController.updateSubCategory);
 
-router.delete('/:id([0-9]+)', [], subCategoryController.deleteSubCategory);
+router.delete('/subcategories/:id([0-9]+)', [], subCategoryController.deleteSubCategory);
 
 export default router;
