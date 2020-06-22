@@ -5,12 +5,15 @@ import {
     Unique,
     CreateDateColumn,
     UpdateDateColumn,
-    OneToMany
+    OneToMany,
+    ManyToOne,
+    JoinColumn
 } from 'typeorm';
 import { Length } from 'class-validator';
 import { ProductCategories } from '.';
 
 @Entity()
+@Unique(['name'])
 
 export class Categories {
 
@@ -21,22 +24,26 @@ export class Categories {
     @Length(4, 20)
     name: string;
 
-    @Column({nullable: true})
+    @ManyToOne(type => Categories, category => category.subCategories)
+    @JoinColumn({ name: "parent_category_id", referencedColumnName: "id"})
     parent_category_id: number;
+
+    @OneToMany(type => Categories, category => category.parent_category_id)
+    subCategories: Categories[];
 
     @Column({ type: 'boolean', default: false })
     status: boolean;
 
     @Column()
-    @CreateDateColumn()
+    @CreateDateColumn({type: "timestamp"})
     inserted_at: Date;
 
     @Column()
     @Length(4, 20)
     inserted_by: string;
 
-    @Column()
-    @UpdateDateColumn()
+    @Column({nullable: true})
+    @UpdateDateColumn({type: "timestamp"})
     updated_at: Date;
 
     @Column({nullable: true})

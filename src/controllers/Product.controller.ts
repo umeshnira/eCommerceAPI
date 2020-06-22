@@ -26,6 +26,11 @@ class ProductController {
             return;
         }
 
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
         try {
 
             await ProductController.modelMapping(productModel, product);
@@ -34,9 +39,13 @@ class ProductController {
             productCategory.category = productCategoryModel?.category_id;
             productCategory.inserted_by = productCategoryModel?.inserted_by;
             await productCategoryRepository.save(productCategory);
-        } catch (e) {
-            res.status(409).send(e.message);
-            return;
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            res.status(500).send(error.message);
+        }
+        finally {
+            await queryRunner.release();
         }
 
         res.status(201).send('Product created');
@@ -119,6 +128,11 @@ class ProductController {
             return;
         }
 
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
         try {
             const model = await ProductController.modelMapping(productModel, product);
             await productRepository
@@ -128,8 +142,13 @@ class ProductController {
                 .where("id = :id", { id: productId })
                 .execute();
             res.status(201).send("Updated Product");
+            await queryRunner.commitTransaction();
         } catch (error) {
+            await queryRunner.rollbackTransaction();
             res.status(500).send(error.message);
+        }
+        finally {
+            await queryRunner.release();
         }
 
     };
@@ -147,6 +166,12 @@ class ProductController {
             return;
         }
 
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+
         try {
             await getConnection()
                 .createQueryBuilder()
@@ -160,11 +185,15 @@ class ProductController {
                 .from(Products)
                 .where("id = :id", { id: productId })
                 .execute();
+                await queryRunner.commitTransaction();
 
-        } catch (error) {
-            res.status(500).send(error.message);
-            return;
-        }
+            } catch (error) {
+                await queryRunner.rollbackTransaction();
+                res.status(500).send(error.message);
+            }
+            finally {
+                await queryRunner.release();
+            }
         res.status(201).send('Deleted Product');
     };
 

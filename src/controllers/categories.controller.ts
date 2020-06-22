@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { getRepository, IsNull, Equal, getConnection } from 'typeorm';
+import { getRepository, getConnection, IsNull } from 'typeorm';
 import { validate } from 'class-validator';
-import { ProductCategories, Categories, Products } from '../entity';
-import { CategoryModel, ProductModel, ProductCategoryModel } from '../models';
+import { Categories } from '../entity';
+import { CategoryModel } from '../models';
 
 
 class CategoriesController {
@@ -13,6 +13,7 @@ class CategoriesController {
 
         const categoryModel = req.body as CategoryModel;
         const categoryRepository = getRepository(Categories);
+        const category = new Categories();
 
         const errors = await validate(categoryModel);
         if (errors.length > 0) {
@@ -20,17 +21,29 @@ class CategoriesController {
             return;
         }
 
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
         try {
-            await categoryRepository.save(categoryModel);
-        } catch (e) {
-            res.status(409).send(e.message);
-            return;
+            category.name = categoryModel?.name;
+            category.parent_category_id = categoryModel?.parent_category_id;
+            category.inserted_by = categoryModel?.inserted_by;
+            await categoryRepository.save(category);
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            res.status(500).send(error.message);
+        }
+        finally {
+            await queryRunner.release();
         }
 
         res.status(201).send('Category created');
     };
 
-    static getAllParentCategories = async (req: Request, res: Response) => {
+    static getCategories = async (req: Request, res: Response) => {
 
         const parentCategoryRepository = getRepository(Categories);
 
@@ -46,17 +59,54 @@ class CategoriesController {
         }
     };
 
+    static getCategory = async (req: Request, res: Response) => {
+
+        try {
+
+            const categoryId = req.params?.id;
+            const categoryRepository = getRepository(Categories);
+            const category = await categoryRepository.createQueryBuilder()
+                .select("category")
+                .from(Categories, "category")
+                .where("category.id = :id", { id: categoryId })
+                .getOne();
+
+            if (category) {
+                res.status(200).json(category);
+            } else {
+                res.status(404).send('Resource Not Found');
+            }
+
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
+
     static getsubCategoriesAganistCategoryId = async (req: Request, res: Response) => {
 
         const categoryId = req.params.id;
         const parentCategoryRepository = getRepository(Categories);
 
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+
         try {
-            const categories = await parentCategoryRepository
-                .find({
-                    select: ['parent_category_id', 'id', 'name'],
-                    where: { parent_category_id: categoryId }
-                });
+
+            const categories = await queryRunner.query(
+                `WITH RECURSIVE category_path (id, name,parent_category_id) AS
+            (
+              SELECT id, name,parent_category_id
+                FROM categories
+                WHERE parent_category_id = 11
+              UNION ALL
+              SELECT c.id, c.name,c.parent_category_id
+                FROM category_path AS cp JOIN categories AS c
+                  ON cp.id = c.parent_category_id
+            )
+            SELECT * FROM category_path
+            ORDER BY parent_category_id;`
+            );
 
             res.status(200).json(categories);
         } catch (error) {
@@ -64,11 +114,49 @@ class CategoriesController {
         }
     };
 
+    // static getsubCategoryAganistCategoryId = async (req: Request, res: Response) => {
+
+    //     const categoryId = req.params.id;
+    //     const subCategoryId = req.params.sid;
+    //     const parentCategoryRepository = getRepository(Categories);
+
+    //     const connection = getConnection();
+    //     const queryRunner = connection.createQueryRunner();
+    //     await queryRunner.connect();
+
+    //     try {
+
+    //         const categories = await queryRunner.query(
+    //             `WITH RECURSIVE category_path (id, name,parent_category_id) AS
+    //         (
+    //           SELECT id, name,parent_category_id
+    //             FROM categories
+    //             WHERE parent_category_id = 11 && id = 14
+    //           UNION ALL
+    //           SELECT c.id, c.name,c.parent_category_id
+    //             FROM category_path AS cp JOIN categories AS c
+    //               ON cp.id = c.parent_category_id
+    //         )
+    //         SELECT * FROM category_path
+    //         ORDER BY parent_category_id;`
+    //         );
+
+    //         res.status(200).json(categories);
+    //     } catch (error) {
+    //         res.status(500).send(error.message);
+    //     }
+    // };
+
     static updateCategory = async (req: Request, res: Response) => {
 
         const model = req.body as CategoryModel;
         const categoryId = req.params.id;
         const categoryRepository = getRepository(Categories);
+
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
         try {
             await categoryRepository.findOneOrFail(categoryId);
@@ -84,10 +172,15 @@ class CategoriesController {
                 .set({ name: model.name })
                 .where("id = :id", { id: categoryId })
                 .execute();
-        } catch (e) {
-            res.status(409).send('category name already in use');
-            console.log(e.message);
-            return;
+            res.status(201).send("Updated category")
+            res.status(204).send();
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            res.status(500).send(error.message);
+        }
+        finally {
+            await queryRunner.release();
         }
 
         res.status(204).send('Updated category');
@@ -106,17 +199,27 @@ class CategoriesController {
             return;
         }
 
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
         try {
             await getConnection()
                 .createQueryBuilder()
                 .delete()
                 .from(Categories)
-                .where("id = :id", { id: categoryId })
+                .where("id = :id && parent_category_id: IsNull()", { id: categoryId })
                 .execute();
+            res.status(201).send("Deleted category");
+            await queryRunner.commitTransaction();
         } catch (error) {
-
+            await queryRunner.rollbackTransaction();
+            res.status(500).send(error.message);
         }
-        res.status(201).send('Deleted Category');
+        finally {
+            await queryRunner.release();
+        }
     };
 
 

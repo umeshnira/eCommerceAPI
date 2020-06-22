@@ -31,7 +31,7 @@ export class Products {
     batch_no: number;
 
     @Column()
-    @CreateDateColumn()
+    @CreateDateColumn({type: "timestamp"})
     exp_date: Date;
 
     @Column()
@@ -52,11 +52,11 @@ export class Products {
     inserted_by: string;
 
     @Column()
-    @CreateDateColumn()
+    @CreateDateColumn({type: "timestamp"})
     inserted_at: Date;
 
-    @Column()
-    @UpdateDateColumn()
+    @Column({nullable: true})
+    @UpdateDateColumn({type: "timestamp"})
     updated_at: Date;
 
     @Column({ nullable: true })

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { getRepository, getConnection } from 'typeorm';
 import { validate } from 'class-validator';
-import {  SellerModel, LoginModel } from '../models';
+import { SellerModel, LoginModel } from '../models';
 import { Sellers, Login } from '../entity';
 
 
@@ -27,20 +27,34 @@ class SellersController {
             const login = new Login();
             const loginRepository = getRepository(Login);
 
+            const connection = getConnection();
+            const queryRunner = connection.createQueryRunner();
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+
             try {
 
+                // await entityParsing(seller, sellerModel);
                 await SellersController.modelMapping(sellerModel, seller);
                 const result = await sellerRepository.save(seller);
-                await SellersController.modelMapping(loginModel, login);
-                login.user_id = result.id;
-                const loginResult = await loginRepository.save(login);
-            } catch (e) {
-                res.status(409).send('username already in use');
-                console.log('error', e.message);
-                return;
+                if (result) {
+                    await SellersController.modelMapping(loginModel, login);
+                    login.user_id = result.id;
+                    const loginResult = await loginRepository.save(login);
+                    res.status(201).send('Seller created');
+                    await queryRunner.commitTransaction();
+                }
+                else {
+                    res.status(409).send('username already exists');
+                }
+            } catch (error) {
+                await queryRunner.rollbackTransaction();
+                res.status(500).send(error.message);
+            }
+            finally {
+                await queryRunner.release();
             }
 
-            res.status(201).send('Seller created');
         }
 
     };
@@ -87,6 +101,12 @@ class SellersController {
 
         const sellerId = req.params.id;
         const sellerRepository = getRepository(Sellers);
+        const loginRepository = getRepository(Login);
+
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
         try {
             await sellerRepository.findOneOrFail(sellerId);
@@ -101,9 +121,19 @@ class SellersController {
                 .from(Sellers)
                 .where("id = :id", { id: sellerId })
                 .execute();
+            await loginRepository.createQueryBuilder()
+                .delete()
+                .from(Login)
+                .where("user_id = :id", { id: sellerId })
+                .execute();
             res.status(201).send('Deleted Seller');
+            await queryRunner.commitTransaction();
         } catch (error) {
+            await queryRunner.rollbackTransaction();
             res.status(500).send(error.message);
+        }
+        finally {
+            await queryRunner.release();
         }
 
     };
@@ -128,23 +158,32 @@ class SellersController {
             return;
         }
 
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
         try {
-            const model = await SellersController.modelMapping(sellerModel, seller);
-            console.log(model);
-            await sellerRepository
+             const model = SellersController.modelMapping(sellerModel, seller);
+             await sellerRepository
                 .createQueryBuilder()
                 .update(Sellers)
                 .set(model)
                 .where("id = :id", { id: sellerId })
                 .execute();
-                res.status(201).send("Updated Seller");
+            res.status(201).send("Updated Seller");
+            await queryRunner.commitTransaction();
         } catch (error) {
+            await queryRunner.rollbackTransaction();
             res.status(500).send(error.message);
+        }
+        finally {
+            await queryRunner.release();
         }
 
     };
 
-    static modelMapping = async (model, entityModel) => {
+    static modelMapping =  (model, entityModel) => {
 
         if (entityModel instanceof Sellers) {
             entityModel.name = model?.name;

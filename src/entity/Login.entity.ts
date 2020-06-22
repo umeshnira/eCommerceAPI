@@ -19,12 +19,10 @@ export class Login {
     id: number;
 
     @Column()
-    // tslint:disable-next-line: variable-name
     user_id: number;
 
     @Column()
     @Length(4, 20)
-    // tslint:disable-next-line: variable-name
     user_name: string;
 
     @Column()
@@ -41,22 +39,18 @@ export class Login {
     status  : boolean;
 
     @Column()
-    @CreateDateColumn()
-    // tslint:disable-next-line: variable-name
+    @CreateDateColumn({type: "timestamp"})
     inserted_at: Date;
 
     @Column()
     @Length(4, 20)
-    // tslint:disable-next-line: variable-name
     inserted_by: string;
 
-    @Column()
-    @UpdateDateColumn()
-    // tslint:disable-next-line: variable-name
+    @Column({nullable: true})
+    @UpdateDateColumn({type: "timestamp"})
     updated_at: Date;
 
     @Column({ nullable: true })
     @Length(4, 100)
-    // tslint:disable-next-line: variable-name
     updated_by: string;
 }

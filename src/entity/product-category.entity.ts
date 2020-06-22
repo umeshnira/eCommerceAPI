@@ -8,11 +8,12 @@ import {
     OneToOne,
     JoinColumn,
     ManyToOne,
-    OneToMany
+    OneToMany,
+    Timestamp
 } from 'typeorm';
 import { Length } from 'class-validator';
-import { Categories } from './Category.entity';
-import { Products } from './Product.entity';
+import { Categories } from './category.entity';
+import { Products } from './product.entity';
 
 @Entity()
 
@@ -21,17 +22,11 @@ export class ProductCategories {
     @PrimaryGeneratedColumn()
     id: number;
 
-    // @Column()
-    // category_id: number;
-
-    @ManyToOne(type => Categories)
+    @ManyToOne(type => Categories, {nullable: false})
     @JoinColumn({ name: "category_id",referencedColumnName: "id"})
     category: Categories;
 
-    // @Column()
-    // product_id: number;
-
-    @OneToOne(type => Products)
+    @OneToOne(type => Products, {nullable: false})
     @JoinColumn({ name: "product_id", referencedColumnName: "id"})
     products: Products;
 
@@ -39,15 +34,15 @@ export class ProductCategories {
     status: boolean;
 
     @Column()
-    @CreateDateColumn()
+    @CreateDateColumn({type: "timestamp"})
     inserted_at: Date;
 
     @Column()
     @Length(4, 20)
     inserted_by: string;
 
-    @Column()
-    @UpdateDateColumn()
+    @Column({nullable: true})
+    @UpdateDateColumn({type: "timestamp"})
     updated_at: Date;
 
     @Column({nullable: true})

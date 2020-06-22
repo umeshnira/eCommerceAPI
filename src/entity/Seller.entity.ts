@@ -60,15 +60,15 @@ export class Sellers {
     ifsc_code: string;
 
     @Column()
-    @CreateDateColumn()
+    @CreateDateColumn({type: "timestamp"})
     inserted_at: Date;
 
     @Column()
     @Length(4, 20)
     inserted_by: string;
 
-    @Column()
-    @UpdateDateColumn()
+    @Column({nullable: true})
+    @UpdateDateColumn({type: "timestamp"})
     updated_at: Date;
 
     @Column({ nullable: true })

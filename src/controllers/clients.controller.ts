@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { getRepository } from 'typeorm';
+import { getRepository, getConnection } from 'typeorm';
 import { validate } from 'class-validator';
-import { ClientModel, LoginModel } from '../models';
+import { ClientModel, LoginModel, entityMapping } from '../models';
 import { Clients, Login } from '../entity';
 
 
@@ -11,6 +11,9 @@ class ClientsController {
 
         const clientModel = req.body as ClientModel;
         const loginModel = req.body as LoginModel;
+        const clientRepository =  getRepository(Clients);
+        const loginRepository =  getRepository(Login);
+
 
         // client.hashPassword();
 
@@ -23,24 +26,33 @@ class ClientsController {
             }
 
             const client = new Clients();
-            const clientRepository = getRepository(Clients);
             const login = new Login();
-            const loginRepository = getRepository(Login);
+            const connection = getConnection();
+            const queryRunner = connection.createQueryRunner();
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
 
             try {
 
                 await ClientsController.modelMapping(clientModel, client);
                 const result = await clientRepository.save(client);
-                login.user_id = result.id;
-                await ClientsController.modelMapping(result, login);
-                const loginResult = await loginRepository.save(login);
-            } catch (e) {
-                res.status(409).send('username already in use');
-                console.log('error', e.message);
-                return;
+                if (result) {
+                    await ClientsController.modelMapping(loginModel, login);
+                    login.user_id = result.id;
+                    const loginResult = await loginRepository.save(login);
+                    res.status(201).send('Seller created');
+                    await queryRunner.commitTransaction();
+                }
+                else {
+                    res.status(409).send('username already exists');
+                }
+            } catch (error) {
+                await queryRunner.rollbackTransaction();
+                res.status(500).send(error.message);
             }
-
-            res.status(201).send('Client created');
+            finally {
+                await queryRunner.release();
+            }
         }
 
     };
@@ -88,6 +100,12 @@ class ClientsController {
 
         const clientId = req.params.id;
         const clientRepository = getRepository(Clients);
+        const loginRepository = getRepository(Login);
+
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
         try {
             await clientRepository.findOneOrFail(clientId);
@@ -102,9 +120,19 @@ class ClientsController {
                 .from(Clients)
                 .where("id = :id", { id: clientId })
                 .execute();
+            await loginRepository.createQueryBuilder()
+                .delete()
+                .from(Login)
+                .where("user_id = :id", { id: clientId })
+                .execute();
             res.status(201).send('Deleted Client');
+            await queryRunner.commitTransaction();
         } catch (error) {
+            await queryRunner.rollbackTransaction();
             res.status(500).send(error.message);
+        }
+        finally {
+            await queryRunner.release();
         }
 
     };
@@ -122,6 +150,11 @@ class ClientsController {
             return;
         }
 
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
         try {
             await clientRepository.findOneOrFail(clientId);
         } catch (error) {
@@ -130,7 +163,7 @@ class ClientsController {
         }
 
         try {
-            const model = await ClientsController.modelMapping(clientModel, client);
+            const model = await entityMapping(client, clientModel);
             await clientRepository
                 .createQueryBuilder()
                 .update(Clients)
@@ -138,8 +171,13 @@ class ClientsController {
                 .where("id = :id", { id: clientId })
                 .execute();
             res.status(201).send("Updated Client");
+            await queryRunner.commitTransaction();
         } catch (error) {
+            await queryRunner.rollbackTransaction();
             res.status(500).send(error.message);
+        }
+        finally {
+            await queryRunner.release();
         }
 
     };
@@ -169,6 +207,7 @@ class ClientsController {
         return entityModel;
 
     }
+
 }
 
 export default ClientsController;
