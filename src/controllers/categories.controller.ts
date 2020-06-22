@@ -4,44 +4,9 @@ import { validate } from 'class-validator';
 import { Categories } from '../entity';
 import { CategoryModel } from '../models';
 
-
 class CategoriesController {
 
     // Apis of categories
-
-    static createCategory = async (req: Request, res: Response) => {
-
-        const categoryModel = req.body as CategoryModel;
-        const categoryRepository = getRepository(Categories);
-        const category = new Categories();
-
-        const errors = await validate(categoryModel);
-        if (errors.length > 0) {
-            res.status(400).send(errors);
-            return;
-        }
-
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
-        try {
-            category.name = categoryModel?.name;
-            category.parent_category_id = categoryModel?.parent_category_id;
-            category.inserted_by = categoryModel?.inserted_by;
-            await categoryRepository.save(category);
-            await queryRunner.commitTransaction();
-        } catch (error) {
-            await queryRunner.rollbackTransaction();
-            res.status(500).send(error.message);
-        }
-        finally {
-            await queryRunner.release();
-        }
-
-        res.status(201).send('Category created');
-    };
 
     static getCategories = async (req: Request, res: Response) => {
 
@@ -82,16 +47,44 @@ class CategoriesController {
         }
     };
 
-    static updateCategory = async (req: Request, res: Response) => {
+    static createCategory = async (req: Request, res: Response) => {
 
-        const model = req.body as CategoryModel;
-        const categoryId = req.params.id;
-        const categoryRepository = getRepository(Categories);
+        const categoryModel = req.body as CategoryModel;
+        const category = new Categories();
+
+        const errors = await validate(categoryModel);
+        if (errors.length > 0) {
+            res.status(400).send(errors);
+            return;
+        }
 
         const connection = getConnection();
         const queryRunner = connection.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
+
+        try {
+            category.name = categoryModel?.name;
+            category.parent_category_id = categoryModel?.parent_category_id;
+            category.inserted_by = categoryModel?.inserted_by;
+            await queryRunner.manager.save(category);
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            res.status(500).send(error.message);
+        }
+        finally {
+            await queryRunner.release();
+        }
+
+        res.status(201).send('Category created');
+    };
+
+    static updateCategory = async (req: Request, res: Response) => {
+
+        const model = req.body as CategoryModel;
+        const categoryId = req.params.id;
+        const categoryRepository = getRepository(Categories);
 
         try {
             await categoryRepository.findOneOrFail(categoryId);
@@ -100,15 +93,18 @@ class CategoriesController {
             return;
         }
 
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
         try {
-            const result = await getConnection()
+            const result = await queryRunner.manager.connection
                 .createQueryBuilder()
                 .update(Categories)
                 .set({ name: model.name })
                 .where("id = :id", { id: categoryId })
                 .execute();
-            res.status(201).send("Updated category")
-            res.status(204).send();
             await queryRunner.commitTransaction();
         } catch (error) {
             await queryRunner.rollbackTransaction();
@@ -127,6 +123,11 @@ class CategoriesController {
         const categoryRepository = getRepository(Categories);
         let category: Categories;
 
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
         try {
             category = await categoryRepository.findOneOrFail(categoryId);
         } catch (error) {
@@ -134,19 +135,13 @@ class CategoriesController {
             return;
         }
 
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
         try {
-            await getConnection()
+            await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(Categories)
                 .where("id = :id && parent_category_id: IsNull()", { id: categoryId })
                 .execute();
-            res.status(201).send("Deleted category");
             await queryRunner.commitTransaction();
         } catch (error) {
             await queryRunner.rollbackTransaction();
@@ -155,9 +150,9 @@ class CategoriesController {
         finally {
             await queryRunner.release();
         }
+
+        res.status(204).send("Deleted category");
     };
-
-
 }
 
 export default CategoriesController;

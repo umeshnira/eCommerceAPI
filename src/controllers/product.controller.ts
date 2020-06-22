@@ -4,55 +4,11 @@ import { validate } from 'class-validator';
 import { ProductCategories, Categories, Products } from '../entity';
 import { CategoryModel, ProductModel, ProductCategoryModel } from '../models';
 
-
 class ProductController {
-
 
     // Apis of products
 
-    static createProduct = async (req: Request, res: Response) => {
-
-        const productModel = req.body as ProductModel;
-        const productCategoryModel = req.body as ProductCategoryModel;
-        const productRepository = getRepository(Products);
-        const productCategoryRepository = getRepository(ProductCategories);
-
-        const product = new Products();
-        const productCategory = new ProductCategories();
-
-        const errors = await validate(productModel);
-        if (errors.length > 0) {
-            res.status(400).send(errors);
-            return;
-        }
-
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
-        try {
-
-            await ProductController.modelMapping(productModel, product);
-            const result = await productRepository.save(product);
-            productCategory.products = product;
-            productCategory.category = productCategoryModel?.category_id;
-            productCategory.inserted_by = productCategoryModel?.inserted_by;
-            await productCategoryRepository.save(productCategory);
-            await queryRunner.commitTransaction();
-        } catch (error) {
-            await queryRunner.rollbackTransaction();
-            res.status(500).send(error.message);
-        }
-        finally {
-            await queryRunner.release();
-        }
-
-        res.status(201).send('Product created');
-    };
-
     static getAllProducts = async (req: Request, res: Response) => {
-
 
         try {
 
@@ -61,7 +17,7 @@ class ProductController {
             if (products) {
                 res.status(200).json(products);
             } else {
-                res.status(404).send('Resource Not Found');
+                res.status(404).send('Products Not Found');
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -83,7 +39,7 @@ class ProductController {
             if (product) {
                 res.status(200).json(product);
             } else {
-                res.status(404).send('Resource Not Found');
+                res.status(404).send('Product Not Found');
             }
 
         } catch (error) {
@@ -108,23 +64,14 @@ class ProductController {
         }
     };
 
-    static updateProduct = async (req: Request, res: Response) => {
+    static createProduct = async (req: Request, res: Response) => {
 
-        const productId = req.params.id;
         const productModel = req.body as ProductModel;
-        const product = new Products();
-        const productRepository = getRepository(Products);
+        const productCategoryModel = req.body as ProductCategoryModel;
 
         const errors = await validate(productModel);
         if (errors.length > 0) {
             res.status(400).send(errors);
-            return;
-        }
-
-        try {
-            await productRepository.findOneOrFail(productId);
-        } catch (error) {
-            res.status(404).send('Resource not found');
             return;
         }
 
@@ -134,14 +81,13 @@ class ProductController {
         await queryRunner.startTransaction();
 
         try {
-            const model = await ProductController.modelMapping(productModel, product);
-            await productRepository
-                .createQueryBuilder()
-                .update(Products)
-                .set(model)
-                .where("id = :id", { id: productId })
-                .execute();
-            res.status(201).send("Updated Product");
+
+            const product = await new ProductModel().getMappedEntity(productModel);
+            const productCategory = await new ProductCategoryModel().getMappedEntity(productCategoryModel);
+            productCategory.products = product;
+            const result = await queryRunner.manager.save(product);
+            await queryRunner.manager.save(productCategory);
+
             await queryRunner.commitTransaction();
         } catch (error) {
             await queryRunner.rollbackTransaction();
@@ -151,18 +97,17 @@ class ProductController {
             await queryRunner.release();
         }
 
+        res.status(201).send('Product created');
     };
 
-    static deleteProduct = async (req: Request, res: Response) => {
+    static updateProduct = async (req: Request, res: Response) => {
 
         const productId = req.params.id;
-        const productRepository = getRepository(Products);
-        let product: Products;
+        const productModel = req.body as ProductModel;
 
-        try {
-            product = await productRepository.findOneOrFail(productId);
-        } catch (error) {
-            res.status(404).send('Resource not found');
+        const errors = await validate(productModel);
+        if (errors.length > 0) {
+            res.status(400).send(errors);
             return;
         }
 
@@ -171,53 +116,75 @@ class ProductController {
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
+        try {
+            await queryRunner.manager.findOneOrFail(productId);
+        } catch (error) {
+            res.status(404).send('Resource not found');
+            return;
+        }
 
         try {
-            await getConnection()
+            const product = await new ProductModel().getMappedEntity(productModel);
+            await queryRunner.manager.connection
+                .createQueryBuilder()
+                .update(Products)
+                .set(product)
+                .where("id = :id", { id: productId })
+                .execute();
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            res.status(500).send(error.message);
+        }
+        finally {
+            await queryRunner.release();
+        }
+
+        res.status(204).send("Updated Product");
+    };
+
+    static deleteProduct = async (req: Request, res: Response) => {
+
+        const productId = req.params.id;
+
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            await queryRunner.manager.findOneOrFail(productId);
+        } catch (error) {
+            res.status(404).send('Resource not found');
+            return;
+        }
+
+        try {
+            await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(ProductCategories)
                 .where("product_id = :id", { id: productId })
                 .execute();
-            await getConnection()
+            await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(Products)
                 .where("id = :id", { id: productId })
                 .execute();
-                await queryRunner.commitTransaction();
+            await queryRunner.commitTransaction();
 
-            } catch (error) {
-                await queryRunner.rollbackTransaction();
-                res.status(500).send(error.message);
-            }
-            finally {
-                await queryRunner.release();
-            }
-        res.status(201).send('Deleted Product');
-    };
-
-    static modelMapping = async (model, entityModel) => {
-
-        if (entityModel instanceof Products) {
-            entityModel.name = model?.name;
-            entityModel.description = model?.description;
-            entityModel.batch_no = model?.batch_no;
-            entityModel.exp_date = model?.exp_date;
-            entityModel.bar_code = model?.bar_code;
-            entityModel.about = model?.about;
-            entityModel.status = model?.status;
-            entityModel.star_rate = model?.star_rate;
-            entityModel.is_returnable = model?.is_returnable;
-            entityModel.inserted_by = model?.inserted_by;
-            entityModel.updated_by = model?.updated_by;
-
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            res.status(500).send(error.message);
+        }
+        finally {
+            await queryRunner.release();
         }
 
-        return entityModel;
-
-    }
-
+        res.status(204).send('Deleted Product');
+    };
 }
+
 export default ProductController;
 

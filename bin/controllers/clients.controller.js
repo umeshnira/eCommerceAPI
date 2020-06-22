@@ -15,47 +15,6 @@ const models_1 = require("../models");
 const entity_1 = require("../entity");
 class ClientsController {
 }
-ClientsController.createClient = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const clientModel = req.body;
-    const loginModel = req.body;
-    const clientRepository = typeorm_1.getRepository(entity_1.Clients);
-    const loginRepository = typeorm_1.getRepository(entity_1.Login);
-    // client.hashPassword();
-    if (clientModel.role === 'Client') {
-        const errors = yield class_validator_1.validate(clientModel);
-        if (errors.length > 0) {
-            res.status(400).send(errors);
-            return;
-        }
-        const client = new entity_1.Clients();
-        const login = new entity_1.Login();
-        const connection = typeorm_1.getConnection();
-        const queryRunner = connection.createQueryRunner();
-        yield queryRunner.connect();
-        yield queryRunner.startTransaction();
-        try {
-            yield ClientsController.modelMapping(clientModel, client);
-            const result = yield clientRepository.save(client);
-            if (result) {
-                yield ClientsController.modelMapping(loginModel, login);
-                login.user_id = result.id;
-                const loginResult = yield loginRepository.save(login);
-                res.status(201).send('Seller created');
-                yield queryRunner.commitTransaction();
-            }
-            else {
-                res.status(409).send('username already exists');
-            }
-        }
-        catch (error) {
-            yield queryRunner.rollbackTransaction();
-            res.status(500).send(error.message);
-        }
-        finally {
-            yield queryRunner.release();
-        }
-    }
-});
 ClientsController.getAllClients = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const clientRepository = typeorm_1.getRepository(entity_1.Clients);
@@ -64,7 +23,7 @@ ClientsController.getAllClients = (req, res) => __awaiter(void 0, void 0, void 0
             res.status(200).json(clients);
         }
         else {
-            res.status(404).send('Resource Not Found');
+            res.status(404).send('Clients Not Found');
         }
     }
     catch (error) {
@@ -85,55 +44,16 @@ ClientsController.getClient = (req, res) => __awaiter(void 0, void 0, void 0, fu
             res.status(200).json(client);
         }
         else {
-            res.status(404).send('Resource Not Found');
+            res.status(404).send('Client Not Found');
         }
     }
     catch (error) {
         res.status(500).send(error.message);
     }
 });
-ClientsController.deleteClient = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const clientId = req.params.id;
-    const clientRepository = typeorm_1.getRepository(entity_1.Clients);
-    const loginRepository = typeorm_1.getRepository(entity_1.Login);
-    const connection = typeorm_1.getConnection();
-    const queryRunner = connection.createQueryRunner();
-    yield queryRunner.connect();
-    yield queryRunner.startTransaction();
-    try {
-        yield clientRepository.findOneOrFail(clientId);
-    }
-    catch (error) {
-        res.status(404).send('Resource not found');
-        return;
-    }
-    try {
-        yield clientRepository.createQueryBuilder()
-            .delete()
-            .from(entity_1.Clients)
-            .where("id = :id", { id: clientId })
-            .execute();
-        yield loginRepository.createQueryBuilder()
-            .delete()
-            .from(entity_1.Login)
-            .where("user_id = :id", { id: clientId })
-            .execute();
-        res.status(201).send('Deleted Client');
-        yield queryRunner.commitTransaction();
-    }
-    catch (error) {
-        yield queryRunner.rollbackTransaction();
-        res.status(500).send(error.message);
-    }
-    finally {
-        yield queryRunner.release();
-    }
-});
-ClientsController.updateClient = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const clientId = req.params.id;
+ClientsController.createClient = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const clientModel = req.body;
-    const client = new entity_1.Clients();
-    const clientRepository = typeorm_1.getRepository(entity_1.Clients);
+    const loginModel = req.body;
     const errors = yield class_validator_1.validate(clientModel);
     if (errors.length > 0) {
         res.status(400).send(errors);
@@ -144,21 +64,54 @@ ClientsController.updateClient = (req, res) => __awaiter(void 0, void 0, void 0,
     yield queryRunner.connect();
     yield queryRunner.startTransaction();
     try {
-        yield clientRepository.findOneOrFail(clientId);
+        const client = new models_1.ClientModel().getMappedEntity(clientModel);
+        const login = new models_1.LoginModel().getMappedEntity(loginModel);
+        const result = yield queryRunner.manager.save(client);
+        if (result) {
+            login.user_id = result.id;
+            const loginResult = yield queryRunner.manager.save(login);
+            yield queryRunner.commitTransaction();
+        }
+        else {
+            res.status(409).send('username already exists');
+        }
     }
     catch (error) {
-        res.status(404).send('Resource not found');
+        yield queryRunner.rollbackTransaction();
+        res.status(500).send(error.message);
+    }
+    finally {
+        yield queryRunner.release();
+    }
+    res.status(201).send('Seller created');
+});
+ClientsController.updateClient = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const clientId = req.params.id;
+    const clientModel = req.body;
+    const errors = yield class_validator_1.validate(clientModel);
+    if (errors.length > 0) {
+        res.status(400).send(errors);
+        return;
+    }
+    const connection = typeorm_1.getConnection();
+    const queryRunner = connection.createQueryRunner();
+    yield queryRunner.connect();
+    yield queryRunner.startTransaction();
+    try {
+        yield queryRunner.manager.findOneOrFail(clientId);
+    }
+    catch (error) {
+        res.status(404).send('Client not found');
         return;
     }
     try {
-        const model = yield models_1.entityMapping(client, clientModel);
-        yield clientRepository
+        const client = new models_1.ClientModel().getMappedEntity(clientModel);
+        yield queryRunner.manager.connection
             .createQueryBuilder()
             .update(entity_1.Clients)
-            .set(model)
+            .set(client)
             .where("id = :id", { id: clientId })
             .execute();
-        res.status(201).send("Updated Client");
         yield queryRunner.commitTransaction();
     }
     catch (error) {
@@ -168,27 +121,44 @@ ClientsController.updateClient = (req, res) => __awaiter(void 0, void 0, void 0,
     finally {
         yield queryRunner.release();
     }
+    res.status(204).send("Updated Client");
 });
-ClientsController.modelMapping = (model, entityModel) => __awaiter(void 0, void 0, void 0, function* () {
-    if (entityModel instanceof entity_1.Clients) {
-        entityModel.name = model === null || model === void 0 ? void 0 : model.name;
-        entityModel.address = model === null || model === void 0 ? void 0 : model.address;
-        entityModel.landmark = model === null || model === void 0 ? void 0 : model.landmark;
-        entityModel.pin_code = model === null || model === void 0 ? void 0 : model.pin_code;
-        entityModel.email = model === null || model === void 0 ? void 0 : model.email;
-        entityModel.status = model === null || model === void 0 ? void 0 : model.status;
-        entityModel.phone = model === null || model === void 0 ? void 0 : model.phone;
-        entityModel.inserted_by = model === null || model === void 0 ? void 0 : model.inserted_by;
-        entityModel.updated_by = model === null || model === void 0 ? void 0 : model.updated_by;
+ClientsController.deleteClient = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const clientId = req.params.id;
+    const connection = typeorm_1.getConnection();
+    const queryRunner = connection.createQueryRunner();
+    yield queryRunner.connect();
+    yield queryRunner.startTransaction();
+    try {
+        yield queryRunner.manager.findOneOrFail(clientId);
     }
-    if (entityModel instanceof entity_1.Login) {
-        entityModel.user_name = model === null || model === void 0 ? void 0 : model.email;
-        entityModel.password = model === null || model === void 0 ? void 0 : model.password;
-        entityModel.role = (model === null || model === void 0 ? void 0 : model.role) ? model.role : 'Client';
-        entityModel.inserted_by = model === null || model === void 0 ? void 0 : model.inserted_by;
-        entityModel.updated_by = model === null || model === void 0 ? void 0 : model.updated_by;
+    catch (error) {
+        res.status(404).send('Resource not found');
+        return;
     }
-    return entityModel;
+    try {
+        yield queryRunner.manager.connection
+            .createQueryBuilder()
+            .delete()
+            .from(entity_1.Clients)
+            .where("id = :id", { id: clientId })
+            .execute();
+        yield queryRunner.manager.connection
+            .createQueryBuilder()
+            .delete()
+            .from(entity_1.Login)
+            .where("user_id = :id", { id: clientId })
+            .execute();
+        yield queryRunner.commitTransaction();
+    }
+    catch (error) {
+        yield queryRunner.rollbackTransaction();
+        res.status(500).send(error.message);
+    }
+    finally {
+        yield queryRunner.release();
+    }
+    res.status(204).send('Deleted Client');
 });
 exports.default = ClientsController;
 //# sourceMappingURL=clients.controller.js.map

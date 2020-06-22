@@ -1,61 +1,10 @@
 import { Request, Response } from 'express';
 import { getRepository, getConnection } from 'typeorm';
 import { validate } from 'class-validator';
-import { ClientModel, LoginModel, entityMapping } from '../models';
+import { ClientModel, LoginModel } from '../models';
 import { Clients, Login } from '../entity';
 
-
 class ClientsController {
-
-    static createClient = async (req: Request, res: Response) => {
-
-        const clientModel = req.body as ClientModel;
-        const loginModel = req.body as LoginModel;
-        const clientRepository =  getRepository(Clients);
-        const loginRepository =  getRepository(Login);
-
-
-        // client.hashPassword();
-
-        if (clientModel.role === 'Client') {
-
-            const errors = await validate(clientModel);
-            if (errors.length > 0) {
-                res.status(400).send(errors);
-                return;
-            }
-
-            const client = new Clients();
-            const login = new Login();
-            const connection = getConnection();
-            const queryRunner = connection.createQueryRunner();
-            await queryRunner.connect();
-            await queryRunner.startTransaction();
-
-            try {
-
-                await ClientsController.modelMapping(clientModel, client);
-                const result = await clientRepository.save(client);
-                if (result) {
-                    await ClientsController.modelMapping(loginModel, login);
-                    login.user_id = result.id;
-                    const loginResult = await loginRepository.save(login);
-                    res.status(201).send('Seller created');
-                    await queryRunner.commitTransaction();
-                }
-                else {
-                    res.status(409).send('username already exists');
-                }
-            } catch (error) {
-                await queryRunner.rollbackTransaction();
-                res.status(500).send(error.message);
-            }
-            finally {
-                await queryRunner.release();
-            }
-        }
-
-    };
 
     static getAllClients = async (req: Request, res: Response) => {
 
@@ -66,7 +15,7 @@ class ClientsController {
             if (clients) {
                 res.status(200).json(clients);
             } else {
-                res.status(404).send('Resource Not Found');
+                res.status(404).send('Clients Not Found');
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -88,7 +37,7 @@ class ClientsController {
             if (client) {
                 res.status(200).json(client);
             } else {
-                res.status(404).send('Resource Not Found');
+                res.status(404).send('Client Not Found');
             }
 
         } catch (error) {
@@ -96,53 +45,10 @@ class ClientsController {
         }
     };
 
-    static deleteClient = async (req: Request, res: Response) => {
+    static createClient = async (req: Request, res: Response) => {
 
-        const clientId = req.params.id;
-        const clientRepository = getRepository(Clients);
-        const loginRepository = getRepository(Login);
-
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
-        try {
-            await clientRepository.findOneOrFail(clientId);
-        } catch (error) {
-            res.status(404).send('Resource not found');
-            return;
-        }
-
-        try {
-            await clientRepository.createQueryBuilder()
-                .delete()
-                .from(Clients)
-                .where("id = :id", { id: clientId })
-                .execute();
-            await loginRepository.createQueryBuilder()
-                .delete()
-                .from(Login)
-                .where("user_id = :id", { id: clientId })
-                .execute();
-            res.status(201).send('Deleted Client');
-            await queryRunner.commitTransaction();
-        } catch (error) {
-            await queryRunner.rollbackTransaction();
-            res.status(500).send(error.message);
-        }
-        finally {
-            await queryRunner.release();
-        }
-
-    };
-
-    static updateClient = async (req: Request, res: Response) => {
-
-        const clientId = req.params.id;
         const clientModel = req.body as ClientModel;
-        const client = new Clients();
-        const clientRepository = getRepository(Clients);
+        const loginModel = req.body as LoginModel;
 
         const errors = await validate(clientModel);
         if (errors.length > 0) {
@@ -156,21 +62,60 @@ class ClientsController {
         await queryRunner.startTransaction();
 
         try {
-            await clientRepository.findOneOrFail(clientId);
+            const client = new ClientModel().getMappedEntity(clientModel);
+            const login = new LoginModel().getMappedEntity(loginModel);
+
+            const result = await queryRunner.manager.save(client);
+            if (result) {
+                login.user_id = result.id;
+                const loginResult = await queryRunner.manager.save(login);
+                await queryRunner.commitTransaction();
+            }
+            else {
+                res.status(409).send('username already exists');
+            }
         } catch (error) {
-            res.status(404).send('Resource not found');
+            await queryRunner.rollbackTransaction();
+            res.status(500).send(error.message);
+        }
+        finally {
+            await queryRunner.release();
+        }
+
+        res.status(201).send('Seller created');
+    };
+
+    static updateClient = async (req: Request, res: Response) => {
+
+        const clientId = req.params.id;
+        const clientModel = req.body as ClientModel;
+
+        const errors = await validate(clientModel);
+        if (errors.length > 0) {
+            res.status(400).send(errors);
+            return;
+        }
+
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            await queryRunner.manager.findOneOrFail(clientId);
+        } catch (error) {
+            res.status(404).send('Client not found');
             return;
         }
 
         try {
-            const model = await entityMapping(client, clientModel);
-            await clientRepository
+            const client = new ClientModel().getMappedEntity(clientModel);
+            await queryRunner.manager.connection
                 .createQueryBuilder()
                 .update(Clients)
-                .set(model)
+                .set(client)
                 .where("id = :id", { id: clientId })
                 .execute();
-            res.status(201).send("Updated Client");
             await queryRunner.commitTransaction();
         } catch (error) {
             await queryRunner.rollbackTransaction();
@@ -180,34 +125,49 @@ class ClientsController {
             await queryRunner.release();
         }
 
+        res.status(204).send("Updated Client");
     };
 
-    static modelMapping = async (model, entityModel) => {
+    static deleteClient = async (req: Request, res: Response) => {
 
-        if (entityModel instanceof Clients) {
-            entityModel.name = model?.name;
-            entityModel.address = model?.address;
-            entityModel.landmark = model?.landmark;
-            entityModel.pin_code = model?.pin_code;
-            entityModel.email = model?.email;
-            entityModel.status = model?.status;
-            entityModel.phone = model?.phone;
-            entityModel.inserted_by = model?.inserted_by;
-            entityModel.updated_by = model?.updated_by;
+        const clientId = req.params.id;
+
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            await queryRunner.manager.findOneOrFail(clientId);
+        } catch (error) {
+            res.status(404).send('Resource not found');
+            return;
         }
 
-        if (entityModel instanceof Login) {
-            entityModel.user_name = model?.email;
-            entityModel.password = model?.password;
-            entityModel.role = model?.role ? model.role : 'Client';
-            entityModel.inserted_by = model?.inserted_by;
-            entityModel.updated_by = model?.updated_by;
+        try {
+            await queryRunner.manager.connection
+                .createQueryBuilder()
+                .delete()
+                .from(Clients)
+                .where("id = :id", { id: clientId })
+                .execute();
+            await queryRunner.manager.connection
+                .createQueryBuilder()
+                .delete()
+                .from(Login)
+                .where("user_id = :id", { id: clientId })
+                .execute();
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            res.status(500).send(error.message);
+        }
+        finally {
+            await queryRunner.release();
         }
 
-        return entityModel;
-
-    }
-
+        res.status(204).send('Deleted Client');
+    };
 }
 
 export default ClientsController;

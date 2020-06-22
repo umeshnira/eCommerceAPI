@@ -15,35 +15,6 @@ const entity_1 = require("../entity");
 class CategoriesController {
 }
 // Apis of categories
-CategoriesController.createCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const categoryModel = req.body;
-    const categoryRepository = typeorm_1.getRepository(entity_1.Categories);
-    const category = new entity_1.Categories();
-    const errors = yield class_validator_1.validate(categoryModel);
-    if (errors.length > 0) {
-        res.status(400).send(errors);
-        return;
-    }
-    const connection = typeorm_1.getConnection();
-    const queryRunner = connection.createQueryRunner();
-    yield queryRunner.connect();
-    yield queryRunner.startTransaction();
-    try {
-        category.name = categoryModel === null || categoryModel === void 0 ? void 0 : categoryModel.name;
-        category.parent_category_id = categoryModel === null || categoryModel === void 0 ? void 0 : categoryModel.parent_category_id;
-        category.inserted_by = categoryModel === null || categoryModel === void 0 ? void 0 : categoryModel.inserted_by;
-        yield categoryRepository.save(category);
-        yield queryRunner.commitTransaction();
-    }
-    catch (error) {
-        yield queryRunner.rollbackTransaction();
-        res.status(500).send(error.message);
-    }
-    finally {
-        yield queryRunner.release();
-    }
-    res.status(201).send('Category created');
-});
 CategoriesController.getCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const parentCategoryRepository = typeorm_1.getRepository(entity_1.Categories);
     try {
@@ -79,66 +50,38 @@ CategoriesController.getCategory = (req, res) => __awaiter(void 0, void 0, void 
         res.status(500).send(error.message);
     }
 });
-CategoriesController.getsubCategoriesAganistCategoryId = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const categoryId = req.params.id;
-    const parentCategoryRepository = typeorm_1.getRepository(entity_1.Categories);
-    const connection = typeorm_1.getConnection();
-    const queryRunner = connection.createQueryRunner();
-    yield queryRunner.connect();
-    try {
-        const categories = yield queryRunner.query(`WITH RECURSIVE category_path (id, name,parent_category_id) AS
-            (
-              SELECT id, name,parent_category_id
-                FROM categories
-                WHERE parent_category_id = 11
-              UNION ALL
-              SELECT c.id, c.name,c.parent_category_id
-                FROM category_path AS cp JOIN categories AS c
-                  ON cp.id = c.parent_category_id
-            )
-            SELECT * FROM category_path
-            ORDER BY parent_category_id;`);
-        res.status(200).json(categories);
+CategoriesController.createCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const categoryModel = req.body;
+    const category = new entity_1.Categories();
+    const errors = yield class_validator_1.validate(categoryModel);
+    if (errors.length > 0) {
+        res.status(400).send(errors);
+        return;
     }
-    catch (error) {
-        res.status(500).send(error.message);
-    }
-});
-// static getsubCategoryAganistCategoryId = async (req: Request, res: Response) => {
-//     const categoryId = req.params.id;
-//     const subCategoryId = req.params.sid;
-//     const parentCategoryRepository = getRepository(Categories);
-//     const connection = getConnection();
-//     const queryRunner = connection.createQueryRunner();
-//     await queryRunner.connect();
-//     try {
-//         const categories = await queryRunner.query(
-//             `WITH RECURSIVE category_path (id, name,parent_category_id) AS
-//         (
-//           SELECT id, name,parent_category_id
-//             FROM categories
-//             WHERE parent_category_id = 11 && id = 14
-//           UNION ALL
-//           SELECT c.id, c.name,c.parent_category_id
-//             FROM category_path AS cp JOIN categories AS c
-//               ON cp.id = c.parent_category_id
-//         )
-//         SELECT * FROM category_path
-//         ORDER BY parent_category_id;`
-//         );
-//         res.status(200).json(categories);
-//     } catch (error) {
-//         res.status(500).send(error.message);
-//     }
-// };
-CategoriesController.updateCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const model = req.body;
-    const categoryId = req.params.id;
-    const categoryRepository = typeorm_1.getRepository(entity_1.Categories);
     const connection = typeorm_1.getConnection();
     const queryRunner = connection.createQueryRunner();
     yield queryRunner.connect();
     yield queryRunner.startTransaction();
+    try {
+        category.name = categoryModel === null || categoryModel === void 0 ? void 0 : categoryModel.name;
+        category.parent_category_id = categoryModel === null || categoryModel === void 0 ? void 0 : categoryModel.parent_category_id;
+        category.inserted_by = categoryModel === null || categoryModel === void 0 ? void 0 : categoryModel.inserted_by;
+        yield queryRunner.manager.save(category);
+        yield queryRunner.commitTransaction();
+    }
+    catch (error) {
+        yield queryRunner.rollbackTransaction();
+        res.status(500).send(error.message);
+    }
+    finally {
+        yield queryRunner.release();
+    }
+    res.status(201).send('Category created');
+});
+CategoriesController.updateCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const model = req.body;
+    const categoryId = req.params.id;
+    const categoryRepository = typeorm_1.getRepository(entity_1.Categories);
     try {
         yield categoryRepository.findOneOrFail(categoryId);
     }
@@ -146,15 +89,17 @@ CategoriesController.updateCategory = (req, res) => __awaiter(void 0, void 0, vo
         res.status(404).send('Category not found');
         return;
     }
+    const connection = typeorm_1.getConnection();
+    const queryRunner = connection.createQueryRunner();
+    yield queryRunner.connect();
+    yield queryRunner.startTransaction();
     try {
-        const result = yield typeorm_1.getConnection()
+        const result = yield queryRunner.manager.connection
             .createQueryBuilder()
             .update(entity_1.Categories)
             .set({ name: model.name })
             .where("id = :id", { id: categoryId })
             .execute();
-        res.status(201).send("Updated category");
-        res.status(204).send();
         yield queryRunner.commitTransaction();
     }
     catch (error) {
@@ -170,6 +115,10 @@ CategoriesController.deleteCategory = (req, res) => __awaiter(void 0, void 0, vo
     const categoryId = req.params.id;
     const categoryRepository = typeorm_1.getRepository(entity_1.Categories);
     let category;
+    const connection = typeorm_1.getConnection();
+    const queryRunner = connection.createQueryRunner();
+    yield queryRunner.connect();
+    yield queryRunner.startTransaction();
     try {
         category = yield categoryRepository.findOneOrFail(categoryId);
     }
@@ -177,18 +126,13 @@ CategoriesController.deleteCategory = (req, res) => __awaiter(void 0, void 0, vo
         res.status(404).send('Category not found');
         return;
     }
-    const connection = typeorm_1.getConnection();
-    const queryRunner = connection.createQueryRunner();
-    yield queryRunner.connect();
-    yield queryRunner.startTransaction();
     try {
-        yield typeorm_1.getConnection()
+        yield queryRunner.manager.connection
             .createQueryBuilder()
             .delete()
             .from(entity_1.Categories)
             .where("id = :id && parent_category_id: IsNull()", { id: categoryId })
             .execute();
-        res.status(201).send("Deleted category");
         yield queryRunner.commitTransaction();
     }
     catch (error) {
@@ -198,6 +142,7 @@ CategoriesController.deleteCategory = (req, res) => __awaiter(void 0, void 0, vo
     finally {
         yield queryRunner.release();
     }
+    res.status(204).send("Deleted category");
 });
 exports.default = CategoriesController;
 //# sourceMappingURL=categories.controller.js.map

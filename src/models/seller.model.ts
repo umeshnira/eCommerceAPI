@@ -18,25 +18,23 @@ export class SellerModel {
   ifsc_code: string = '';
   inserted_by: string = '';
   updated_by: string = '';
-}
 
+  getMappedEntity(model: SellerModel) {
+    const entity = new Sellers()
+    entity.name = model?.name;
+    entity.address = model?.address;
+    entity.landmark = model?.landmark;
+    entity.pincode = model?.pincode;
+    entity.email = model?.email;
+    entity.status = model?.status;
+    entity.phone = model?.phone;
+    entity.aadhar_card_no = model?.aadhar_card_no;
+    entity.pan_card_no = model?.pan_card_no;
+    entity.bank_ac_no = model?.bank_ac_no;
+    entity.ifsc_code = model?.ifsc_code;
+    entity.inserted_by = model?.inserted_by;
+    entity.updated_by = model?.updated_by;
 
-export function modelParsing(entityModel: Sellers, model: SellerModel) {
-
-  entityModel.name = model?.name;
-  entityModel.address = model?.address;
-  entityModel.landmark = model?.landmark;
-  entityModel.pincode = model?.pincode;
-  entityModel.email = model?.email;
-  entityModel.status = model?.status;
-  entityModel.phone = model?.phone;
-  entityModel.aadhar_card_no = model?.aadhar_card_no;
-  entityModel.pan_card_no = model?.pan_card_no;
-  entityModel.bank_ac_no = model?.bank_ac_no;
-  entityModel.ifsc_code = model?.ifsc_code;
-  entityModel.inserted_by = model?.inserted_by;
-  entityModel.updated_by = model?.updated_by;
-
-  return entityModel;
-
+    return entity;
+  }
 }
