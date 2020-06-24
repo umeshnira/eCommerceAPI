@@ -1,10 +1,11 @@
 import multer from 'multer';
 import fs from 'fs';
-
+import { application } from '../config/app-settings.json';
+import path from 'path';
 const storage = multer.diskStorage({
 
     destination(req, file, callback) {
-        const destPath = req.uploadPath;
+        const destPath =  path.resolve(__dirname, application.imageStoragePath);;
         if (!fs.existsSync(destPath)) {
             fs.mkdirSync(destPath);
         }
@@ -28,6 +29,6 @@ const fileFilter = (req: any, file: any, cb: any) => {
     };
 }
 
-const upload = multer({ storage, fileFilter });
+const file_upload = multer({ storage, fileFilter });
 
 export default file_upload;

@@ -41,11 +41,11 @@ export class Products {
     @Length(4, 20)
     star_rate: string;
 
-    @Column("blob")
-    bar_code: Blob;
+    @Column("text")
+    bar_code: string;
 
     @Column("text")
-    about: Text;
+    about: string;
 
     @Column({ type: 'boolean', default: true })
     is_returnable: boolean;

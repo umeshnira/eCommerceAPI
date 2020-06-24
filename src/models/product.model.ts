@@ -9,8 +9,8 @@ export class ProductModel {
     batch_no: number;
     exp_date: Date;
     star_rate: string;
-    bar_code: Blob;
-    about: Text;
+    bar_code: string;
+    about: string;
     is_returnable: boolean;
     inserted_by: string;
     updated_by: string;

@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import productController from '../controllers/Product.controller';
+import file_upload from '../utils/image-upload';
 
 const router = Router();
 
 // Create a new product category
-router.post('/products', [], productController.createProduct);
+router.post('/products', [], file_upload.array('image'), productController.createProduct);
 
 // List categories
 router.get('/products', [], productController.getAllProducts);
