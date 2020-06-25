@@ -1,7 +1,11 @@
 {
    "application": {
       "environment": "DEV",
-      "imageStoragePath":"../public/images/products/"
+      "storage": {
+         "user": "../public/images/users/",
+         "category": "../public/images/categories/",
+         "product": "../public/images/products/"
+      }
    },
    "database": {
       "type": "mysql",

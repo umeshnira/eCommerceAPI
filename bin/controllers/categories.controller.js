@@ -20,7 +20,7 @@ CategoriesController.getCategories = (req, res) => __awaiter(void 0, void 0, voi
     try {
         const categories = yield parentCategoryRepository
             .find({
-            select: ['id', 'name'],
+            select: ['id', 'name', 'description', 'inserted_by', 'inserted_at'],
             where: { parent_category_id: typeorm_1.IsNull() }
         });
         res.status(200).json(categories);
@@ -64,6 +64,7 @@ CategoriesController.createCategory = (req, res) => __awaiter(void 0, void 0, vo
     yield queryRunner.startTransaction();
     try {
         category.name = categoryModel === null || categoryModel === void 0 ? void 0 : categoryModel.name;
+        category.description = categoryModel === null || categoryModel === void 0 ? void 0 : categoryModel.description;
         category.parent_category_id = categoryModel === null || categoryModel === void 0 ? void 0 : categoryModel.parent_category_id;
         category.inserted_by = categoryModel === null || categoryModel === void 0 ? void 0 : categoryModel.inserted_by;
         yield queryRunner.manager.save(category);
@@ -97,7 +98,10 @@ CategoriesController.updateCategory = (req, res) => __awaiter(void 0, void 0, vo
         const result = yield queryRunner.manager.connection
             .createQueryBuilder()
             .update(entity_1.Categories)
-            .set({ name: model.name })
+            .set({
+            name: model.name,
+            description: model.description
+        })
             .where("id = :id", { id: categoryId })
             .execute();
         yield queryRunner.commitTransaction();
@@ -121,6 +125,7 @@ CategoriesController.deleteCategory = (req, res) => __awaiter(void 0, void 0, vo
     yield queryRunner.startTransaction();
     try {
         category = yield categoryRepository.findOneOrFail(categoryId);
+        console.log(category);
     }
     catch (error) {
         res.status(404).send('Category not found');
@@ -131,13 +136,13 @@ CategoriesController.deleteCategory = (req, res) => __awaiter(void 0, void 0, vo
             .createQueryBuilder()
             .delete()
             .from(entity_1.Categories)
-            .where("id = :id && parent_category_id: IsNull()", { id: categoryId })
+            .where("id = :id", { id: categoryId })
             .execute();
         yield queryRunner.commitTransaction();
     }
     catch (error) {
         yield queryRunner.rollbackTransaction();
-        res.status(500).send(error.message);
+        res.status(500).json({ "message": "Categories with sub category cannot be deleted" });
     }
     finally {
         yield queryRunner.release();

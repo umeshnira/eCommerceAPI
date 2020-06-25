@@ -16,4 +16,8 @@ __exportStar(require("./login.model"), exports);
 __exportStar(require("./category.model"), exports);
 __exportStar(require("./product.model"), exports);
 __exportStar(require("./product-category.model"), exports);
+__exportStar(require("./product-images.model"), exports);
+__exportStar(require("./product-offers.model"), exports);
+__exportStar(require("./product-prices.model"), exports);
+__exportStar(require("./product-quantity.model"), exports);
 //# sourceMappingURL=index.js.map

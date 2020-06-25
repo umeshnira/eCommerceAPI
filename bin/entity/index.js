@@ -15,5 +15,9 @@ __exportStar(require("./client.entity"), exports);
 __exportStar(require("./login.entity"), exports);
 __exportStar(require("./product.entity"), exports);
 __exportStar(require("./product-category.entity"), exports);
+__exportStar(require("./product-images.entity"), exports);
+__exportStar(require("./product-offers.entity"), exports);
+__exportStar(require("./product-prices.entity"), exports);
+__exportStar(require("./product-quantity.entity"), exports);
 __exportStar(require("./seller.entity"), exports);
 //# sourceMappingURL=index.js.map

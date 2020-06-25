@@ -1,14 +1,14 @@
 import { Request, Response } from 'express';
 import { getRepository, getConnection } from 'typeorm';
 import { validate } from 'class-validator';
-import { Products, ProductOffers, ProductPrices, ProductQuantity, ProductImages, ProductCategories } from '../entity';
+import { Products, ProductOffers, ProductPrices, ProductQuantity, ProductImages, ProductCategories, Categories } from '../entity';
 import { ProductModel, ProductCategoryModel, ProductOffersModel, ProductQuantityModel, ProductPricesModel, ProductImagesModel } from '../models';
 import { application } from '../config/app-settings.json';
 import * as fs from 'fs';
 
 class ProductController {
 
-    static getAllProducts = async (req: Request, res: Response) => {
+    static getProducts = async (req: Request, res: Response) => {
 
         const connection = getConnection();
         const queryRunner = connection.createQueryRunner();
@@ -31,7 +31,7 @@ class ProductController {
             if (result) {
                 res.status(200).json(result);
             } else {
-                res.status(404).send('Products Not Found');
+                res.status(404).send('Products not found');
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -78,7 +78,7 @@ class ProductController {
             if (result) {
                 res.status(200).json(result);
             } else {
-                res.status(404).send('Product Not Found');
+                res.status(404).send(`Product with id: ${productId}  not found`);
             }
 
         } catch (error) {
@@ -88,7 +88,7 @@ class ProductController {
         }
     };
 
-    static getAllProductAganistCategoryId = async (req: Request, res: Response) => {
+    static getProductsByCategoryId = async (req: Request, res: Response) => {
 
         const connection = getConnection();
         const queryRunner = connection.createQueryRunner();
@@ -97,6 +97,12 @@ class ProductController {
 
             const categoryId = req.params.id;
             await queryRunner.connect();
+
+            const category = await queryRunner.manager.findOneOrFail<Categories>(categoryId);
+            if (!category) {
+                res.status(404).send(`Category with id: ${categoryId} not found`);
+                return;
+            }
 
             const productRepository = getRepository(Products);
             const products = await productRepository
@@ -159,9 +165,9 @@ class ProductController {
 
             for (const file of req?.files) {
                 const productImagesModel = new ProductImagesModel();
-                productImagesModel.image = application.imageStoragePath + file.filename;
+                productImagesModel.image = file.filename;
                 productImagesModel.inserted_by = productModel.inserted_by;
-                productImagesModel.inserted_at = new Date;
+                productImagesModel.inserted_at = new Date();
 
                 const productImages = await new ProductImagesModel().getMappedEntity(productImagesModel);
                 productImages.products = product;
@@ -205,7 +211,7 @@ class ProductController {
 
             const prod = await queryRunner.manager.findOneOrFail<Products>(productId);
             if (!prod) {
-                res.status(404).send('Resource not found');
+                res.status(404).send(`Product with id: ${productId}  not found`);
                 return;
             }
 
@@ -256,9 +262,9 @@ class ProductController {
 
             for (const file of req?.files) {
                 const productImagesModel = new ProductImagesModel();
-                productImagesModel.image = application.imageStoragePath + file.filename;
+                productImagesModel.image = file.filename;
                 productImagesModel.updated_by = productModel.updated_by;
-                productImagesModel.updated_at = new Date;
+                productImagesModel.updated_at = new Date();
 
                 const productImages = await new ProductImagesModel().getMappedEntity(productImagesModel);
                 await queryRunner.manager.connection
@@ -294,9 +300,9 @@ class ProductController {
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
-            const product = await queryRunner.manager.findOneOrFail<Products>(productId);
-            if (!product) {
-                res.status(404).send('Resource not found');
+            const prod = await queryRunner.manager.findOneOrFail<Products>(productId);
+            if (!prod) {
+                res.status(404).send(`Product with id: ${productId}  not found`);
                 return;
             }
 
@@ -341,7 +347,7 @@ class ProductController {
                 .from(ProductImages, "image")
                 .where("image.product_id = :id", { id: productId })
                 .getMany();
-            
+
             const files = [];
             for (const image of images) {
                 files.push({ path: image.image });

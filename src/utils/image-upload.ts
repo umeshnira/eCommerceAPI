@@ -1,12 +1,11 @@
 import multer from 'multer';
 import fs from 'fs';
-import { application } from '../config/app-settings.json';
 import path from 'path';
 
 const storage = multer.diskStorage({
 
     destination(req, file, callback) {
-        const destPath =  path.resolve(__dirname, application.imageStoragePath);;
+        const destPath =  path.resolve(__dirname, req.uploadPath);
         if (!fs.existsSync(destPath)) {
             fs.mkdirSync(destPath);
         }

@@ -26,6 +26,11 @@ __decorate([
     __metadata("design:type", String)
 ], Categories.prototype, "name", void 0);
 __decorate([
+    typeorm_1.Column(),
+    class_validator_1.Length(4, 100),
+    __metadata("design:type", String)
+], Categories.prototype, "description", void 0);
+__decorate([
     typeorm_1.ManyToOne(type => Categories_1, category => category.subCategories),
     typeorm_1.JoinColumn({ name: "parent_category_id", referencedColumnName: "id" }),
     __metadata("design:type", Number)

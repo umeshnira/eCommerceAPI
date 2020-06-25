@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Products = void 0;
 const typeorm_1 = require("typeorm");
 const class_validator_1 = require("class-validator");
+const _1 = require(".");
 let Products = class Products {
 };
 __decorate([
@@ -47,12 +48,12 @@ __decorate([
     __metadata("design:type", String)
 ], Products.prototype, "star_rate", void 0);
 __decorate([
-    typeorm_1.Column("blob"),
-    __metadata("design:type", Blob)
+    typeorm_1.Column("text"),
+    __metadata("design:type", String)
 ], Products.prototype, "bar_code", void 0);
 __decorate([
     typeorm_1.Column("text"),
-    __metadata("design:type", Text)
+    __metadata("design:type", String)
 ], Products.prototype, "about", void 0);
 __decorate([
     typeorm_1.Column({ type: 'boolean', default: true }),
@@ -78,6 +79,22 @@ __decorate([
     class_validator_1.Length(4, 100),
     __metadata("design:type", String)
 ], Products.prototype, "updated_by", void 0);
+__decorate([
+    typeorm_1.OneToMany(type => _1.ProductImages, image => image.products),
+    __metadata("design:type", Array)
+], Products.prototype, "image", void 0);
+__decorate([
+    typeorm_1.OneToOne(type => _1.ProductQuantity, quantity => quantity.products),
+    __metadata("design:type", Array)
+], Products.prototype, "quantity", void 0);
+__decorate([
+    typeorm_1.OneToOne(type => _1.ProductOffers, offers => offers.products),
+    __metadata("design:type", Array)
+], Products.prototype, "offers", void 0);
+__decorate([
+    typeorm_1.OneToOne(type => _1.ProductPrices, price => price.products),
+    __metadata("design:type", Array)
+], Products.prototype, "price", void 0);
 Products = __decorate([
     typeorm_1.Entity()
 ], Products);

@@ -5,9 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const multer_1 = __importDefault(require("multer"));
 const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
 const storage = multer_1.default.diskStorage({
     destination(req, file, callback) {
-        const destPath = req.uploadPath;
+        const destPath = path_1.default.resolve(__dirname, req.uploadPath);
         if (!fs_1.default.existsSync(destPath)) {
             fs_1.default.mkdirSync(destPath);
         }
@@ -29,6 +30,6 @@ const fileFilter = (req, file, cb) => {
     }
     ;
 };
-const upload = multer_1.default({ storage, fileFilter });
+const file_upload = multer_1.default({ storage, fileFilter });
 exports.default = file_upload;
 //# sourceMappingURL=image-upload.js.map
