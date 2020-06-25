@@ -1,22 +1,21 @@
-import { Request, Response, json } from 'express';
-import { getRepository, IsNull, Equal, getConnection } from 'typeorm';
+import { Request, Response } from 'express';
+import { getRepository, getConnection } from 'typeorm';
 import { validate } from 'class-validator';
-import { ProductCategories, Categories, Products, ProductOffers, ProductPrices, ProductQuantity, ProductImages } from '../entity';
-import { CategoryModel, ProductModel, ProductCategoryModel, ProductOffersModel, ProductQuantityModel, ProductPricesModel, ProductImagesModel } from '../models';
+import { Products, ProductOffers, ProductPrices, ProductQuantity, ProductImages, ProductCategories } from '../entity';
+import { ProductModel, ProductCategoryModel, ProductOffersModel, ProductQuantityModel, ProductPricesModel, ProductImagesModel } from '../models';
 import { application } from '../config/app-settings.json';
+import * as fs from 'fs';
 
 class ProductController {
-
-    // Apis of products
 
     static getAllProducts = async (req: Request, res: Response) => {
 
         const connection = getConnection();
         const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-
 
         try {
+
+            await queryRunner.connect();
 
             const result = await queryRunner.manager.connection
                 .createQueryBuilder(Products, 'p')
@@ -29,7 +28,6 @@ class ProductController {
                 .innerJoin(ProductImages, 'pi', 'pi.product_id = p.id')
                 .getRawMany();
 
-
             if (result) {
                 res.status(200).json(result);
             } else {
@@ -37,18 +35,20 @@ class ProductController {
             }
         } catch (error) {
             res.status(500).send(error.message);
+        } finally {
+            await queryRunner.release();
         }
     };
 
     static getProduct = async (req: Request, res: Response) => {
 
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+
         try {
 
             const productId = req.params?.id;
-            const connection = getConnection();
-            const queryRunner = connection.createQueryRunner();
             await queryRunner.connect();
-
 
             const result = await queryRunner.manager.connection
                 .createQueryBuilder(Products, 'p')
@@ -83,125 +83,136 @@ class ProductController {
 
         } catch (error) {
             res.status(500).send(error.message);
+        } finally {
+            await queryRunner.release();
         }
     };
 
     static getAllProductAganistCategoryId = async (req: Request, res: Response) => {
 
-        const categoryId = req.params.id;
-        const productRepository = getRepository(Products);
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
 
         try {
+
+            const categoryId = req.params.id;
+            await queryRunner.connect();
+
+            const productRepository = getRepository(Products);
             const products = await productRepository
                 .find({
                     select: ['id', 'name', 'description'],
                     where: { category_id: categoryId }
                 });
+
             res.status(200).json(products);
         } catch (error) {
             res.status(500).send(error.message);
+        } finally {
+            await queryRunner.release();
         }
     };
 
     static createProduct = async (req: any, res: Response) => {
 
-        const product = JSON.parse(req.body.data)
-        const productModel = product as ProductModel;
-        const productCategoryModel = product.category as ProductCategoryModel;
-        const productOffersModel = product.offer as ProductOffersModel;
-        const productQuantityModel = product.quantity as ProductQuantityModel;
-        const productPricesModel = product.price as ProductPricesModel;
-
-        let imageObj = { image: application.imageStoragePath + req.files[0].filename }
-        const productImagesModel = imageObj as ProductImagesModel;
-
-        const errors = await validate(productModel);
-        if (errors.length > 0) {
-            res.status(400).send(errors);
-            return;
-        }
-
         const connection = getConnection();
         const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
 
         try {
 
+            const parsedData = JSON.parse(req.body.data)
+            const productModel = parsedData as ProductModel;
+            const productCategoryModel = parsedData.category as ProductCategoryModel;
+            const productOffersModel = parsedData.offer as ProductOffersModel;
+            const productQuantityModel = parsedData.quantity as ProductQuantityModel;
+            const productPricesModel = parsedData.price as ProductPricesModel;
+
+            const errors = await validate(productModel);
+            if (errors.length > 0) {
+                res.status(400).send(errors);
+                return;
+            }
+
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+
             const product = await new ProductModel().getMappedEntity(productModel);
+            await queryRunner.manager.save(product);
+
             const productCategory = await new ProductCategoryModel().getMappedEntity(productCategoryModel);
-            const productOffers = await new ProductOffersModel().getMappedEntity(productOffersModel);
-            const productQuantity = await new ProductQuantityModel().getMappedEntity(productQuantityModel);
-            const productPrices = await new ProductPricesModel().getMappedEntity(productPricesModel);
-            const productImages = await new ProductImagesModel().getMappedEntity(productImagesModel);
             productCategory.products = product;
-            productOffers.products = product;
-            productQuantity.products = product;
-            productPrices.products = product;
-            productImages.products = product;
-            const result = await queryRunner.manager.save(product);
-
-
             await queryRunner.manager.save(productCategory);
-            await queryRunner.manager.save(productOffers);
+
+            const productQuantity = await new ProductQuantityModel().getMappedEntity(productQuantityModel);
+            productQuantity.products = product;
             await queryRunner.manager.save(productQuantity);
+
+            const productPrices = await new ProductPricesModel().getMappedEntity(productPricesModel);
+            productPrices.products = product;
             await queryRunner.manager.save(productPrices);
-            await queryRunner.manager.save(productImages);
+
+            if (productOffersModel) {
+                const productOffers = await new ProductOffersModel().getMappedEntity(productOffersModel);
+                productOffers.products = product;
+                await queryRunner.manager.save(productOffers);
+            }
+
+            for (const file of req?.files) {
+                const productImagesModel = new ProductImagesModel();
+                productImagesModel.image = application.imageStoragePath + file.filename;
+                productImagesModel.inserted_by = productModel.inserted_by;
+                productImagesModel.inserted_at = new Date;
+
+                const productImages = await new ProductImagesModel().getMappedEntity(productImagesModel);
+                productImages.products = product;
+                await queryRunner.manager.save(productImages);
+            }
 
             await queryRunner.commitTransaction();
-        } catch (error) {
+
+            res.status(201).send('Product created');
+        }
+        catch (error) {
+            ProductController.unlinkUploadedFiles(req?.files);
             await queryRunner.rollbackTransaction();
             res.status(500).send(error.message);
         }
         finally {
             await queryRunner.release();
         }
-
-        res.status(201).send('Product created');
     };
 
     static updateProduct = async (req: any, res: Response) => {
 
-        const productId = req.params.id;
-        const product = JSON.parse(req.body.data)
-        const productModel = product as ProductModel;
-        const productCategoryModel = product.category as ProductCategoryModel;
-        const productOffersModel = product.offer as ProductOffersModel;
-        const productQuantityModel = product.quantity as ProductQuantityModel;
-        const productPricesModel = product.price as ProductPricesModel;
-
-        let imageObj = {
-            image: application.imageStoragePath + req.files[0].filename,
-            inserted_at:new Date,
-            updated_at:new Date
-        }
-        const productImagesModel = imageObj as ProductImagesModel;
-        const errors = await validate(productModel);
-        if (errors.length > 0) {
-            res.status(400).send(errors);
-            return;
-        }
-
         const connection = getConnection();
         const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
-        // try {
-        //     await queryRunner.manager.findOneOrFail(productId);
-        // } catch (error) {
-        //     res.status(404).send('Resource not found');
-        //     return;
-        // }
 
         try {
-            const product = await new ProductModel().getMappedEntity(productModel);
-            const productCategory = await new ProductCategoryModel().getMappedEntity(productCategoryModel);
-            const productOffers = await new ProductOffersModel().getMappedEntity(productOffersModel);
-            const productQuantity = await new ProductQuantityModel().getMappedEntity(productQuantityModel);
-            const productPrices = await new ProductPricesModel().getMappedEntity(productPricesModel);
-            const productImages = await new ProductImagesModel().getMappedEntity(productImagesModel);
 
+            const productId = req.params.id;
+            const parsedData = JSON.parse(req.body.data)
+            const productModel = parsedData as ProductModel;
+            const productCategoryModel = parsedData.category as ProductCategoryModel;
+            const productOffersModel = parsedData.offer as ProductOffersModel;
+            const productQuantityModel = parsedData.quantity as ProductQuantityModel;
+            const productPricesModel = parsedData.price as ProductPricesModel;
+
+            const errors = await validate(productModel);
+            if (errors.length > 0) {
+                res.status(400).send(errors);
+                return;
+            }
+
+            const prod = await queryRunner.manager.findOneOrFail<Products>(productId);
+            if (!prod) {
+                res.status(404).send('Resource not found');
+                return;
+            }
+
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+
+            const product = await new ProductModel().getMappedEntity(productModel);
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .update(Products)
@@ -209,6 +220,7 @@ class ProductController {
                 .where("id = :id", { id: productId })
                 .execute();
 
+            const productCategory = await new ProductCategoryModel().getMappedEntity(productCategoryModel);
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .update(ProductCategories)
@@ -216,13 +228,17 @@ class ProductController {
                 .where("product_id = :id", { id: productId })
                 .execute();
 
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .update(ProductOffers)
-                .set(productOffers)
-                .where("product_id = :id", { id: productId })
-                .execute();
+            if (productOffersModel) {
+                const productOffers = await new ProductOffersModel().getMappedEntity(productOffersModel);
+                await queryRunner.manager.connection
+                    .createQueryBuilder()
+                    .update(ProductOffers)
+                    .set(productOffers)
+                    .where("product_id = :id", { id: productId })
+                    .execute();
+            }
 
+            const productQuantity = await new ProductQuantityModel().getMappedEntity(productQuantityModel);
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .update(ProductQuantity)
@@ -230,74 +246,88 @@ class ProductController {
                 .where("product_id = :id", { id: productId })
                 .execute();
 
+            const productPrices = await new ProductPricesModel().getMappedEntity(productPricesModel);
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .update(ProductPrices)
                 .set(productPrices)
                 .where("product_id = :id", { id: productId })
                 .execute();
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .update(ProductImages)
-                .set(productImages)
-                .where("product_id = :id", { id: productId })
-                .execute();
 
+            for (const file of req?.files) {
+                const productImagesModel = new ProductImagesModel();
+                productImagesModel.image = application.imageStoragePath + file.filename;
+                productImagesModel.updated_by = productModel.updated_by;
+                productImagesModel.updated_at = new Date;
+
+                const productImages = await new ProductImagesModel().getMappedEntity(productImagesModel);
+                await queryRunner.manager.connection
+                    .createQueryBuilder()
+                    .update(ProductImages)
+                    .set(productImages)
+                    .where("product_id = :id", { id: productId })
+                    .execute();
+            }
 
             await queryRunner.commitTransaction();
 
+            res.status(204).send("Product is upadted");
+
         } catch (error) {
+            ProductController.unlinkUploadedFiles(req?.files);
             await queryRunner.rollbackTransaction();
             res.status(500).send(error.message);
         }
         finally {
             await queryRunner.release();
         }
-
-        res.status(204).send("Updated Product");
     };
 
     static deleteProduct = async (req: Request, res: Response) => {
 
-        const productId = req.params.id;
-
         const connection = getConnection();
         const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
 
         try {
-            await queryRunner.manager.findOneOrFail(productId);
-        } catch (error) {
-            res.status(404).send('Resource not found');
-            return;
-        }
+            const productId = req.params.id;
 
-        try {
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+
+            const product = await queryRunner.manager.findOneOrFail<Products>(productId);
+            if (!product) {
+                res.status(404).send('Resource not found');
+                return;
+            }
+
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(ProductCategories)
                 .where("product_id = :id", { id: productId })
                 .execute();
+
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(ProductOffers)
                 .where("product_id = :id", { id: productId })
                 .execute();
+
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(ProductQuantity)
                 .where("product_id = :id", { id: productId })
                 .execute();
+
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(ProductPrices)
                 .where("product_id = :id", { id: productId })
                 .execute();
+
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
@@ -305,14 +335,29 @@ class ProductController {
                 .where("product_id = :id", { id: productId })
                 .execute();
 
+            const images = await getConnection()
+                .createQueryBuilder()
+                .select("image")
+                .from(ProductImages, "image")
+                .where("image.product_id = :id", { id: productId })
+                .getMany();
+            
+            const files = [];
+            for (const image of images) {
+                files.push({ path: image.image });
+            }
+            ProductController.unlinkUploadedFiles(files);
+
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(Products)
                 .where("id = :id", { id: productId })
                 .execute();
+
             await queryRunner.commitTransaction();
 
+            res.status(204).send('Product is deleted');
         } catch (error) {
             await queryRunner.rollbackTransaction();
             res.status(500).send(error.message);
@@ -320,9 +365,17 @@ class ProductController {
         finally {
             await queryRunner.release();
         }
-
-        res.status(204).send('Deleted Product');
     };
+
+    static unlinkUploadedFiles(files: any[]) {
+        if (files) {
+            for (const file of files) {
+                fs.unlink(file.path, function (err) {
+                    if (err) throw err;
+                });
+            }
+        }
+    }
 }
 
 export default ProductController;
