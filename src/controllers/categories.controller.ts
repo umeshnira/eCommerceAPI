@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
-import { getRepository, getConnection, IsNull } from 'typeorm';
+import { getRepository, getConnection, IsNull, createQueryBuilder, getManager } from 'typeorm';
 import { validate } from 'class-validator';
 import { Categories } from '../entity';
 import { CategoryModel } from '../models';
+import { CategoryListModel } from '../models/category-list.model';
 
 class CategoriesController {
 
@@ -15,7 +16,7 @@ class CategoriesController {
         try {
             const categories = await parentCategoryRepository
                 .find({
-                    select: ['id', 'name'],
+                    select: ['id', 'name', 'description', 'inserted_by', 'inserted_at'],
                     where: { parent_category_id: IsNull() }
                 });
             res.status(200).json(categories);
@@ -65,6 +66,7 @@ class CategoriesController {
 
         try {
             category.name = categoryModel?.name;
+            category.description = categoryModel?.description;
             category.parent_category_id = categoryModel?.parent_category_id;
             category.inserted_by = categoryModel?.inserted_by;
             await queryRunner.manager.save(category);
@@ -102,7 +104,12 @@ class CategoriesController {
             const result = await queryRunner.manager.connection
                 .createQueryBuilder()
                 .update(Categories)
-                .set({ name: model.name })
+                .set(
+                    {
+                        name: model.name,
+                        description: model.description
+                    }
+                )
                 .where("id = :id", { id: categoryId })
                 .execute();
             await queryRunner.commitTransaction();
@@ -130,6 +137,7 @@ class CategoriesController {
 
         try {
             category = await categoryRepository.findOneOrFail(categoryId);
+            console.log(category);
         } catch (error) {
             res.status(404).send('Category not found');
             return;
@@ -140,12 +148,12 @@ class CategoriesController {
                 .createQueryBuilder()
                 .delete()
                 .from(Categories)
-                .where("id = :id && parent_category_id: IsNull()", { id: categoryId })
+                .where("id = :id", { id: categoryId })
                 .execute();
             await queryRunner.commitTransaction();
         } catch (error) {
             await queryRunner.rollbackTransaction();
-            res.status(500).send(error.message);
+            res.status(500).json({ "message": "Categories with sub category cannot be deleted" });
         }
         finally {
             await queryRunner.release();

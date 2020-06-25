@@ -24,6 +24,10 @@ export class Categories {
     @Length(4, 20)
     name: string;
 
+    @Column()
+    @Length(4, 100)
+    description: string;
+
     @ManyToOne(type => Categories, category => category.subCategories)
     @JoinColumn({ name: "parent_category_id", referencedColumnName: "id"})
     parent_category_id: number;

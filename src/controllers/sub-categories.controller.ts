@@ -3,6 +3,7 @@ import { getRepository, IsNull, Equal, getConnection } from 'typeorm';
 import { validate } from 'class-validator';
 import { Categories } from '../entity';
 import { CategoryModel } from '../models';
+import { CategoryListModel } from '../models/category-list.model';
 
 
 class SubCategoriesController {
@@ -24,9 +25,74 @@ class SubCategoriesController {
             if (subCategory) {
                 res.status(200).json(subCategory);
             } else {
-                res.status(404).send('Resource Not Found');
+                res.status(404).send('Category Not Found');
             }
 
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
+
+    static getSubCategories = async (req: Request, res: Response) => {
+
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+        try {
+
+            const categoriesArray = await queryRunner.query(
+                `SELECT id,name,inserted_by,inserted_at,parent_category_id
+                FROM Categories;`
+            );
+
+            const categories = new Array<CategoryListModel>();
+            const mainCategories = categoriesArray.filter(x => x.parent_category_id === null);
+
+            for (const mainCategory of mainCategories) {
+                categories.push(new CategoryListModel(
+                    mainCategory.id,
+                    mainCategory.name,
+                    mainCategory.inserted_at,
+                    mainCategory.inserted_by
+                ));
+            }
+
+            const subCategories = categoriesArray.filter(x => x.parent_category_id !== null);
+            for (const subCategory of subCategories) {
+                SubCategoriesController.processCategoryHierarchy(categories, subCategory);
+            }
+
+            res.status(200).json(categories);
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
+
+    static getAllSubCategories = async (req: Request, res: Response) => {
+
+        const parentCategoryRepository = getRepository(Categories);
+
+        const connection = getConnection();
+        const queryRunner = connection.createQueryRunner();
+        await queryRunner.connect();
+
+        try {
+
+            const categories = await queryRunner.query(
+                `WITH RECURSIVE category_path (id, name,parent_category_id,inserted_by, inserted_at, path) AS
+                (
+                SELECT id, name,parent_category_id,inserted_by, inserted_at, name as path
+                    FROM categories
+                    WHERE parent_category_id IS Not NULL
+                UNION ALL
+                SELECT c.id, c.name,c.parent_category_id,c.inserted_by, c.inserted_at, CONCAT(cp.path, ' > ', c.name)
+                    FROM category_path AS cp JOIN categories AS c
+                    ON cp.id = c.parent_category_id
+                )
+                SELECT * FROM category_path
+                ORDER BY path;`
+            );
+            res.status(200).json(categories);
         } catch (error) {
             res.status(500).send(error.message);
         }
@@ -108,7 +174,7 @@ class SubCategoriesController {
         await queryRunner.startTransaction();
 
         try {
-            await queryRunner.manager.findOneOrFail(categoryId);
+            await queryRunner.manager.getRepository(Categories).findOneOrFail(categoryId);
         } catch (error) {
             res.status(404).send('Category not found');
             return;
@@ -118,7 +184,10 @@ class SubCategoriesController {
             const result = await queryRunner.manager.connection
                 .createQueryBuilder()
                 .update(Categories)
-                .set({ name: model.name })
+                .set({
+                    name: model.name,
+                    description: model.description
+                })
                 .where("id = :id", { id: categoryId })
                 .execute();
             await queryRunner.commitTransaction();
@@ -143,7 +212,7 @@ class SubCategoriesController {
         await queryRunner.startTransaction();
 
         try {
-            await queryRunner.manager.findOneOrFail(categoryId);
+            await queryRunner.manager.getRepository(Categories).findOneOrFail(categoryId);
         } catch (error) {
             res.status(404).send('Category not found');
             return;
@@ -166,6 +235,27 @@ class SubCategoriesController {
         }
         res.status(204).send('Deleted Category');
     };
+
+    private static processCategoryHierarchy(categories: CategoryListModel[], subCategory: CategoryListModel): boolean {
+        const category = categories.find(x => x.id === subCategory.parent_category_id);
+        if (category) {
+            if (category.subCategories.findIndex(x => x.id === subCategory.id) === -1) {
+                category.subCategories.push(new CategoryListModel(
+                    subCategory.id,
+                    subCategory.name,
+                    subCategory.inserted_at,
+                    subCategory.inserted_by,
+                    subCategory.parent_category_id
+                ));
+                return true;
+            }
+        } else {
+            for (const cat of categories) {
+                const hasSubCategoryAdded = this.processCategoryHierarchy(cat.subCategories, subCategory);
+                if (hasSubCategoryAdded) { break; };
+            }
+        }
+    }
 }
 
 export default SubCategoriesController;
