@@ -12,7 +12,7 @@ router.get('/products', [], productController.getAllProducts);
 
 router.get('/products/:id([0-9]+)', [], productController.getProduct);
 
-router.put('/products/:id([0-9]+)', [], productController.updateProduct);
+router.put('/products/:id([0-9]+)', [],file_upload.array('image'), productController.updateProduct);
 
 router.delete('/products/:id([0-9]+)', [], productController.deleteProduct);
 
