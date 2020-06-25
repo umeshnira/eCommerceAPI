@@ -20,12 +20,10 @@ createConnection(getDataBaseConnection()).then(() => {
     app.use(helmet());
     app.use(express.json());
     app.use(compression({ filter: shouldCompress }));
+    app.use(express.static('public'));
     app.use(xss());
 
     app.use('/ecommerce', routes);
-    app.get('/ecommerce/helloworld', function (req, res) {
-        res.send('helloworld')
-    });
     const PORT = process.env.PORT || 1337;
 
     if (settings.application.environment === EnvironmentType[EnvironmentType.Local]) {

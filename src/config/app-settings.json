@@ -2,9 +2,9 @@
    "application": {
       "environment": "DEV",
       "storage": {
-         "user": "../public/images/users/",
-         "category": "../public/images/categories/",
-         "product": "../public/images/products/"
+         "user": "../../public/images/users/",
+         "category": "../../public/images/categories/",
+         "product": "../../public/images/products/"
       }
    },
    "database": {
