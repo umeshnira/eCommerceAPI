@@ -12,7 +12,8 @@ class ProductController {
 
         const connection = getConnection();
         const queryRunner = connection.createQueryRunner();
-
+        const productImagePath = application.storage.product;
+        console.log("productImagePath " + productImagePath)
         try {
 
             await queryRunner.connect();
@@ -24,6 +25,7 @@ class ProductController {
                 .addSelect('p.description', 'description')
                 .addSelect('p.star_rate', 'star_rate')
                 .addSelect('pp.price', 'price')
+                .addSelect('pi.image', 'image')
                 .innerJoin(ProductPrices, 'pp', 'pp.product_id = p.id')
                 .innerJoin(ProductImages, 'pi', 'pi.product_id = p.id')
                 .getRawMany();
@@ -67,6 +69,7 @@ class ProductController {
                 .addSelect('pq.tota_qty', 'tota_qty')
                 .addSelect('pc.category_id', 'category_id')
                 .addSelect('pc.status', 'status')
+                .addSelect('pi.image', 'image')
                 .innerJoin(ProductPrices, 'pp', 'pp.product_id = p.id')
                 .innerJoin(ProductOffers, 'po', 'po.product_id = p.id')
                 .innerJoin(ProductQuantity, 'pq', 'pq.product_id = p.id')
@@ -98,20 +101,25 @@ class ProductController {
             const categoryId = req.params.id;
             await queryRunner.connect();
 
-            const category = await queryRunner.manager.findOneOrFail<Categories>(categoryId);
-            if (!category) {
-                res.status(404).send(`Category with id: ${categoryId} not found`);
-                return;
-            }
 
-            const productRepository = getRepository(Products);
-            const products = await productRepository
-                .find({
-                    select: ['id', 'name', 'description'],
-                    where: { category_id: categoryId }
-                });
+            const result = await queryRunner.manager.connection
+                .createQueryBuilder(Products, 'p')
+                .addSelect('p.id', 'id')
+                .addSelect('p.name', 'name')
+                .addSelect('p.description', 'description')
+                .addSelect('p.star_rate', 'star_rate')
+                .addSelect('pp.price', 'price')
+                .addSelect('pi.image', 'image')
+                .addSelect('pc.category_id', 'category_id')
+                .addSelect('c.name', 'category_name')
+                .innerJoin(ProductPrices, 'pp', 'pp.product_id = p.id')
+                .innerJoin(ProductImages, 'pi', 'pi.product_id = p.id')
+                .innerJoin(ProductCategories, 'pc', 'pc.product_id = p.id')
+                .innerJoin(Categories, 'c', 'pc.category_id = c.id')
+                .where("c.id = :id", { id: categoryId })
+                .getRawMany();
 
-            res.status(200).json(products);
+            res.status(200).json(result);
         } catch (error) {
             res.status(500).send(error.message);
         } finally {
@@ -202,6 +210,7 @@ class ProductController {
             const productOffersModel = parsedData.offer as ProductOffersModel;
             const productQuantityModel = parsedData.quantity as ProductQuantityModel;
             const productPricesModel = parsedData.price as ProductPricesModel;
+            const productImageObj = parsedData.images
 
             const errors = await validate(productModel);
             if (errors.length > 0) {
@@ -209,11 +218,11 @@ class ProductController {
                 return;
             }
 
-            const prod = await queryRunner.manager.findOneOrFail<Products>(productId);
-            if (!prod) {
-                res.status(404).send(`Product with id: ${productId}  not found`);
-                return;
-            }
+            // const prod = await queryRunner.manager.findOneOrFail<Products>(productId);
+            // if (!prod) {
+            //     res.status(404).send(`Product with id: ${productId}  not found`);
+            //     return;
+            // }
 
             await queryRunner.connect();
             await queryRunner.startTransaction();
@@ -265,6 +274,7 @@ class ProductController {
                 productImagesModel.image = file.filename;
                 productImagesModel.updated_by = productModel.updated_by;
                 productImagesModel.updated_at = new Date();
+                productImagesModel.inserted_at = new Date();
 
                 const productImages = await new ProductImagesModel().getMappedEntity(productImagesModel);
                 await queryRunner.manager.connection
@@ -274,7 +284,11 @@ class ProductController {
                     .where("product_id = :id", { id: productId })
                     .execute();
             }
-
+            const files = [];
+            for (const image of productImageObj) {
+                files.push({ path: image.image });
+            }
+            ProductController.unlinkUploadedFiles(files);
             await queryRunner.commitTransaction();
 
             res.status(204).send("Product is upadted");

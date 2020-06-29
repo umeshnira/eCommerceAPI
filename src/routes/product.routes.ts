@@ -19,7 +19,7 @@ router.post(
     '/products', [], setUploadPath(settings.application.storage.product), file_upload.array('image'), productController.createProduct);
 
 router.put(
-    '/products/:id([0-9]+)', [], file_upload.array('image'), productController.updateProduct);
+    '/products/:id([0-9]+)', [],setUploadPath(settings.application.storage.product), file_upload.array('image'), productController.updateProduct);
 
 router.delete(
     '/products/:id([0-9]+)', [], productController.deleteProduct);
