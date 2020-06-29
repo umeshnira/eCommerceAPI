@@ -12,12 +12,12 @@ class ProductController {
 
         const connection = getConnection();
         const queryRunner = connection.createQueryRunner();
-        const productImagePath = application.storage.product;
-        console.log("productImagePath " + productImagePath)
+
         try {
 
             await queryRunner.connect();
 
+            const productImagePath = application.storage.product;
             const result = await queryRunner.manager.connection
                 .createQueryBuilder(Products, 'p')
                 .addSelect('p.id', 'id')
@@ -75,7 +75,7 @@ class ProductController {
                 .innerJoin(ProductQuantity, 'pq', 'pq.product_id = p.id')
                 .innerJoin(ProductCategories, 'pc', 'pc.product_id = p.id')
                 .innerJoin(ProductImages, 'pi', 'pi.product_id = p.id')
-                .where("p.id = :id", { id: productId })
+                .where('p.id = :id', { id: productId })
                 .getRawOne();
 
             if (result) {
@@ -116,7 +116,7 @@ class ProductController {
                 .innerJoin(ProductImages, 'pi', 'pi.product_id = p.id')
                 .innerJoin(ProductCategories, 'pc', 'pc.product_id = p.id')
                 .innerJoin(Categories, 'c', 'pc.category_id = c.id')
-                .where("c.id = :id", { id: categoryId })
+                .where('c.id = :id', { id: categoryId })
                 .getRawMany();
 
             res.status(200).json(result);
@@ -218,11 +218,11 @@ class ProductController {
                 return;
             }
 
-            // const prod = await queryRunner.manager.findOneOrFail<Products>(productId);
-            // if (!prod) {
-            //     res.status(404).send(`Product with id: ${productId}  not found`);
-            //     return;
-            // }
+            const prod = await queryRunner.manager.findOneOrFail<Products>(productId);
+            if (!prod) {
+                res.status(404).send(`Product with id: ${productId}  not found`);
+                return;
+            }
 
             await queryRunner.connect();
             await queryRunner.startTransaction();
@@ -232,7 +232,7 @@ class ProductController {
                 .createQueryBuilder()
                 .update(Products)
                 .set(product)
-                .where("id = :id", { id: productId })
+                .where('id = :id', { id: productId })
                 .execute();
 
             const productCategory = await new ProductCategoryModel().getMappedEntity(productCategoryModel);
@@ -240,7 +240,7 @@ class ProductController {
                 .createQueryBuilder()
                 .update(ProductCategories)
                 .set(productCategory)
-                .where("product_id = :id", { id: productId })
+                .where('product_id = :id', { id: productId })
                 .execute();
 
             if (productOffersModel) {
@@ -249,7 +249,7 @@ class ProductController {
                     .createQueryBuilder()
                     .update(ProductOffers)
                     .set(productOffers)
-                    .where("product_id = :id", { id: productId })
+                    .where('product_id = :id', { id: productId })
                     .execute();
             }
 
@@ -258,7 +258,7 @@ class ProductController {
                 .createQueryBuilder()
                 .update(ProductQuantity)
                 .set(productQuantity)
-                .where("product_id = :id", { id: productId })
+                .where('product_id = :id', { id: productId })
                 .execute();
 
             const productPrices = await new ProductPricesModel().getMappedEntity(productPricesModel);
@@ -266,7 +266,7 @@ class ProductController {
                 .createQueryBuilder()
                 .update(ProductPrices)
                 .set(productPrices)
-                .where("product_id = :id", { id: productId })
+                .where('product_id = :id', { id: productId })
                 .execute();
 
             for (const file of req?.files) {
@@ -281,17 +281,20 @@ class ProductController {
                     .createQueryBuilder()
                     .update(ProductImages)
                     .set(productImages)
-                    .where("product_id = :id", { id: productId })
+                    .where('product_id = :id', { id: productId })
                     .execute();
             }
+
             const files = [];
             for (const image of productImageObj) {
                 files.push({ path: image.image });
             }
+
             ProductController.unlinkUploadedFiles(files);
+
             await queryRunner.commitTransaction();
 
-            res.status(204).send("Product is upadted");
+            res.status(204).send('Product is upadted');
 
         } catch (error) {
             ProductController.unlinkUploadedFiles(req?.files);
@@ -304,7 +307,6 @@ class ProductController {
     };
 
     static deleteProduct = async (req: Request, res: Response) => {
-
         const connection = getConnection();
         const queryRunner = connection.createQueryRunner();
 
@@ -324,55 +326,56 @@ class ProductController {
                 .createQueryBuilder()
                 .delete()
                 .from(ProductCategories)
-                .where("product_id = :id", { id: productId })
+                .where('product_id = :id', { id: productId })
                 .execute();
 
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(ProductOffers)
-                .where("product_id = :id", { id: productId })
+                .where('product_id = :id', { id: productId })
                 .execute();
 
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(ProductQuantity)
-                .where("product_id = :id", { id: productId })
+                .where('product_id = :id', { id: productId })
                 .execute();
 
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(ProductPrices)
-                .where("product_id = :id", { id: productId })
+                .where('product_id = :id', { id: productId })
                 .execute();
 
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(ProductImages)
-                .where("product_id = :id", { id: productId })
+                .where('product_id = :id', { id: productId })
                 .execute();
 
             const images = await getConnection()
                 .createQueryBuilder()
-                .select("image")
-                .from(ProductImages, "image")
-                .where("image.product_id = :id", { id: productId })
+                .select('image')
+                .from(ProductImages, 'image')
+                .where('image.product_id = :id', { id: productId })
                 .getMany();
 
             const files = [];
             for (const image of images) {
                 files.push({ path: image.image });
             }
+
             ProductController.unlinkUploadedFiles(files);
 
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(Products)
-                .where("id = :id", { id: productId })
+                .where('id = :id', { id: productId })
                 .execute();
 
             await queryRunner.commitTransaction();
