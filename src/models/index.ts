@@ -8,3 +8,4 @@ export * from  './product-images.model';
 export * from  './product-offers.model';
 export * from  './product-prices.model';
 export * from  './product-quantity.model';
+export * from  './carts.model';

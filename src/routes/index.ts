@@ -5,6 +5,7 @@ import sellers from './sellers.routes';
 import clients from './clients.routes';
 import helloWorld from './hello-world.route.';
 import subCategories from './sub-categories.routes';
+import carts from './carts.routes';
 
 const routes = Router();
 
@@ -14,5 +15,6 @@ routes.use('/', product);
 routes.use('/', sellers);
 routes.use('/', clients);
 routes.use('/', helloWorld);
+routes.use('/', carts);
 
 export default routes;
