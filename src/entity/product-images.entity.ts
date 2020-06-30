@@ -25,7 +25,9 @@ export class ProductImages {
     @JoinColumn({ name: "product_id", referencedColumnName: "id"})
     products: Products;
 
-
+    @Column()
+    product_id:number;
+    
     @Column({ type: 'text' })
     image: string;
 

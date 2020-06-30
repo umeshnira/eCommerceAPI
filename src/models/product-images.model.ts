@@ -17,6 +17,7 @@ export class ProductImagesModel {
         entity.inserted_by = model?.inserted_by;
         entity.updated_at = model?.updated_at;
         entity.updated_by = model?.updated_by;
+        entity.product_id = model?.product_id;
 
         return entity;
     }

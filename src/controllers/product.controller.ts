@@ -30,9 +30,7 @@ class ProductController {
                 .getRawMany();
 
             if (result) {
-                for (var i = 0; i < result.length; i++) {
-                    result[i].image = application.storage.product + result[i].image;
-                }
+                result.forEach(x => x.image = application.storage.product + x.image);
                 res.status(200).json(result);
             } else {
                 res.status(404).send('Products not found');
@@ -85,7 +83,8 @@ class ProductController {
                 .getRawMany();
 
             if (result) {
-                result.images = imageResult.forEach(x => x.path = application.storage.product + x.image);
+                imageResult.forEach(x => x.path = application.storage.product + x.image);
+                result.images = imageResult;
                 res.status(200).json(result);
             } else {
                 res.status(404).send(`Product with id: ${productId}  not found`);
@@ -127,9 +126,7 @@ class ProductController {
                 .getRawMany();
 
             if (result) {
-                for (var i = 0; i < result.length; i++) {
-                    result[i].image = application.storage.product + result[i].image;
-                }
+                result.forEach(x => x.image = application.storage.product + x.image);
                 res.status(200).json(result);
             }
 
@@ -276,24 +273,36 @@ class ProductController {
                 .where('product_id = :id', { id: productId })
                 .execute();
 
+
+            const imageResult = await queryRunner.manager.connection
+                .createQueryBuilder(ProductImages, 'p')
+                .select('p.image', 'image')
+                .where('p.product_id = :id', { id: productId })
+                .getRawMany();
+
+            await queryRunner.manager.connection
+                .createQueryBuilder()
+                .delete()
+                .from(ProductImages)
+                .where('product_id = :id', { id: productId })
+                .execute();
+
             for (const file of req?.files) {
                 const productImagesModel = new ProductImagesModel();
                 productImagesModel.image = file.filename;
                 productImagesModel.updated_by = productModel.updated_by;
                 productImagesModel.updated_at = new Date();
                 productImagesModel.inserted_at = new Date();
+                productImagesModel.product_id = productId;
 
                 const productImages = await new ProductImagesModel().getMappedEntity(productImagesModel);
+                console.log(productImages)
                 await queryRunner.manager.connection
-                    .createQueryBuilder()
-                    .update(ProductImages)
-                    .set(productImages)
-                    .where('product_id = :id', { id: productId })
-                    .execute();
+                await queryRunner.manager.save(productImages);
             }
             const files = [];
-            for (const image of productImageObj) {
-                files.push({ path: image.image });
+            for (const image of imageResult) {
+                files.push({ path: application.storage.product + image.image });
             }
             ProductController.unlinkUploadedFiles(files);
             await queryRunner.commitTransaction();
