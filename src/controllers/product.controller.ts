@@ -81,16 +81,11 @@ class ProductController {
             const imageResult = await queryRunner.manager.connection
                 .createQueryBuilder(ProductImages, 'p')
                 .select('p.image', 'image')
-                .where("p.product_id = :id", { id: productId })
+                .where('p.product_id = :id', { id: productId })
                 .getRawMany();
 
             if (result) {
-
-                for (var i = 0; i < imageResult.length; i++) {
-                    imageResult[i].path = application.storage.product + imageResult[i].image;                  
-                }
-                
-                result.images = imageResult;
+                result.images = imageResult.forEach(x => x.path = application.storage.product + x.image);
                 res.status(200).json(result);
             } else {
                 res.status(404).send(`Product with id: ${productId}  not found`);
@@ -128,7 +123,7 @@ class ProductController {
                 .innerJoin(ProductImages, 'pi', 'pi.product_id = p.id')
                 .innerJoin(ProductCategories, 'pc', 'pc.product_id = p.id')
                 .innerJoin(Categories, 'c', 'pc.category_id = c.id')
-                .where("c.id = :id", { id: categoryId })
+                .where('c.id = :id', { id: categoryId })
                 .getRawMany();
 
             if (result) {
@@ -244,7 +239,7 @@ class ProductController {
                 .createQueryBuilder()
                 .update(Products)
                 .set(product)
-                .where("id = :id", { id: productId })
+                .where('id = :id', { id: productId })
                 .execute();
 
             const productCategory = await new ProductCategoryModel().getMappedEntity(productCategoryModel);
@@ -252,7 +247,7 @@ class ProductController {
                 .createQueryBuilder()
                 .update(ProductCategories)
                 .set(productCategory)
-                .where("product_id = :id", { id: productId })
+                .where('product_id = :id', { id: productId })
                 .execute();
 
             if (productOffersModel) {
@@ -261,7 +256,7 @@ class ProductController {
                     .createQueryBuilder()
                     .update(ProductOffers)
                     .set(productOffers)
-                    .where("product_id = :id", { id: productId })
+                    .where('product_id = :id', { id: productId })
                     .execute();
             }
 
@@ -270,7 +265,7 @@ class ProductController {
                 .createQueryBuilder()
                 .update(ProductQuantity)
                 .set(productQuantity)
-                .where("product_id = :id", { id: productId })
+                .where('product_id = :id', { id: productId })
                 .execute();
 
             const productPrices = await new ProductPricesModel().getMappedEntity(productPricesModel);
@@ -278,7 +273,7 @@ class ProductController {
                 .createQueryBuilder()
                 .update(ProductPrices)
                 .set(productPrices)
-                .where("product_id = :id", { id: productId })
+                .where('product_id = :id', { id: productId })
                 .execute();
 
             for (const file of req?.files) {
@@ -293,7 +288,7 @@ class ProductController {
                     .createQueryBuilder()
                     .update(ProductImages)
                     .set(productImages)
-                    .where("product_id = :id", { id: productId })
+                    .where('product_id = :id', { id: productId })
                     .execute();
             }
             const files = [];
@@ -303,7 +298,7 @@ class ProductController {
             ProductController.unlinkUploadedFiles(files);
             await queryRunner.commitTransaction();
 
-            res.status(204).send("Product is upadted");
+            res.status(204).send('Product is upadted');
 
         } catch (error) {
             ProductController.unlinkUploadedFiles(req?.files);
@@ -336,42 +331,42 @@ class ProductController {
                 .createQueryBuilder()
                 .delete()
                 .from(ProductCategories)
-                .where("product_id = :id", { id: productId })
+                .where('product_id = :id', { id: productId })
                 .execute();
 
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(ProductOffers)
-                .where("product_id = :id", { id: productId })
+                .where('product_id = :id', { id: productId })
                 .execute();
 
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(ProductQuantity)
-                .where("product_id = :id", { id: productId })
+                .where('product_id = :id', { id: productId })
                 .execute();
 
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(ProductPrices)
-                .where("product_id = :id", { id: productId })
+                .where('product_id = :id', { id: productId })
                 .execute();
 
             await queryRunner.manager.connection
                 .createQueryBuilder()
                 .delete()
                 .from(ProductImages)
-                .where("product_id = :id", { id: productId })
+                .where('product_id = :id', { id: productId })
                 .execute();
 
             const images = await getConnection()
                 .createQueryBuilder()
-                .select("image")
-                .from(ProductImages, "image")
-                .where("image.product_id = :id", { id: productId })
+                .select('image')
+                .from(ProductImages, 'image')
+                .where('image.product_id = :id', { id: productId })
                 .getMany();
 
             const files = [];
@@ -384,7 +379,7 @@ class ProductController {
                 .createQueryBuilder()
                 .delete()
                 .from(Products)
-                .where("id = :id", { id: productId })
+                .where('id = :id', { id: productId })
                 .execute();
 
             await queryRunner.commitTransaction();
