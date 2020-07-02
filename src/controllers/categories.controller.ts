@@ -32,9 +32,9 @@ class CategoriesController {
             const categoryId = req.params?.id;
             const categoryRepository = getRepository(Categories);
             const category = await categoryRepository.createQueryBuilder()
-                .select("category")
-                .from(Categories, "category")
-                .where("category.id = :id", { id: categoryId })
+                .select('category')
+                .from(Categories, 'category')
+                .where('category.id = :id', { id: categoryId })
                 .getOne();
 
             if (category) {
@@ -110,7 +110,7 @@ class CategoriesController {
                         description: model.description
                     }
                 )
-                .where("id = :id", { id: categoryId })
+                .where('id = :id', { id: categoryId })
                 .execute();
             await queryRunner.commitTransaction();
         } catch (error) {
@@ -148,18 +148,18 @@ class CategoriesController {
                 .createQueryBuilder()
                 .delete()
                 .from(Categories)
-                .where("id = :id", { id: categoryId })
+                .where('id = :id', { id: categoryId })
                 .execute();
             await queryRunner.commitTransaction();
         } catch (error) {
             await queryRunner.rollbackTransaction();
-            res.status(500).json({ "message": "Categories with sub category cannot be deleted" });
+            res.status(500).json({ 'message': 'Categories with sub category cannot be deleted' });
         }
         finally {
             await queryRunner.release();
         }
 
-        res.status(204).send("Deleted category");
+        res.status(204).send('Deleted category');
     };
 }
 

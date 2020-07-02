@@ -26,7 +26,7 @@ const PORT = process.env.PORT || 1337;
 if (settings.application.environment === EnvironmentType[EnvironmentType.Local]) {
     const httpsServer = https.createServer({
         key: fs.readFileSync(path.resolve(__dirname, '../ssl/server.key')),
-        cert: fs.readFileSync(path.resolve(__dirname, '../ssl/server.cert'))
+        cert: fs.readFileSync(path.resolve(__dirname, '../ssl/server.crt'))
     }, app);
     httpsServer.listen(PORT, function () {
         console.log(`Server started on https port ${PORT}!`);
