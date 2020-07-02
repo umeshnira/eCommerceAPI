@@ -38,15 +38,32 @@ class OrderController {
     };
 
     static createOrder = async (req: any, res: Response) => {
+
         try {
 
             const pool = await connect();
             await transaction(pool, async connection => {
                 const order = new OrderModel();
                 const [data] = await connection.query('INSERT INTO `orders` SET ?', [order]);
+                res.status(201).send('Order created');
             });
+        }
+        catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
 
-            res.status(201).send('Order created');
+    static updateOrder = async (req: any, res: Response) => {
+
+        try {
+
+            const orderId = req.params.id;
+            const pool = await connect();
+            await transaction(pool, async connection => {
+                const order = new OrderModel();
+                const [data] = await connection.query('UPDATE `orders` SET ? WHERE `id` = ?', [order, orderId]);
+                res.status(201).send('Order created');
+            });
         }
         catch (error) {
             res.status(500).send(error.message);
