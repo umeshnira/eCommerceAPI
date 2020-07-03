@@ -29,7 +29,7 @@ createConnection(getDataBaseConnection()).then(() => {
     if (settings.application.environment === EnvironmentType[EnvironmentType.Local]) {
         const httpsServer = https.createServer({
             key: fs.readFileSync(path.resolve(__dirname, '../ssl/server.key')),
-            cert: fs.readFileSync(path.resolve(__dirname, '../ssl/server.cert'))
+            cert: fs.readFileSync(path.resolve(__dirname, '../ssl/server.crt'))
         }, app);
         httpsServer.listen(PORT, function () {
             console.log(`Server started on https port ${PORT}!`);
@@ -45,7 +45,7 @@ createConnection(getDataBaseConnection()).then(() => {
 
 function getDataBaseConnection(): ConnectionOptions {
     return {
-        type: "mysql",
+        type: 'mysql',
         host: settings.database.host,
         port: settings.database.port,
         username: settings.database.username,
