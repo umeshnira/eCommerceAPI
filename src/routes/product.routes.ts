@@ -13,7 +13,7 @@ router.get(
     '/products/:id([0-9]+)', [], productController.getProduct);
 
 router.get(
-    '/categories/:id([0-9]+)/products/:id([0-9]+)', [], productController.getProductsByCategoryId);
+    '/categories/:id([0-9]+)/products', [], productController.getProductsByCategoryId);
 
 router.post(
     '/products', [], setUploadPath(settings.application.storage.product), file_upload.array('image'), productController.createProduct);

@@ -6,17 +6,18 @@ export class LoginModel {
     user_id: number = 0;
     user_name: string = '';
     password: string;
-    role: UserRole;
+    role: number;
     status: boolean;
-    inserted_by: string = '';
+    created_by: string = '';
     updated_by: string = '';
+    email: string = '';
 
-    getMappedEntity(model: any) {
+    getMappedEntity(model: this) {
         const entity = new Login();
         entity.user_name = model?.email;
         entity.password = model?.password;
-        entity.role = model?.role ? model.role : 'Client';
-        entity.inserted_by = model?.inserted_by;
+        entity.roles = model?.role ;
+        entity.created_by = model?.created_by;
         entity.updated_by = model?.updated_by;
 
         return entity;

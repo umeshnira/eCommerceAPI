@@ -11,7 +11,7 @@ export class ClientModel {
   status: boolean = false;
   phone: string = '';
   role: string = '';
-  inserted_by: string = '';
+  created_by: string = '';
   updated_by: string = '';
 
   getMappedEntity(model: this) {
@@ -21,9 +21,8 @@ export class ClientModel {
     entity.landmark = model?.landmark;
     entity.pin_code = model?.pin_code;
     entity.email = model?.email;
-    entity.status = model?.status;
     entity.phone = model?.phone;
-    entity.inserted_by = model?.inserted_by;
+    entity.created_by = model?.created_by;
     entity.updated_by = model?.updated_by;
 
     return entity;

@@ -16,8 +16,10 @@ export class SellerModel {
   pan_card_no: string = '';
   bank_ac_no: string = '';
   ifsc_code: string = '';
-  inserted_by: string = '';
+  created_by: string = '';
   updated_by: string = '';
+  branch_name: string = '';
+  bank_name: string = '';
 
   getMappedEntity(model: SellerModel) {
     const entity = new Sellers()
@@ -26,14 +28,15 @@ export class SellerModel {
     entity.landmark = model?.landmark;
     entity.pincode = model?.pincode;
     entity.email = model?.email;
-    entity.status = model?.status;
     entity.phone = model?.phone;
     entity.aadhar_card_no = model?.aadhar_card_no;
     entity.pan_card_no = model?.pan_card_no;
     entity.bank_ac_no = model?.bank_ac_no;
     entity.ifsc_code = model?.ifsc_code;
-    entity.inserted_by = model?.inserted_by;
+    entity.created_by = model?.created_by;
     entity.updated_by = model?.updated_by;
+    entity.branch_name = model?.branch_name;
+    entity.bank_name = model?.bank_name;
 
     return entity;
   }

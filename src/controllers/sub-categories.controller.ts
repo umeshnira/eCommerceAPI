@@ -41,7 +41,7 @@ class SubCategoriesController {
         try {
 
             const categoriesArray = await queryRunner.query(
-                `SELECT id,name,inserted_by,inserted_at,parent_category_id
+                `SELECT id,name,created_by,created_at,parent_category_id
                 FROM Categories;`
             );
 

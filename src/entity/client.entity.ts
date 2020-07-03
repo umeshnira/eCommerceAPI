@@ -4,9 +4,11 @@ import {
     Column,
     Unique,
     CreateDateColumn,
-    UpdateDateColumn
+    UpdateDateColumn,
+    OneToMany
 } from 'typeorm';
 import { Length } from 'class-validator';
+import { Carts,SaveLater } from '.';
 
 @Entity()
 @Unique(['email'])
@@ -40,16 +42,13 @@ export class Clients {
     @Length(4, 20)
     phone: string;
 
-    @Column({ type: 'boolean', default: false })
-    status: boolean;
-
     @Column()
     @CreateDateColumn({type: "timestamp"})
-    inserted_at: Date;
+    created_at: Date;
 
     @Column()
     @Length(4, 20)
-    inserted_by: string;
+    created_by: string;
 
     @Column({nullable: true})
     @UpdateDateColumn({type: "timestamp"})
@@ -58,5 +57,11 @@ export class Clients {
     @Column({ nullable: true })
     @Length(4, 100)
     updated_by: string;
+
+    @OneToMany(type => Carts, Carts => Carts.clients)
+    Carts: Carts[]
+
+    @OneToMany(type => SaveLater, SaveLater => SaveLater.clients)
+    SaveLater: SaveLater[]
 }
 

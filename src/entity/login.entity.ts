@@ -4,10 +4,13 @@ import {
     Column,
     Unique,
     CreateDateColumn,
-    UpdateDateColumn
+    UpdateDateColumn,
+    ManyToOne,
+    JoinColumn
 } from 'typeorm';
 import { Length } from 'class-validator';
 import { UserRole } from '../enums';
+import { Status,Roles } from '.';
 
 
 @Entity()
@@ -29,22 +32,21 @@ export class Login {
     @Length(4, 100)
     password: string;
 
-    @Column({
-        type: "enum",
-        enum: UserRole,
-    })
-    role: UserRole;
+    @ManyToOne(type => Status,{ nullable: true } )
+    @JoinColumn({ name: "status", referencedColumnName: "id"})
+    status: number;
 
-    @Column({ type: 'boolean', default: false })
-    status  : boolean;
+    @ManyToOne(type => Roles,{ nullable: true } )
+    @JoinColumn({ name: "role", referencedColumnName: "id"})
+    roles: number;
 
     @Column()
     @CreateDateColumn({type: "timestamp"})
-    inserted_at: Date;
+    created_at: Date;
 
     @Column()
     @Length(4, 20)
-    inserted_by: string;
+    created_by: string;
 
     @Column({nullable: true})
     @UpdateDateColumn({type: "timestamp"})

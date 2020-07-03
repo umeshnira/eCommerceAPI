@@ -7,10 +7,11 @@ import {
     UpdateDateColumn,
     OneToMany,
     ManyToOne,
+    OneToOne,
     JoinColumn
 } from 'typeorm';
 import { Length } from 'class-validator';
-import { ProductCategories } from '.';
+import { Status } from '.';
 
 @Entity()
 @Unique(['name'])
@@ -28,23 +29,21 @@ export class Categories {
     @Length(4, 100)
     description: string;
 
-    @ManyToOne(type => Categories, category => category.subCategories)
+    @ManyToOne(type => Categories,{ nullable: true } )
     @JoinColumn({ name: "parent_category_id", referencedColumnName: "id"})
     parent_category_id: number;
 
-    @OneToMany(type => Categories, category => category.parent_category_id)
-    subCategories: Categories[];
-
-    @Column({ type: 'boolean', default: false })
-    status: boolean;
+    @ManyToOne(type => Status,{ nullable: true } )
+    @JoinColumn({ name: "status", referencedColumnName: "id"})
+    status: number;
 
     @Column()
     @CreateDateColumn({type: "timestamp"})
-    inserted_at: Date;
+    created_at: Date;
 
     @Column()
     @Length(4, 20)
-    inserted_by: string;
+    created_by: string;
 
     @Column({nullable: true})
     @UpdateDateColumn({type: "timestamp"})
@@ -54,6 +53,6 @@ export class Categories {
     @Length(4, 100)
     updated_by: string;
 
-    @OneToMany(type => ProductCategories, category => category.category)
-    category: ProductCategories[]
+    @OneToMany(type => Categories, Categories => Categories.parent_category_id)
+    Categories: Categories[]
 }

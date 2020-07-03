@@ -78,7 +78,6 @@ class CartController {
                 .addSelect('p.batch_no', 'batch_no')
                 .addSelect('p.exp_date', 'exp_date')
                 .addSelect('p.bar_code', 'bar_code')
-                .addSelect('pp.price', 'price')
                 .addSelect('pp.price_without_offer', 'price_without_offer')
                 .addSelect('po.offer_id', 'offer_id')
                 .addSelect('pq.left_qty', 'left_qty')
@@ -97,9 +96,7 @@ class CartController {
                 .getRawMany();
 
             if (result) {
-                for (var i = 0; i < result.length; i++) {
-                    result[i].image = application.storage.product + result[i].image;
-                }
+                result.forEach(x => x.image = application.getImagePath.product + x.image);
                 res.status(200).json(result);
             }
         } catch (error) {

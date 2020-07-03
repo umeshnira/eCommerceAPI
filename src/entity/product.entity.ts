@@ -6,11 +6,12 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     OneToMany,
-    OneToOne
-
+    OneToOne,
+    ManyToOne,
+    JoinColumn
 } from 'typeorm';
 import { Length } from 'class-validator';
-import { ProductImages, ProductQuantity, ProductOffers, ProductPrices } from '.';
+import { ProductImages, ProductQuantity, ProductOffers, ProductPrices,Status,Carts,SaveLater } from '.';
 
 @Entity()
 
@@ -27,8 +28,9 @@ export class Products {
     @Length(4, 100)
     description: string;
 
-    @Column({ type: 'boolean', default: false })
-    status: boolean;
+    @ManyToOne(type => Status,{ nullable: true } )
+    @JoinColumn({ name: "status", referencedColumnName: "id"})
+    status: number;
 
     @Column()
     batch_no: number;
@@ -52,11 +54,11 @@ export class Products {
 
     @Column()
     @Length(4, 20)
-    inserted_by: string;
+    created_by: string;
 
     @Column()
     @CreateDateColumn({type: "timestamp"})
-    inserted_at: Date;
+    created_at: Date;
 
     @Column({nullable: true})
     @UpdateDateColumn({type: "timestamp"})
@@ -77,4 +79,10 @@ export class Products {
 
     @OneToOne(type => ProductPrices, price => price.products)
     price: ProductPrices[]
+
+    @OneToOne(type => Carts, Carts => Carts.products)
+    Carts: Carts[]
+
+    @OneToOne(type => SaveLater, SaveLater => SaveLater.products)
+    SaveLater: SaveLater[]
 }

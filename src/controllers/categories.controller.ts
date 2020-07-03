@@ -16,7 +16,7 @@ class CategoriesController {
         try {
             const categories = await parentCategoryRepository
                 .find({
-                    select: ['id', 'name', 'description', 'inserted_by', 'inserted_at'],
+                    select: ['id', 'name', 'description', 'created_by', 'created_at'],
                     where: { parent_category_id: IsNull() }
                 });
             res.status(200).json(categories);
@@ -68,7 +68,7 @@ class CategoriesController {
             category.name = categoryModel?.name;
             category.description = categoryModel?.description;
             category.parent_category_id = categoryModel?.parent_category_id;
-            category.inserted_by = categoryModel?.inserted_by;
+            category.created_by = categoryModel?.created_by;
             await queryRunner.manager.save(category);
             await queryRunner.commitTransaction();
         } catch (error) {

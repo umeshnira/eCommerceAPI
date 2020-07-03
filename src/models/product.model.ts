@@ -5,14 +5,14 @@ export class ProductModel {
     id: number;
     name: string;
     description: string;
-    status: boolean;
+    status: number;
     batch_no: number;
     exp_date: Date;
     star_rate: string;
     bar_code: string;
     about: string;
     is_returnable: boolean;
-    inserted_by: string;
+    created_by: string;
     updated_by: string;
 
     getMappedEntity(model: this) {
@@ -26,7 +26,7 @@ export class ProductModel {
       entity.status = model?.status;
       entity.star_rate = model?.star_rate;
       entity.is_returnable = model?.is_returnable;
-      entity.inserted_by = model?.inserted_by;
+      entity.created_by = model?.created_by;
       entity.updated_by = model?.updated_by;
 
       return entity;

@@ -40,8 +40,13 @@ export class Sellers {
     @Length(4, 20)
     phone: string;
 
-    @Column({ type: 'boolean', default: false })
-    status: boolean;
+    @Column()
+    @Length(4, 20)
+    branch_name: string;
+
+    @Column()
+    @Length(4, 20)
+    bank_name: string;
 
     @Column()
     @Length(4, 20)
@@ -61,11 +66,11 @@ export class Sellers {
 
     @Column()
     @CreateDateColumn({type: "timestamp"})
-    inserted_at: Date;
+    created_at: Date;
 
     @Column()
     @Length(4, 20)
-    inserted_by: string;
+    created_by: string;
 
     @Column({nullable: true})
     @UpdateDateColumn({type: "timestamp"})

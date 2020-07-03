@@ -12,12 +12,12 @@ import {
     Timestamp
 } from 'typeorm';
 import { Length } from 'class-validator';
-import { Products } from './product.entity';
 import { Clients } from './client.entity';
+import { Products } from './product.entity';
 
 @Entity()
 
-export class Carts {
+export class SaveLater {
 
     @PrimaryGeneratedColumn()
     id: number;
@@ -29,7 +29,6 @@ export class Carts {
     @OneToOne(type => Products, { nullable: false })
     @JoinColumn({ name: "product_id", referencedColumnName: "id" })
     products: number;
-
 
     @Column({ nullable: true })
     @CreateDateColumn({ type: "timestamp" })

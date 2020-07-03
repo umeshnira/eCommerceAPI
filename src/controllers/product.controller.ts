@@ -30,7 +30,7 @@ class ProductController {
                 .getRawMany();
 
             if (result) {
-                result.forEach(x => x.image = application.storage.product + x.image);
+                result.forEach(x => x.image = application.getImagePath.product + x.image);
                 res.status(200).json(result);
             } else {
                 res.status(404).send('Products not found');
@@ -62,7 +62,6 @@ class ProductController {
                 .addSelect('p.batch_no', 'batch_no')
                 .addSelect('p.exp_date', 'exp_date')
                 .addSelect('p.bar_code', 'bar_code')
-                .addSelect('pp.price', 'price')
                 .addSelect('pp.price_without_offer', 'price_without_offer')
                 .addSelect('po.offer_id', 'offer_id')
                 .addSelect('pq.left_qty', 'left_qty')
@@ -83,7 +82,7 @@ class ProductController {
                 .getRawMany();
 
             if (result) {
-                imageResult.forEach(x => x.path = application.storage.product + x.image);
+                imageResult.forEach(x => x.path = application.getImagePath.product + x.image);
                 result.images = imageResult;
                 res.status(200).json(result);
             } else {
@@ -126,7 +125,7 @@ class ProductController {
                 .getRawMany();
 
             if (result) {
-                result.forEach(x => x.image = application.storage.product + x.image);
+                result.forEach(x => x.image = application.getImagePath.product + x.image);
                 res.status(200).json(result);
             }
 
@@ -184,7 +183,7 @@ class ProductController {
             for (const file of req?.files) {
                 const productImagesModel = new ProductImagesModel();
                 productImagesModel.image = file.filename;
-                productImagesModel.inserted_by = productModel.inserted_by;
+                productImagesModel.inserted_by = productModel.created_by;
                 productImagesModel.inserted_at = new Date();
 
                 const productImages = await new ProductImagesModel().getMappedEntity(productImagesModel);
@@ -220,7 +219,7 @@ class ProductController {
             const productOffersModel = parsedData.offer as ProductOffersModel;
             const productQuantityModel = parsedData.quantity as ProductQuantityModel;
             const productPricesModel = parsedData.price as ProductPricesModel;
-            const productImageObj = parsedData.images;
+            //const productImageObj = parsedData.images;
 
             const errors = await validate(productModel);
             if (errors.length > 0) {

@@ -9,3 +9,6 @@ export * from  './product-prices.entity';
 export * from  './product-quantity.entity';
 export * from  './seller.entity';
 export * from  './carts.entity';
+export * from  './save-later.entity';
+export * from  './status.entity';
+export * from  './roles.entity';

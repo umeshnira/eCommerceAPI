@@ -5,6 +5,9 @@
          "user": "../../public/images/users/",
          "category": "../../public/images/categories/",
          "product": "../../public/images/products/"
+      },
+      "getImagePath":{
+         "product":"http://localhost:1337/images/products/"
       }
    },
    "database": {
