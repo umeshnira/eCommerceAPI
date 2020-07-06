@@ -12,11 +12,14 @@ router.get(
 router.get(
     '/orders/:id([0-9]+)', [], orderController.getOrder);
 
+router.get(
+    '/user/orders/:id([0-9]+)', [], orderController.getUserOrders);
+
 router.post(
-    '/orders', [], setUploadPath(settings.application.storage.order), file_upload.array('image'), orderController.createOrder);
+    '/orders', [], orderController.createOrder);
 
 router.put(
-    '/orders/:id([0-9]+)', [], setUploadPath(settings.application.storage.order), file_upload.array('image'), orderController.updateOrder);
+    '/orders/:id([0-9]+)', [], orderController.updateOrder);
 
 router.delete(
     '/orders/:id([0-9]+)', [], orderController.deleteOrder);

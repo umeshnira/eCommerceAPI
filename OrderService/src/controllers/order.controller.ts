@@ -43,7 +43,7 @@ class OrderController {
 
             const pool = await connect();
             await transaction(pool, async connection => {
-                const order = new OrderModel();
+                const order = req.body as OrderModel;
                 const [data] = await connection.query('INSERT INTO `orders` SET ?', [order]);
                 res.status(201).send('Order created');
             });
@@ -60,7 +60,7 @@ class OrderController {
             const orderId = req.params.id;
             const pool = await connect();
             await transaction(pool, async connection => {
-                const order = new OrderModel();
+                const order = req.body as OrderModel;
                 const [data] = await connection.query('UPDATE `orders` SET ? WHERE `id` = ?', [order, orderId]);
                 res.status(201).send('Order created');
             });
@@ -81,6 +81,23 @@ class OrderController {
             });
 
             res.status(204).send('Order is deleted');
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
+
+    static getUserOrders = async (req: Request, res: Response) => {
+
+        try {
+
+            const connection = await connect();
+            const userId = req.params?.id;
+            const [data] = await connection.query('SELECT * FROM `orders` WHERE `user_id` = ?', [userId]);
+            if (data) {
+                res.status(200).json(data);
+            } else {
+                res.status(404).send('Orders not found');
+            }
         } catch (error) {
             res.status(500).send(error.message);
         }

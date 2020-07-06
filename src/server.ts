@@ -12,6 +12,7 @@ import compression from 'compression';
 import routes from './routes';
 import settings from './config/app-settings.json';
 import { EnvironmentType } from './config/enums/environment-type.enum';
+import { application } from './config/app-settings.json';
 
 createConnection(getDataBaseConnection()).then(() => {
     const app = express();
@@ -24,7 +25,7 @@ createConnection(getDataBaseConnection()).then(() => {
     app.use(xss());
 
     app.use('/ecommerce', routes);
-    const PORT = process.env.PORT || 1337;
+    const PORT = process.env.PORT || application.port;
 
     if (settings.application.environment === EnvironmentType[EnvironmentType.Local]) {
         const httpsServer = https.createServer({

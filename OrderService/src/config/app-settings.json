@@ -1,6 +1,7 @@
 {
    "application": {
       "environment": "DEV",
+      "port":1338,
       "storage": {
          "order": "../../public/images/orders/"
       }
@@ -9,8 +10,8 @@
       "type": "mysql",
       "host": "localhost",
       "port": 3306,
-      "username": "root",
-      "password": "Warning@123",
+      "username": "user",
+      "password": "root",
       "database": "ecommerce",
       "queueLimit": 0,
       "waitForConnections": true,
