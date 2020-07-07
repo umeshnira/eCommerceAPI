@@ -1,5 +1,5 @@
 import { Length, IsNotEmpty } from 'class-validator';
-import { IsNotBlank } from '../validators/not-blank.validator';
+import { IsNotBlank } from '../validators';
 
 export class UpdateCategoryDTO {
 

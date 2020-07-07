@@ -1,7 +1,7 @@
-import { Length, IsNotEmpty, MaxLength } from 'class-validator';
+import { Length, IsNotEmpty, MaxLength, isInt, IsInt } from 'class-validator';
 import { IsNotBlank } from '../validators';
 
-export class AddCategoryDTO {
+export class AddSubCategoryDTO {
 
     @IsNotEmpty()
     @MaxLength(255)
@@ -12,6 +12,10 @@ export class AddCategoryDTO {
     @Length(1, 255)
     @IsNotBlank({  message: 'Value cannot contain empty spaces' })
     description: string;
+
+    @IsNotEmpty()
+    @IsInt()
+    parentId: number;
 
     @IsNotEmpty()
     @Length(1, 255)

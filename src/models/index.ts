@@ -12,3 +12,6 @@ export * from  './carts.model';
 export * from  './save-later.model';
 export * from  './add-category-dto.model';
 export * from  './update-category-dto.model';
+export * from  './add-sub-category-dto.model';
+export * from  './update-sub-category-dto.model';
+export * from './category-path-hierachy.model';
