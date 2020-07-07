@@ -1,5 +1,5 @@
-import { Sellers } from "../entity";
-import { UserRole } from "../enums";
+import { Sellers } from '../entity';
+import { UserRole } from '../enums';
 
 export class SellerModel {
 

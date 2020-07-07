@@ -10,3 +10,5 @@ export * from  './product-prices.model';
 export * from  './product-quantity.model';
 export * from  './carts.model';
 export * from  './save-later.model';
+export * from  './add-category-dto.model';
+export * from  './update-category-dto.model';

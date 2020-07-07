@@ -1,4 +1,4 @@
-import { SaveLater } from "../entity";
+import { SaveLater } from '../entity';
 
 export class SaveLaterModel {
 

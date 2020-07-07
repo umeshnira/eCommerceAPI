@@ -26,7 +26,7 @@ export class Status {
     description: string;
 
     @Column()
-    @CreateDateColumn({type: "timestamp"})
+    @CreateDateColumn({type: 'timestamp'})
     created_at: Date;
 
     @Column(({ nullable: true }))

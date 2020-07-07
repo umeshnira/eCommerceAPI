@@ -33,15 +33,15 @@ export class Login {
     password: string;
 
     @ManyToOne(type => Status,{ nullable: true } )
-    @JoinColumn({ name: "status", referencedColumnName: "id"})
+    @JoinColumn({ name: 'status', referencedColumnName: 'id'})
     status: number;
 
     @ManyToOne(type => Roles,{ nullable: true } )
-    @JoinColumn({ name: "role", referencedColumnName: "id"})
+    @JoinColumn({ name: 'role', referencedColumnName: 'id'})
     roles: number;
 
     @Column()
-    @CreateDateColumn({type: "timestamp"})
+    @CreateDateColumn({type: 'timestamp'})
     created_at: Date;
 
     @Column()
@@ -49,7 +49,7 @@ export class Login {
     created_by: string;
 
     @Column({nullable: true})
-    @UpdateDateColumn({type: "timestamp"})
+    @UpdateDateColumn({type: 'timestamp'})
     updated_at: Date;
 
     @Column({ nullable: true })

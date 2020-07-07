@@ -23,18 +23,18 @@ export class ProductCategories {
     id: number;
 
     @ManyToOne(type => Categories, {nullable: false})
-    @JoinColumn({ name: "category_id",referencedColumnName: "id"})
+    @JoinColumn({ name: 'category_id',referencedColumnName: 'id'})
     category: Categories;
 
     @OneToOne(type => Products, {nullable: false})
-    @JoinColumn({ name: "product_id", referencedColumnName: "id"})
+    @JoinColumn({ name: 'product_id', referencedColumnName: 'id'})
     products: Products;
 
     @Column({ type: 'boolean', default: false })
     status: boolean;
 
     @Column()
-    @CreateDateColumn({type: "timestamp"})
+    @CreateDateColumn({type: 'timestamp'})
     inserted_at: Date;
 
     @Column()
@@ -42,7 +42,7 @@ export class ProductCategories {
     inserted_by: string;
 
     @Column({nullable: true})
-    @UpdateDateColumn({type: "timestamp"})
+    @UpdateDateColumn({type: 'timestamp'})
     updated_at: Date;
 
     @Column({nullable: true})

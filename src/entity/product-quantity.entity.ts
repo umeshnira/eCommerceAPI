@@ -22,7 +22,7 @@ export class ProductQuantity {
     id: number;
 
     @OneToOne(type => Products, {nullable: false})
-    @JoinColumn({ name: "product_id", referencedColumnName: "id"})
+    @JoinColumn({ name: 'product_id', referencedColumnName: 'id'})
     products: Products;
 
     @Column()
@@ -32,7 +32,7 @@ export class ProductQuantity {
     tota_qty: number;
 
     @Column({nullable: true})
-    @CreateDateColumn({type: "timestamp"})
+    @CreateDateColumn({type: 'timestamp'})
     inserted_at: Date;
 
     @Column({nullable: true})
@@ -40,7 +40,7 @@ export class ProductQuantity {
     inserted_by: string;
 
     @Column({nullable: true})
-    @UpdateDateColumn({type: "timestamp"})
+    @UpdateDateColumn({type: 'timestamp'})
     updated_at: Date;
 
     @Column({nullable: true})

@@ -23,15 +23,15 @@ export class SaveLater {
     id: number;
 
     @ManyToOne(type => Clients, { nullable: false })
-    @JoinColumn({ name: "user_id", referencedColumnName: "id" })
+    @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
     clients: number;
 
     @OneToOne(type => Products, { nullable: false })
-    @JoinColumn({ name: "product_id", referencedColumnName: "id" })
+    @JoinColumn({ name: 'product_id', referencedColumnName: 'id' })
     products: number;
 
     @Column({ nullable: true })
-    @CreateDateColumn({ type: "timestamp" })
+    @CreateDateColumn({ type: 'timestamp' })
     created_at: Date;
 
     @Column({ nullable: true })
@@ -39,7 +39,7 @@ export class SaveLater {
     created_by: string;
 
     @Column({ nullable: true })
-    @UpdateDateColumn({ type: "timestamp" })
+    @UpdateDateColumn({ type: 'timestamp' })
     updated_at: Date;
 
     @Column({ nullable: true })

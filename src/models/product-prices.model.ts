@@ -1,4 +1,4 @@
-import { ProductPrices } from "../entity";
+import { ProductPrices } from '../entity';
 
 export class ProductPricesModel {
 

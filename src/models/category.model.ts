@@ -1,11 +1,12 @@
-import { Categories } from "../entity";
+import { Categories } from '../entity';
+import { Status } from '../enums';
 
 export class CategoryModel {
 
     id: number;
     name: string;
     description: string;
-    status: boolean;
+    status: Status;
     parent_category_id: number;
     created_by: string;
     updated_by: string;

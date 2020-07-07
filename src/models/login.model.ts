@@ -1,5 +1,5 @@
-import { UserRole } from "../enums";
-import { Login } from "../entity";
+import { UserRole } from '../enums';
+import { Login } from '../entity';
 
 export class LoginModel {
     id: number;

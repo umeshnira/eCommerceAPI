@@ -1,4 +1,4 @@
-import { Carts } from "../entity";
+import { Carts } from '../entity';
 
 export class CartsModel {
 

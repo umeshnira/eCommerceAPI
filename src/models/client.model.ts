@@ -1,4 +1,4 @@
-import { Clients } from "../entity";
+import { Clients } from '../entity';
 
 export class ClientModel {
 

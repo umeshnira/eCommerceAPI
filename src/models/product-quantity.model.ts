@@ -1,4 +1,4 @@
-import { ProductQuantity } from "../entity";
+import { ProductQuantity } from '../entity';
 
 export class ProductQuantityModel {
 

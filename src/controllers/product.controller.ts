@@ -219,7 +219,7 @@ class ProductController {
             const productOffersModel = parsedData.offer as ProductOffersModel;
             const productQuantityModel = parsedData.quantity as ProductQuantityModel;
             const productPricesModel = parsedData.price as ProductPricesModel;
-            //const productImageObj = parsedData.images;
+            // const productImageObj = parsedData.images;
 
             const errors = await validate(productModel);
             if (errors.length > 0) {

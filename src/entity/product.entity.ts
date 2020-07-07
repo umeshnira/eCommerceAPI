@@ -29,24 +29,24 @@ export class Products {
     description: string;
 
     @ManyToOne(type => Status,{ nullable: true } )
-    @JoinColumn({ name: "status", referencedColumnName: "id"})
+    @JoinColumn({ name: 'status', referencedColumnName: 'id'})
     status: number;
 
     @Column()
     batch_no: number;
 
     @Column()
-    @CreateDateColumn({type: "timestamp"})
+    @CreateDateColumn({type: 'timestamp'})
     exp_date: Date;
 
     @Column()
     @Length(4, 20)
     star_rate: string;
 
-    @Column("text")
+    @Column('text')
     bar_code: string;
 
-    @Column("text")
+    @Column('text')
     about: string;
 
     @Column({ type: 'boolean', default: true })
@@ -57,11 +57,11 @@ export class Products {
     created_by: string;
 
     @Column()
-    @CreateDateColumn({type: "timestamp"})
+    @CreateDateColumn({type: 'timestamp'})
     created_at: Date;
 
     @Column({nullable: true})
-    @UpdateDateColumn({type: "timestamp"})
+    @UpdateDateColumn({type: 'timestamp'})
     updated_at: Date;
 
     @Column({ nullable: true })

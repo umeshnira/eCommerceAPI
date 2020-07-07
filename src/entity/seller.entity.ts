@@ -65,7 +65,7 @@ export class Sellers {
     ifsc_code: string;
 
     @Column()
-    @CreateDateColumn({type: "timestamp"})
+    @CreateDateColumn({type: 'timestamp'})
     created_at: Date;
 
     @Column()
@@ -73,7 +73,7 @@ export class Sellers {
     created_by: string;
 
     @Column({nullable: true})
-    @UpdateDateColumn({type: "timestamp"})
+    @UpdateDateColumn({type: 'timestamp'})
     updated_at: Date;
 
     @Column({ nullable: true })

@@ -1,25 +1,26 @@
 import { Request, Response } from 'express';
-import { getRepository, getConnection, IsNull, createQueryBuilder, getManager } from 'typeorm';
+import { CategoryModel, AddCategoryDTO, UpdateCategoryDTO } from '../models';
+import { connect, transaction } from '../context/db.context';
+import { Status } from '../enums';
 import { validate } from 'class-validator';
-import { Categories } from '../entity';
-import { CategoryModel } from '../models';
-import { CategoryListModel } from '../models/category-list.model';
 
 class CategoriesController {
 
-    // Apis of categories
-
     static getCategories = async (req: Request, res: Response) => {
 
-        const parentCategoryRepository = getRepository(Categories);
-
         try {
-            const categories = await parentCategoryRepository
-                .find({
-                    select: ['id', 'name', 'description', 'created_by', 'created_at'],
-                    where: { parent_category_id: IsNull() }
-                });
-            res.status(200).json(categories);
+            const connection = await connect();
+            const [data] = await connection.query(
+                `SELECT id, name, description, status, created_by, created_at, updated_by, updated_at
+                        FROM categories WHERE parent_category_id IS NULL`
+            );
+
+            const categories = data as CategoryModel[];
+            if (categories.length) {
+                res.status(200).json(categories as CategoryModel[]);
+            } else {
+                res.status(404).send('Categories not found');
+            }
         } catch (error) {
             res.status(500).send(error.message);
         }
@@ -28,21 +29,20 @@ class CategoriesController {
     static getCategory = async (req: Request, res: Response) => {
 
         try {
-
             const categoryId = req.params?.id;
-            const categoryRepository = getRepository(Categories);
-            const category = await categoryRepository.createQueryBuilder()
-                .select('category')
-                .from(Categories, 'category')
-                .where('category.id = :id', { id: categoryId })
-                .getOne();
+            const connection = await connect();
 
-            if (category) {
-                res.status(200).json(category);
+            const [data] = await connection.query(
+                `SELECT id, name, description, status, created_by, created_at, updated_by, updated_at
+                 FROM categories WHERE parent_category_id IS NULL AND id = ?`, [categoryId]
+            );
+
+            const categories = data as CategoryModel[];
+            if (categories.length) {
+                res.status(200).json(categories);
             } else {
-                res.status(404).send('Resource Not Found');
+                res.status(404).send(`Category with Id: ${categoryId} not found`);
             }
-
         } catch (error) {
             res.status(500).send(error.message);
         }
@@ -50,116 +50,142 @@ class CategoriesController {
 
     static createCategory = async (req: Request, res: Response) => {
 
-        const categoryModel = req.body as CategoryModel;
-        const category = new Categories();
-
-        const errors = await validate(categoryModel);
-        if (errors.length > 0) {
-            res.status(400).send(errors);
-            return;
-        }
-
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
         try {
-            category.name = categoryModel?.name;
-            category.description = categoryModel?.description;
-            category.parent_category_id = categoryModel?.parent_category_id;
-            category.created_by = categoryModel?.created_by;
-            await queryRunner.manager.save(category);
-            await queryRunner.commitTransaction();
-        } catch (error) {
-            await queryRunner.rollbackTransaction();
+            const categoryDto = Object.assign(new AddCategoryDTO(), req.body);
+
+            const errors = await validate(categoryDto);
+            if (errors.length > 0) {
+                res.status(400).send(errors);
+                return;
+            }
+
+            const category = Object.assign(new CategoryModel(), categoryDto);
+            category.status = Status.Active;
+            category.created_at = new Date();
+
+            let data: any;
+            const pool = await connect();
+
+            [data] = await pool.query(
+                `SELECT 1 FROM categories WHERE name = ?`, [category.name]
+            );
+
+            const categoryExists = data as CategoryModel[];
+            if (categoryExists.length) {
+                res.status(409).send('Category already exists');
+                return;
+            }
+
+            let categoryId: any;
+            await transaction(pool, async connection => {
+                [data] = await connection.query(
+                    `INSERT INTO categories SET ?`, [category]
+                );
+                categoryId = data.insertId;
+            });
+
+            if (categoryId) {
+                res.status(201).send(`Created a category with Id: ${categoryId}`);
+            } else {
+                res.status(500).send(`Failed to CreatE a category`);
+            }
+        }
+        catch (error) {
             res.status(500).send(error.message);
         }
-        finally {
-            await queryRunner.release();
-        }
-
-        res.status(201).send('Category created');
     };
 
     static updateCategory = async (req: Request, res: Response) => {
 
-        const model = req.body as CategoryModel;
-        const categoryId = req.params.id;
-        const categoryRepository = getRepository(Categories);
-
         try {
-            await categoryRepository.findOneOrFail(categoryId);
-        } catch (error) {
-            res.status(404).send('Category not found');
-            return;
-        }
+            const categoryId = req.params.id;
+            const categoryDto = Object.assign(new UpdateCategoryDTO(), req.body);
 
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
+            const errors = await validate(categoryDto);
+            if (errors.length > 0) {
+                res.status(400).send(errors);
+                return;
+            }
 
-        try {
-            const result = await queryRunner.manager.connection
-                .createQueryBuilder()
-                .update(Categories)
-                .set(
-                    {
-                        name: model.name,
-                        description: model.description
-                    }
-                )
-                .where('id = :id', { id: categoryId })
-                .execute();
-            await queryRunner.commitTransaction();
+            const category = new CategoryModel();
+            category.name = categoryDto.name;
+            category.description = categoryDto.description;
+            category.updated_by = categoryDto.updated_by;
+            category.updated_at = new Date();
+
+            let data: any;
+            const pool = await connect();
+
+            [data] = await pool.query(
+                `SELECT 1 FROM categories WHERE id = ?`, [categoryId]
+            );
+
+            const categoryExists = data as CategoryModel[];
+            if (!categoryExists.length) {
+                res.status(404).send(`Category with Id: ${categoryId} not found`);
+            }
+
+            let isUpdated: any;
+            await transaction(pool, async connection => {
+                [data] = await connection.query(
+                    `UPDATE categories SET ? WHERE id = ?`, [category, categoryId]
+                );
+                isUpdated = data.affectedRows > 0;
+            });
+
+            if (isUpdated) {
+                res.status(200).send(`Category with Id: ${categoryId} is updated`);
+            } else {
+                res.status(500).send(`Category with Id: ${categoryId} is not updated`);
+            }
+
         } catch (error) {
-            await queryRunner.rollbackTransaction();
             res.status(500).send(error.message);
         }
-        finally {
-            await queryRunner.release();
-        }
-
-        res.status(204).send('Updated category');
     };
 
     static deleteCategory = async (req: Request, res: Response) => {
 
-        const categoryId = req.params.id;
-        const categoryRepository = getRepository(Categories);
-        let category: Categories;
-
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
         try {
-            category = await categoryRepository.findOneOrFail(categoryId);
-            console.log(category);
-        } catch (error) {
-            res.status(404).send('Category not found');
-            return;
-        }
+            const categoryId = req.params.id;
+            let data: any;
+            const pool = await connect();
 
-        try {
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .delete()
-                .from(Categories)
-                .where('id = :id', { id: categoryId })
-                .execute();
-            await queryRunner.commitTransaction();
-        } catch (error) {
-            await queryRunner.rollbackTransaction();
-            res.status(500).json({ 'message': 'Categories with sub category cannot be deleted' });
-        }
-        finally {
-            await queryRunner.release();
-        }
+            [data] = await pool.query(
+                `SELECT 1 FROM categories WHERE id = ?`, [categoryId]
+            );
 
-        res.status(204).send('Deleted category');
+            const categoryExists = data as CategoryModel[];
+            if (!categoryExists.length) {
+                res.status(404).send(`Category with Id: ${categoryId} not found`);
+            }
+
+            [data] = await pool.query(
+                `SELECT * FROM categories WHERE parent_category_id = ?`, [categoryId]
+            );
+
+            const subCategoryExists = data as CategoryModel[];
+            if (subCategoryExists.length) {
+                res.status(209).send(`Category with Id: ${categoryId} has sub categories`);
+            }
+
+            let isDeleted: any;
+            await transaction(pool, async connection => {
+                [data] = await connection.query(
+                    `UPDATE categories SET status = ? WHERE id = ?`, [Status.Archived, categoryId]
+                );
+                isDeleted = data.affectedRows > 0;
+            });
+
+            if (isDeleted) {
+                res.status(200).send(`Category with Id: ${categoryId} is deleted`);
+            } else {
+                res.status(500).send(`Category with Id: ${categoryId} is not deleted`);
+            }
+
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
     };
 }
 
