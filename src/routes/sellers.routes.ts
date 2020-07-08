@@ -7,7 +7,6 @@ router.get('/sellers', [], sellersController.getAllSellers);
 
 router.get('/sellers/:id([0-9]+)', [], sellersController.getSeller);
 
-// Create a new seller
 router.post('/sellers', [], sellersController.createSeller);
 
 router.delete('/sellers/:id([0-9]+)', [], sellersController.deleteSeller);

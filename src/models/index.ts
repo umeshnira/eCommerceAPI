@@ -18,8 +18,16 @@ export * from './product-images.model';
 export * from './product-offers.model';
 export * from './product-prices.model';
 export * from './product-quantity.model';
-export * from './carts.model';
-export * from './save-later.model';
+
+export * from './carts/cart.model';
+export * from './carts/cart-dto.model';
+export * from './carts/add-cart-dto.model';
+export * from './carts/update-cart-dto.model';
+
+export * from './savelater/save-later.model';
+export * from './savelater/save-later-dto.model';
+export * from './savelater/add-save-later-dto.model';
+export * from './savelater/update-save-later-dto.model';
 
 export * from './sub-categories/sub-category-dto.model';
 export * from './sub-categories/add-sub-category-dto.model';
