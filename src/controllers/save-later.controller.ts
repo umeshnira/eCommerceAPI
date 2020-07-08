@@ -1,119 +1,119 @@
 import { Request, Response } from 'express';
-import { getRepository, getConnection } from 'typeorm';
 import { validate } from 'class-validator';
-import { Products, ProductOffers, ProductPrices, ProductQuantity, ProductImages, ProductCategories, Categories, Carts, SaveLater } from '../entity';
-import { ProductModel, ProductCategoryModel, ProductOffersModel, ProductQuantityModel, ProductPricesModel, ProductImagesModel, CartsModel, SaveLaterModel } from '../models';
-import { application } from '../config/app-settings.json';
+import { SaveLaterModel, UpdateSaveLaterDTO, AddSaveLaterDTO } from '../models';
+import { connect, transaction } from '../context/db.context';
 
 class SaveLaterController {
 
-    static createSaveLater = async (req: Request, res: Response) => {
-
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
+    static getSaveLaterItems = async (req: Request, res: Response) => {
 
         try {
+            const cartId = req.params?.id;
+            const connection = await connect();
 
-            try {
-                await queryRunner.connect();
-                await queryRunner.startTransaction();
+            const [data] = await connection.query(
+                `SELECT prod.id, prod.name, prod.description, price.price,
+                        offer.offer_id, qty.left_qty, qty.total_qty, later.id as CartId, ima.image
+                        FROM save_later later
+                        INNER JOIN products prod ON prod.id = cart.product_id
+                        INNER JOIN product_prices price ON prod.id = price.product_id
+                        INNER JOIN product_offers offer ON prod.id = offer.product_id
+                        INNER JOIN product_quantity qty ON prod.id = qty.product_id
+                        INNER JOIN product_categories cat ON prod.id = cat.product_id
+                        INNER JOIN product_images ima ON prod.id = ima.product_id WHERE id = ?`, [cartId]
+            );
 
-                const saveLaterModel = req.body as SaveLaterModel;
-                const saveLater = await new SaveLaterModel().getMappedEntity(saveLaterModel);
-                await queryRunner.manager.save(saveLater);
-
-                await queryRunner.commitTransaction();
-
-                res.status(201).send('Product added to save later');
-            } catch (error) {
-                res.status(500).send(error.message);
-            } finally {
-                await queryRunner.release();
+            const saveLater = data as SaveLaterModel[];
+            if (saveLater.length) {
+                res.status(200).json(saveLater[0]);
+            } else {
+                res.status(404).send(`Save Later with Id: ${cartId} not found`);
             }
         } catch (error) {
+            res.status(500).send(error.message);
+        }
+    }
+
+    static createSaveLater = async (req: Request, res: Response) => {
+
+        try {
+            const saveLaterDto = Object.assign(new AddSaveLaterDTO(), req.body);
+
+            const errors = await validate(saveLaterDto);
+            if (errors.length > 0) {
+                res.status(400).send(errors);
+                return;
+            }
+
+            const saveLater = saveLaterDto as SaveLaterModel;
+            saveLater.created_at = new Date();
+
+            let data: any;
+            const pool = await connect();
+
+            let saveLaterId: any;
+            await transaction(pool, async connection => {
+                [data] = await connection.query(
+                    `INSERT INTO save_later SET ?`, [saveLater]
+                );
+                saveLaterId = data.insertId;
+                [data] = await connection.query(
+                    `DELETE FROM carts WHERE product_id = ? AND user_id = ?`, [saveLater.product_id, saveLater.user_id]
+                );
+            });
+
+            if (saveLaterId) {
+                res.status(201).send(`Added a product to save later with Id: ${saveLaterId}`);
+            } else {
+                res.status(500).send(`Failed to add the product to save later`);
+            }
+        }
+        catch (error) {
             res.status(500).send(error.message);
         }
     }
 
     static updateSaveLater = async (req: Request, res: Response) => {
 
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-
         try {
-            try {
-                await queryRunner.connect();
-                await queryRunner.startTransaction();
+            const saveLaterId = req.params.id;
+            const saveLaterIDto = Object.assign(new UpdateSaveLaterDTO(), req.body);
 
-                const saveLaterId = req.params.id;
-                const saveLaterModel = req.body as SaveLaterModel;
-
-                const saveLater = await new SaveLaterModel().getMappedEntity(saveLaterModel);
-                await queryRunner.manager.connection
-                    .createQueryBuilder()
-                    .update(SaveLater)
-                    .set(saveLater)
-                    .where("id = :id", { id: saveLaterId })
-                    .execute();
-
-                await queryRunner.commitTransaction();
-
-                res.status(201).send('Product updated in save later');
-            } catch (error) {
-                res.status(500).send(error.message);
-            } finally {
-                await queryRunner.release();
+            const errors = await validate(saveLaterIDto);
+            if (errors.length > 0) {
+                res.status(400).send(errors);
+                return;
             }
-        } catch (error) {
-            res.status(500).send(error.message);
-        }
-    }
 
-    static getSaveLaterItems = async (req: Request, res: Response) => {
+            const saveLater = saveLaterIDto as SaveLaterModel;
+            saveLater.updated_at = new Date();
 
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
+            let data: any;
+            const pool = await connect();
 
-        try {
-            try {
-                await queryRunner.connect();
+            [data] = await pool.query(
+                `SELECT 1 FROM save_later WHERE id = ?`, [saveLaterId]
+            );
 
-                const result = await queryRunner.manager.connection
-                    .createQueryBuilder(Products, 'p')
-                    .addSelect('p.id', 'id')
-                    .addSelect('p.name', 'name')
-                    .addSelect('p.description', 'description')
-                    .addSelect('p.star_rate', 'star_rate')
-                    .addSelect('pp.price', 'price')
-                    .addSelect('p.batch_no', 'batch_no')
-                    .addSelect('p.exp_date', 'exp_date')
-                    .addSelect('p.bar_code', 'bar_code')
-                    .addSelect('pp.price_without_offer', 'price_without_offer')
-                    .addSelect('po.offer_id', 'offer_id')
-                    .addSelect('pq.left_qty', 'left_qty')
-                    .addSelect('pq.tota_qty', 'tota_qty')
-                    .addSelect('pc.category_id', 'category_id')
-                    .addSelect('pc.status', 'status')
-                    .addSelect('pi.image', 'image')
-                    .addSelect('sl.id', 'savelater_id')
-                    .addSelect('sl.client_id', 'client_id')
-                    .innerJoin(ProductPrices, 'pp', 'pp.product_id = p.id')
-                    .innerJoin(ProductOffers, 'po', 'po.product_id = p.id')
-                    .innerJoin(ProductQuantity, 'pq', 'pq.product_id = p.id')
-                    .innerJoin(ProductCategories, 'pc', 'pc.product_id = p.id')
-                    .innerJoin(ProductImages, 'pi', 'pi.product_id = p.id')
-                    .innerJoin(SaveLater, 'sl', 'sl.product_id = p.id')
-                    .getRawMany();
-
-                if (result) {
-                    result.forEach(x => x.image = application.getImagePath.product + x.image);
-                    res.status(200).json(result);
-                }
-            } catch (error) {
-                res.status(500).send(error.message);
-            } finally {
-                await queryRunner.release();
+            const saveLaterExists = data as SaveLaterModel[];
+            if (!saveLaterExists.length) {
+                res.status(404).send(`Save later with Id: ${saveLaterExists} not found`);
             }
+
+            let isUpdated: any;
+            await transaction(pool, async connection => {
+                [data] = await connection.query(
+                    `UPDATE save_later SET ? WHERE id = ?`, [saveLater, saveLaterId]
+                );
+                isUpdated = data.affectedRows > 0;
+            });
+
+            if (isUpdated) {
+                res.status(200).send(`Save later with Id: ${saveLaterId} is updated`);
+            } else {
+                res.status(500).send(`Save later with Id: ${saveLaterId} is not updated`);
+            }
+
         } catch (error) {
             res.status(500).send(error.message);
         }
@@ -121,76 +121,38 @@ class SaveLaterController {
 
     static deleteSaveLater = async (req: Request, res: Response) => {
 
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-
         try {
-            await queryRunner.connect();
-            await queryRunner.startTransaction();
-
             const saveLaterId = req.params.id;
+            let data: any;
+            const pool = await connect();
 
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .delete()
-                .from(SaveLater)
-                .where("id = :id", { id: saveLaterId })
-                .execute();
+            [data] = await pool.query(
+                `SELECT 1 FROM save_later WHERE id = ?`, [saveLaterId]
+            );
 
-            await queryRunner.commitTransaction();
-
-            res.status(201).send('save later item deleted');
-        } catch (error) {
-            res.status(500).send(error.message);
-        } finally {
-            await queryRunner.release();
-        }
-    }
-    static moveSaveLaterToCart = async (req: Request, res: Response) => {
-
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-
-        try {
-            try {
-                await queryRunner.connect();
-                await queryRunner.startTransaction();
-
-                const saveLaterId = req.params.id;
-
-                const saveLaterResult = await queryRunner.manager.connection
-                    .createQueryBuilder(SaveLater, 'sl')
-                    .addSelect('sl.product_id', 'product_id')
-                    .addSelect('sl.client_id', 'client_id')
-                    .where('sl.id = :id', { id: saveLaterId })
-                    .getRawOne();
-
-                const cartsModel = saveLaterResult as CartsModel;
-                const carts = await new CartsModel().getMappedEntity(cartsModel);
-                await queryRunner.manager.save(carts);
-
-                await queryRunner.manager.connection
-                    .createQueryBuilder()
-                    .delete()
-                    .from(SaveLater)
-                    .where('id = :id', { id: saveLaterId })
-                    .execute();
-
-                await queryRunner.commitTransaction();
-
-                res.status(201).send('Product moved to cart');
-            } catch (error) {
-                res.status(500).send(error.message);
-            } finally {
-                await queryRunner.release();
+            const saveLaterExists = data as SaveLaterModel[];
+            if (!saveLaterExists.length) {
+                res.status(404).send(`Save later with Id: ${saveLaterExists} not found`);
             }
+
+            let isDeleted: any;
+            await transaction(pool, async connection => {
+                [data] = await connection.query(
+                    `DELETE FROM save_later  WHERE id = ?`, [saveLaterId]
+                );
+                isDeleted = data.affectedRows > 0;
+            });
+
+            if (isDeleted) {
+                res.status(200).send(`Save later with Id: ${saveLaterId} is deleted`);
+            } else {
+                res.status(500).send(`Save later with Id: ${saveLaterId} is not deleted`);
+            }
+
         } catch (error) {
             res.status(500).send(error.message);
         }
     }
-
 }
-
-
 
 export default SaveLaterController;

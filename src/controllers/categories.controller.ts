@@ -17,7 +17,7 @@ class CategoriesController {
 
             const categories = data as CategoryModel[];
             if (categories.length) {
-                res.status(200).json(categories as CategoryModel[]);
+                res.status(200).json(categories);
             } else {
                 res.status(404).send('Categories not found');
             }
@@ -39,7 +39,7 @@ class CategoriesController {
 
             const categories = data as CategoryModel[];
             if (categories.length) {
-                res.status(200).json(categories);
+                res.status(200).json(categories[0]);
             } else {
                 res.status(404).send(`Category with Id: ${categoryId} not found`);
             }
@@ -59,7 +59,7 @@ class CategoriesController {
                 return;
             }
 
-            const category = Object.assign(new CategoryModel(), categoryDto);
+            const category = categoryDto as CategoryModel;
             category.status = Status.Active;
             category.created_at = new Date();
 
@@ -107,10 +107,7 @@ class CategoriesController {
                 return;
             }
 
-            const category = new CategoryModel();
-            category.name = categoryDto.name;
-            category.description = categoryDto.description;
-            category.updated_by = categoryDto.updated_by;
+            const category = categoryDto as CategoryModel;
             category.updated_at = new Date();
 
             let data: any;

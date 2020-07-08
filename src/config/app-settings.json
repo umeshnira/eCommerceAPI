@@ -15,30 +15,13 @@
       "type": "mysql",
       "host": "localhost",
       "port": 3306,
-      "username": "user",
-      "password": "root",
+      "username": "demo",
+      "password": "demo@123",
       "database": "ecommerce",
       "queueLimit": 0,
       "waitForConnections": true,
       "decimalNumbers": true,
       "namedPlaceholders": false,
-      "synchronize": true,
-      "logging": false,
-      "sslCertifciate": "../ssl/BaltimoreCyberTrustRoot.crt.pem",
-      "entities": [
-         "src/entity/**/*.ts",
-         "entity/**/*.js"
-      ],
-      "migrations": [
-         "src/migration/**/*.ts"
-      ],
-      "subscribers": [
-         "src/subscriber/**/*.ts"
-      ],
-      "cli": {
-         "entitiesDir": "src/entity",
-         "migrationsDir": "src/migration",
-         "subscribersDir": "src/subscriber"
-      }
+      "sslCertifciate": "../ssl/BaltimoreCyberTrustRoot.crt.pem"
    }
 }

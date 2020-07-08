@@ -9,7 +9,7 @@ router.get('/subcategories', [], subCategoryController.getSubCategories);
 
 router.get('/subcategories/path', [], subCategoryController.getAllSubCategories);
 
-router.get('/categories/:id([0-9]+)/:id([0-9]+)/subcategories', [], subCategoryController.getsubCategoriesByCategoryId);
+router.get('/categories/:id([0-9]+)/subcategories', [], subCategoryController.getsubCategoriesByCategoryId);
 
 router.post('/subcategories', [], subCategoryController.createSubCategory);
 

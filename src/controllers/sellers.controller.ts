@@ -1,22 +1,25 @@
 import { Request, Response } from 'express';
-import { getRepository, getConnection } from 'typeorm';
 import { validate } from 'class-validator';
-import { SellerModel, LoginModel } from '../models';
-import { Sellers, Login } from '../entity';
-
+import { SellerModel, UserModel, AddSellerDTO, UpdateSellerDTO, AddUserDTO } from '../models';
+import { connect, transaction } from '../context/db.context';
+import { Status } from '../enums';
 
 class SellersController {
 
     static getAllSellers = async (req: Request, res: Response) => {
 
         try {
+            const connection = await connect();
+            const [data] = await connection.query(
+                `SELECT id, user_id, name, address, landmark, pin_code, email, phone,  created_by, created_at,
+                        updated_by, updated_at FROM sellers`
+            );
 
-            const sellerRepository = getRepository(Sellers);
-            const sellers = await sellerRepository.createQueryBuilder("sellers").getMany()
-            if (sellers) {
+            const sellers = data as SellerModel[];
+            if (sellers.length) {
                 res.status(200).json(sellers);
             } else {
-                res.status(404).send('Resource Not Found');
+                res.status(404).send('Sellers not found');
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -26,19 +29,20 @@ class SellersController {
     static getSeller = async (req: Request, res: Response) => {
 
         try {
-
             const sellerId = req.params?.id;
-            const sellerRepository = getRepository(Sellers);
-            const seller = await sellerRepository.createQueryBuilder()
-                .select("seller")
-                .from(Sellers, "seller")
-                .where("seller.id = :id", { id: sellerId })
-                .getOne();
+            const connection = await connect();
 
-            if (seller) {
-                res.status(200).json(seller);
+            const [data] = await connection.query(
+                `SELECT id, user_id, name, address, landmark, pin_code, email, phone, aadhar_card_no,
+                        pan_card_no, bank_name, bank_ac_no, branch_name, ifsc_code, created_by, created_at,
+                        updated_by, updated_at FROM sellers WHERE id = ?`, [sellerId]
+            );
+
+            const sellers = data as SellerModel[];
+            if (sellers.length) {
+                res.status(200).json(sellers[0]);
             } else {
-                res.status(404).send('Resource Not Found');
+                res.status(404).send(`Seller with Id: ${sellerId} not found`);
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -47,124 +51,146 @@ class SellersController {
 
     static createSeller = async (req: Request, res: Response) => {
 
-        const sellerModel = req.body as SellerModel;
-        const loginModel = req.body as LoginModel;
-
-        const errors = await validate(sellerModel);
-        if (errors.length > 0) {
-            res.status(400).send(errors);
-            return;
-        }
-
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
         try {
-            const seller = await new SellerModel().getMappedEntity(sellerModel);
-            const result = await queryRunner.manager.save(seller);
-            if (result) {
-                const login = await new LoginModel().getMappedEntity(loginModel);
-                login.user_id = result.id;
-                const loginResult = await queryRunner.manager.save(login);
-                await queryRunner.commitTransaction();
+            const sellerDto = Object.assign(new AddSellerDTO(), req.body);
+            const userDto = Object.assign(new AddUserDTO(), req.body);
+
+            const sellerErrors = await validate(sellerDto);
+            if (sellerErrors.length > 0) {
+                res.status(400).send(sellerErrors);
+                return;
             }
-            else {
-                res.status(409).send('username already exists');
+
+            const userErrors = await validate(userDto);
+            if (userErrors.length > 0) {
+                res.status(400).send(userErrors);
+                return;
             }
-        } catch (error) {
-            await queryRunner.rollbackTransaction();
+
+            const seller = sellerDto as SellerModel;
+            seller.status = Status.Active;
+            seller.created_at = new Date();
+
+            const user = userDto as UserModel;
+            user.created_at = new Date();
+
+            let data: any;
+            const pool = await connect();
+
+            [data] = await pool.query(
+                `SELECT 1 FROM sellers WHERE email = ?`, [seller.email]
+            );
+
+            const sellersExists = data as SellerModel[];
+            if (sellersExists.length) {
+                res.status(409).send(`Seller with email id: ${seller.email} already exists`);
+                return;
+            }
+
+            let sellerId: any;
+
+            await transaction(pool, async connection => {
+                [data] = await connection.query(
+                    `INSERT INTO users SET ?`, [user]
+                );
+                seller.user_id = data.insertId;
+
+                [data] = await connection.query(
+                    `INSERT INTO sellers SET ?`, [seller]
+                );
+                sellerId = data.insertId;
+            });
+
+            if (sellerId) {
+                res.status(201).send(`Created a seller with Id: ${sellerId}`);
+            } else {
+                res.status(500).send(`Failed to create a seller`);
+            }
+        }
+        catch (error) {
             res.status(500).send(error.message);
         }
-        finally {
-            await queryRunner.release();
-        }
-
-        res.status(201).send('Seller created');
     };
 
     static updateSeller = async (req: Request, res: Response) => {
 
-        const sellerId = req.params.id;
-        const sellerModel = req.body as SellerModel;
-
-        const errors = await validate(sellerModel);
-        if (errors.length > 0) {
-            res.status(400).send(errors);
-            return;
-        }
-
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
         try {
-            await queryRunner.manager.findOneOrFail(sellerId);
-        } catch (error) {
-            res.status(404).send('Resource not found');
-            return;
-        }
+            const sellerId = req.params.id;
+            const sellerDto = Object.assign(new UpdateSellerDTO(), req.body);
 
-        try {
-            const seller = await new SellerModel().getMappedEntity(sellerModel);
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .update(Sellers)
-                .set(seller)
-                .where("id = :id", { id: sellerId })
-                .execute();
-            await queryRunner.commitTransaction();
+            const errors = await validate(sellerDto);
+            if (errors.length > 0) {
+                res.status(400).send(errors);
+                return;
+            }
+
+            const seller = sellerDto as SellerModel;
+            seller.updated_at = new Date();
+
+            let data: any;
+            const pool = await connect();
+
+            [data] = await pool.query(
+                `SELECT 1 FROM sellers WHERE id = ?`, [sellerId]
+            );
+
+            const sellerExists = data as SellerModel[];
+            if (!sellerExists.length) {
+                res.status(404).send(`Seller with Id: ${sellerId} not found`);
+            }
+
+            let isUpdated: any;
+            await transaction(pool, async connection => {
+                [data] = await connection.query(
+                    `UPDATE sellers SET ? WHERE id = ?`, [seller, sellerId]
+                );
+                isUpdated = data.affectedRows > 0;
+            });
+
+            if (isUpdated) {
+                res.status(200).send(`Seller with Id: ${sellerId} is updated`);
+            } else {
+                res.status(500).send(`Seller with Id: ${sellerId} is not updated`);
+            }
+
         } catch (error) {
-            await queryRunner.rollbackTransaction();
             res.status(500).send(error.message);
         }
-        finally {
-            await queryRunner.release();
-        }
-
-        res.status(204).send("Updated Seller");
     };
 
     static deleteSeller = async (req: Request, res: Response) => {
 
-        const sellerId = req.params.id;
-
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
         try {
-            await queryRunner.manager.findOneOrFail(sellerId);
-        } catch (error) {
-            res.status(404).send('Resource not found');
-            return;
-        }
+            const sellerId = req.params.id;
+            let data: any;
+            const pool = await connect();
 
-        try {
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .delete()
-                .from(Sellers)
-                .where("id = :id", { id: sellerId })
-                .execute();
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .delete()
-                .from(Login)
-                .where("user_id = :id", { id: sellerId })
-                .execute();
-            await queryRunner.commitTransaction();
+            [data] = await pool.query(
+                `SELECT 1 FROM sellers WHERE id = ?`, [sellerId]
+            );
+
+            const sellerExists = data as SellerModel[];
+            if (!sellerExists.length) {
+                res.status(404).send(`Seller with Id: ${sellerId} not found`);
+            }
+
+            let isDeleted: any;
+            await transaction(pool, async connection => {
+                [data] = await connection.query(
+                    `UPDATE sellers SET status = ? WHERE id = ?`, [Status.Archived, sellerId]
+                );
+                isDeleted = data.affectedRows > 0;
+            });
+
+            if (isDeleted) {
+                res.status(200).send(`Seller with Id: ${sellerId} is deleted`);
+            } else {
+                res.status(500).send(`Seller with Id: ${sellerId} is not deleted`);
+            }
+
         } catch (error) {
-            await queryRunner.rollbackTransaction();
             res.status(500).send(error.message);
         }
-        finally {
-            await queryRunner.release();
-        }
-        res.status(204).send('Deleted Seller');
     };
 }
 
