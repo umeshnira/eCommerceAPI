@@ -1,3 +1,5 @@
+import { ProductImageDTO } from '..';
+
 export class ProductList {
     id: number;
     name: string;
@@ -5,5 +7,5 @@ export class ProductList {
     star_rate: string;
     price: number;
     image: string;
-    images: string[] = [];
+    images: ProductImageDTO[] = [];
 }

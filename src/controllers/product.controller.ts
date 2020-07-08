@@ -30,12 +30,17 @@ class ProductController {
                 const productDetails = new Array<ProductList>();
                 products.forEach(prod => {
                     const productDetail = prod as ProductList;
+                    productDetail.images = new Array<ProductImageDTO>();
                     const product = productDetails.find(x => x.id === prod.id);
                     if (product) {
-                        const image = application.getImagePath.product + productDetail.image;
+                        const image = new ProductImageDTO();
+                        image.name = prod.image;
+                        image.path = application.getImagePath.product + prod.image;
                         product.images.push(image);
                     } else {
-                        const image = application.getImagePath.product + productDetail.image;
+                        const image = new ProductImageDTO();
+                        image.name = prod.image;
+                        image.path = application.getImagePath.product + prod.image;
                         productDetail.images.push(image);
                         productDetails.push(productDetail);
                     }
@@ -62,7 +67,7 @@ class ProductController {
                         INNER JOIN product_categories prod_cat ON prod.id = prod_cat.product_id
                         INNER JOIN product_prices price ON prod.id = price.product_id
                         INNER JOIN product_quantity qty ON prod.id = qty.product_id
-                        INNER JOIN product_offers offer ON prod.id = offer.product_id
+                        LEFT JOIN product_offers offer ON prod.id = offer.product_id
                         INNER JOIN categories cat ON cat.id = prod_cat.category_id
                         INNER JOIN product_images ima ON prod.id = ima.product_id WHERE prod.id = ?`, [productId]
             );
@@ -123,7 +128,7 @@ class ProductController {
                         INNER JOIN product_categories prod_cat ON prod.id = prod_cat.product_id
                         INNER JOIN product_prices price ON prod.id = price.product_id
                         INNER JOIN product_quantity qty ON prod.id = qty.product_id
-                        INNER JOIN product_offers offer ON prod.id = offer.product_id
+                        LEFT JOIN product_offers offer ON prod.id = offer.product_id
                         INNER JOIN categories cat ON cat.id = prod_cat.category_id
                         INNER JOIN product_images ima ON prod.id = ima.product_id WHERE prod_cat.category_id = ?`,
                 [productId]
@@ -318,48 +323,48 @@ class ProductController {
                 product.batch_no = productDto.batch_no;
                 product.star_rate = productDto.star_rate;
                 product.is_returnable = productDto.is_returnable;
-                product.exp_date = productDto.exp_date;
+                product.exp_date = new Date(productDto.exp_date);
                 product.bar_code = productDto.bar_code;
                 product.status = Status.Active;
                 product.updated_by = productDto.updated_by;
                 product.updated_at = new Date();
 
                 [data] = await connection.query(
-                    `UPDATE products SET ?`, [product]
+                    `UPDATE products SET ? WHERE id = ?`, [product, productId]
                 );
                 isUpdated = data.affectedRows > 0;
 
                 if (isUpdated) {
 
                     [data] = await connection.query(
-                        `UPDATE product_categories SET category_id = ? WHERE id = ?`,
+                        `UPDATE product_categories SET category_id = ? WHERE product_id = ?`,
                         [productDto.category_id, productId]
                     );
 
                     [data] = await connection.query(
-                        `UPDATE product_quantity SET left_qty = ?, total_qty = ? WHERE id = ?`,
+                        `UPDATE product_quantity SET left_qty = ?, total_qty = ? WHERE product_id = ?`,
                         [productDto.left_qty, productDto.total_qty, productId]
                     );
 
                     [data] = await connection.query(
-                        `UPDATE product_prices SET price = ? WHERE id = ?`,
+                        `UPDATE product_prices SET price = ? WHERE product_id = ?`,
                         [productDto.price, productId]
                     );
 
                     if (productDto.offer_id && productDto.offer_id > 0) {
 
                         [data] = await connection.query(
-                            `UPDATE product_offers SET offer_id = ? WHERE id = ?`,
+                            `UPDATE product_offers SET offer_id = ? WHERE product_id = ?`,
                             [productDto.offer_id, productId]
                         );
                     }
 
                     [data] = await connection.query(
-                        `DELETE FROM product_images WHERE product_id = ? WHERE id = ?`, [productId]
+                        `DELETE FROM product_images WHERE product_id = ?`, [productId]
                     );
 
-                    if (productDto.image && productDto.image.length) {
-                        productDto.image.forEach(async img => {
+                    if (productDto.images && productDto.images.length) {
+                        productDto.images.forEach(async img => {
                             const image = new ProductImage();
                             image.product_id = productId;
                             image.image = img;
