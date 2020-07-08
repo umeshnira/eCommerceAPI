@@ -13,9 +13,9 @@ export class ProductQuantity {
     @IsInt()
     total_qty: number;
 
-    created_at: Date;
     created_by: string;
-    updated_at: Date;
+    created_at: Date;
     updated_by: string;
+    updated_at: Date;
 }
 

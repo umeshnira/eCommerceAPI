@@ -191,8 +191,17 @@ class ProductController {
 
             await transaction(pool, async connection => {
 
-                const product = productDto as Product;
+                const product = new ProductDetails();
+                product.name = productDto.name;
+                product.description = productDto.description;
+                product.about = productDto.about;
+                product.batch_no = productDto.batch_no;
+                product.star_rate = productDto.star_rate;
+                product.is_returnable = productDto.is_returnable;
+                product.exp_date = productDto.exp_date;
+                product.bar_code = productDto.bar_code;
                 product.status = Status.Active;
+                product.created_by = productDto.created_by;
                 product.created_at = new Date();
 
                 [data] = await connection.query(
@@ -215,8 +224,8 @@ class ProductController {
 
                     const productQuantity = new ProductQuantity();
                     productQuantity.product_id = productId;
-                    productQuantity.left_qty = productDto.quantity.left_qty;
-                    productQuantity.total_qty = productDto.quantity.total_qty;
+                    productQuantity.left_qty = productDto.left_qty;
+                    productQuantity.total_qty = productDto.total_qty;
                     productQuantity.created_by = productDto.created_by;
                     productQuantity.created_at = new Date();
 
@@ -226,6 +235,7 @@ class ProductController {
 
                     const productPrice = new ProductPrice();
                     productPrice.product_id = productId;
+                    productPrice.price = productDto.price;
                     productPrice.created_by = productDto.created_by;
                     productPrice.created_at = new Date();
 
@@ -301,7 +311,17 @@ class ProductController {
 
             await transaction(pool, async connection => {
 
-                const product = productDto as Product;
+                const product = new ProductDetails();
+                product.name = productDto.name;
+                product.description = productDto.description;
+                product.about = productDto.about;
+                product.batch_no = productDto.batch_no;
+                product.star_rate = productDto.star_rate;
+                product.is_returnable = productDto.is_returnable;
+                product.exp_date = productDto.exp_date;
+                product.bar_code = productDto.bar_code;
+                product.status = Status.Active;
+                product.updated_by = productDto.updated_by;
                 product.updated_at = new Date();
 
                 [data] = await connection.query(

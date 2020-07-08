@@ -20,8 +20,6 @@ export class ProductDTO {
 
     batch_no: number;
     star_rate: number;
-
-    @IsInt()
     is_returnable: boolean;
 
     exp_date: Date;
