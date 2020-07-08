@@ -19,7 +19,7 @@ router.post(
     '/orders', [], orderController.createOrder);
 
 router.put(
-    '/orders/:id([0-9]+)', [], orderController.updateOrder);
+    '/orders/:id([0-9]+)/:detailId([0-9]+)', [], orderController.updateOrder);
 
 router.delete(
     '/orders/:id([0-9]+)', [], orderController.deleteOrder);

@@ -1,4 +1,4 @@
-export class OrderModel {
+export class OrderDetailsModel {
 
     id: number;
     user_id: number;
@@ -6,10 +6,10 @@ export class OrderModel {
     price: number;
     qty: number;
     ordered_date: Date;
-    created_by:	string;
+    created_by: string;
     created_at: Date;
-    updated_by:	string;
+    updated_by: string;
     updated_at: Date;
     is_delete: number;
-}
 
+}
