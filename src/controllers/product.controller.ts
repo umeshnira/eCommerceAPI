@@ -118,7 +118,7 @@ class ProductController {
     static getProductsByCategoryId = async (req: Request, res: Response) => {
 
         try {
-            const productId = req.params?.id;
+            const categoryId = req.params?.id;
             const connection = await connect();
 
             const [data] = await connection.query(
@@ -131,7 +131,7 @@ class ProductController {
                         LEFT JOIN product_offers offer ON prod.id = offer.product_id
                         INNER JOIN categories cat ON cat.id = prod_cat.category_id
                         INNER JOIN product_images ima ON prod.id = ima.product_id WHERE prod_cat.category_id = ?`,
-                [productId]
+                [categoryId]
             );
 
             const products = data as ProductDetails[];
@@ -170,7 +170,7 @@ class ProductController {
                 });
                 res.status(200).json(productDetails);
             } else {
-                res.status(404).send(`Product with Id: ${productId} not found`);
+                res.status(404).send(`Product with category Id: ${categoryId} not found`);
             }
         } catch (error) {
             res.status(500).send(error.message);
