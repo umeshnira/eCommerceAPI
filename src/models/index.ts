@@ -2,10 +2,12 @@ export * from './clients/client.model';
 export * from './clients/client-dto.model';
 export * from './clients/add-client-dto.model';
 export * from './clients/update-client-dto.model';
+
 export * from './sellers/seller.model';
 export * from './sellers/seller-dto.model';
 export * from './sellers/add-seller-dto.model';
 export * from './sellers/update-seller-dto.model';
+
 export * from './users/user.model';
 export * from './users/user-dto.model';
 export * from './users/add-user-dto.model';
@@ -18,8 +20,12 @@ export * from './product-prices.model';
 export * from './product-quantity.model';
 export * from './carts.model';
 export * from './save-later.model';
-export * from './add-category-dto.model';
-export * from './update-category-dto.model';
-export * from './add-sub-category-dto.model';
-export * from './update-sub-category-dto.model';
-export * from './category-path-hierachy.model';
+
+export * from './sub-categories/sub-category-dto.model';
+export * from './sub-categories/add-sub-category-dto.model';
+export * from './sub-categories/update-sub-category-dto.model';
+
+export * from './categories/category-dto.model';
+export * from './categories/category-path-hierachy.model';
+export * from './categories/add-category-dto.model';
+export * from './categories/update-category-dto.model';
