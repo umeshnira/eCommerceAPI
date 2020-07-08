@@ -7,6 +7,7 @@ import helloWorld from './hello-world.route.';
 import subCategories from './sub-categories.routes';
 import carts from './carts.routes';
 import saveLater from './save-later.routes';
+import login from './login.routes';
 
 const routes = Router();
 
@@ -18,5 +19,6 @@ routes.use('/', sellers);
 routes.use('/', clients);
 routes.use('/', carts);
 routes.use('/', saveLater);
+routes.use('/', login);
 
 export default routes;

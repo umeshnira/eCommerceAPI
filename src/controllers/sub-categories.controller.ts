@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { validate } from 'class-validator';
-import { CategoryModel, CategorypathHeirarchy, AddSubCategoryDTO, UpdateSubCategoryDTO, CategoryListModel } from '../models';
+import { CategoryModel, CategorypathHeirarchy, AddSubCategoryDTO, UpdateSubCategoryDTO } from '../models';
+import { CategoryListModel } from '../models/categories/category-list.model';
 import { connect, transaction } from '../context/db.context';
 import { Status } from '../enums';
 
@@ -13,7 +14,7 @@ class SubCategoriesController {
             const connection = await connect();
             const [data] = await connection.query(
                 `SELECT id, name, description, status, parent_category_id, created_by, created_at, updated_by,
-                        updated_at FROM categories WHERE parent_category_id IS NOT NULL`
+                        updated_at FROM categories`
             );
 
             const categoriesListModels = data as CategoryListModel[];
@@ -21,7 +22,6 @@ class SubCategoriesController {
 
                 const categories = new Array<CategoryListModel>();
                 const mainCategories = categoriesListModels.filter(x => x.parent_category_id === null);
-
                 for (const mainCategory of mainCategories) {
                     categories.push(new CategoryListModel(
                         mainCategory.id,
@@ -103,19 +103,27 @@ class SubCategoriesController {
             const connection = await connect();
 
             const [data] = await connection.query(
-                `WITH RECURSIVE category_path (id, name,parent_category_id) AS
-                 (
-                     SELECT id, name,parent_category_id FROM categories
-                             WHERE parent_category_id = ${subCategoryId}
-                     UNION ALL
-                     SELECT c.id, c.name,c.parent_category_id FROM category_path AS cp JOIN categories AS c
-                            ON cp.id = c.parent_category_id
-                )
-                SELECT * FROM category_path
-                ORDER BY parent_category_id;`
+                `SELECT id,name,created_by,created_at,parent_category_id
+             FROM Categories;`
             );
 
-            const categories = data as CategorypathHeirarchy[];
+            const dataList = data as CategoryListModel[];
+            const categories = new Array<CategoryListModel>();
+            const mainCategories = dataList.filter(x => x.parent_category_id === Number(subCategoryId));
+
+            for (const mainCategory of mainCategories) {
+                categories.push(new CategoryListModel(
+                    mainCategory.id,
+                    mainCategory.name,
+                    mainCategory.inserted_at,
+                    mainCategory.inserted_by
+                ));
+            }
+
+            const subCategories = dataList.filter(x => x.parent_category_id !== null);
+            for (const subCategory of subCategories) {
+                SubCategoriesController.processCategoryHierarchy(categories, subCategory);
+            }
             if (categories.length) {
                 res.status(200).json(categories);
             } else {
