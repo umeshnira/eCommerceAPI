@@ -1,0 +1,22 @@
+{
+   "application": {
+      "environment": "DEV",
+      "port":1339,
+      "storage": {
+         "order": "../../public/images/orders/"
+      }
+   },
+   "database": {
+      "type": "mysql",
+      "host": "localhost",
+      "port": 3306,
+      "username": "user",
+      "password": "root",
+      "database": "ecommerce",
+      "queueLimit": 0,
+      "waitForConnections": true,
+      "decimalNumbers": true,
+      "namedPlaceholders": false,
+      "sslCertifciate": "../ssl/BaltimoreCyberTrustRoot.crt.pem"
+   }
+}
