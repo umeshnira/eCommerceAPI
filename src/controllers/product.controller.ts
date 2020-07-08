@@ -1,404 +1,415 @@
 import { Request, Response } from 'express';
-import { getRepository, getConnection } from 'typeorm';
 import { validate } from 'class-validator';
-import { Products, ProductOffers, ProductPrices, ProductQuantity, ProductImages, ProductCategories, Categories } from '../entity';
-import { ProductModel, ProductCategoryModel, ProductOffersModel, ProductQuantityModel, ProductPricesModel, ProductImagesModel } from '../models';
+import {
+    ProductList, Product, ProductCategory, ProductQuantity,
+    ProductPrice, ProductOffers, ProductImage, ProductDTO, ProductImageDTO, ProductDetails
+} from '../models';
 import { application } from '../config/app-settings.json';
+import { connect, transaction } from '../context/db.context';
+import { Status } from '../enums';
 import * as fs from 'fs';
 
 class ProductController {
 
     static getProducts = async (req: Request, res: Response) => {
 
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-
         try {
+            const connection = await connect();
 
-            await queryRunner.connect();
+            const [data] = await connection.query(
+                `SELECT prod.id, prod.name, prod.description, prod.star_rate, price.price, ima.image,
+                        cat.name as category FROM products prod
+                        INNER JOIN product_prices price ON prod.id = price.product_id
+                        INNER JOIN product_categories prod_cat ON prod.id = prod_cat.product_id
+                        INNER JOIN categories cat ON cat.id = prod_cat.category_id
+                        INNER JOIN product_images ima ON prod.id = ima.product_id`
+            );
 
-            const result = await queryRunner.manager.connection
-                .createQueryBuilder(Products, 'p')
-                .addSelect('p.id', 'id')
-                .addSelect('p.name', 'name')
-                .addSelect('p.description', 'description')
-                .addSelect('p.star_rate', 'star_rate')
-                .addSelect('pp.price', 'price')
-                .addSelect('pi.image', 'image')
-                .innerJoin(ProductPrices, 'pp', 'pp.product_id = p.id')
-                .innerJoin(ProductImages, 'pi', 'pi.product_id = p.id')
-                .getRawMany();
-
-            if (result) {
-                result.forEach(x => x.image = application.getImagePath.product + x.image);
-                res.status(200).json(result);
+            const products = data as ProductList[];
+            if (products.length) {
+                const productDetails = new Array<ProductList>();
+                products.forEach(prod => {
+                    const productDetail = prod as ProductList;
+                    const product = productDetails.find(x => x.id === prod.id);
+                    if (product) {
+                        const image = application.getImagePath.product + productDetail.image;
+                        product.images.push(image);
+                    } else {
+                        const image = application.getImagePath.product + productDetail.image;
+                        productDetail.images.push(image);
+                        productDetails.push(productDetail);
+                    }
+                });
+                res.status(200).json(productDetails);
             } else {
-                res.status(404).send('Products not found');
+                res.status(404).send(`Products not found`);
             }
         } catch (error) {
             res.status(500).send(error.message);
-        } finally {
-            await queryRunner.release();
         }
     };
 
     static getProduct = async (req: Request, res: Response) => {
 
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-
         try {
-
             const productId = req.params?.id;
-            await queryRunner.connect();
+            const connection = await connect();
 
-            const result = await queryRunner.manager.connection
-                .createQueryBuilder(Products, 'p')
-                .addSelect('p.id', 'id')
-                .addSelect('p.name', 'name')
-                .addSelect('p.description', 'description')
-                .addSelect('p.star_rate', 'star_rate')
-                .addSelect('pp.price', 'price')
-                .addSelect('p.batch_no', 'batch_no')
-                .addSelect('p.exp_date', 'exp_date')
-                .addSelect('p.bar_code', 'bar_code')
-                .addSelect('pp.price_without_offer', 'price_without_offer')
-                .addSelect('po.offer_id', 'offer_id')
-                .addSelect('pq.left_qty', 'left_qty')
-                .addSelect('pq.tota_qty', 'tota_qty')
-                .addSelect('pc.category_id', 'category_id')
-                .addSelect('pc.status', 'status')
-                .innerJoin(ProductPrices, 'pp', 'pp.product_id = p.id')
-                .innerJoin(ProductOffers, 'po', 'po.product_id = p.id')
-                .innerJoin(ProductQuantity, 'pq', 'pq.product_id = p.id')
-                .innerJoin(ProductCategories, 'pc', 'pc.product_id = p.id')
-                .where('p.id = :id', { id: productId })
-                .getRawOne();
+            const [data] = await connection.query(
+                `SELECT prod.id, prod.name, prod.description, prod.about, prod.batch_no, prod.star_rate,
+                        prod.is_returnable, prod.exp_date, prod.bar_code, price.price, ima.image, qty.left_qty,
+                        qty.total_qty, prod_cat.category_id, offer.id AS offer_id FROM products prod
+                        INNER JOIN product_categories prod_cat ON prod.id = prod_cat.product_id
+                        INNER JOIN product_prices price ON prod.id = price.product_id
+                        INNER JOIN product_quantity qty ON prod.id = qty.product_id
+                        INNER JOIN product_offers offer ON prod.id = offer.product_id
+                        INNER JOIN categories cat ON cat.id = prod_cat.category_id
+                        INNER JOIN product_images ima ON prod.id = ima.product_id WHERE prod.id = ?`, [productId]
+            );
 
-            const imageResult = await queryRunner.manager.connection
-                .createQueryBuilder(ProductImages, 'p')
-                .select('p.image', 'image')
-                .where('p.product_id = :id', { id: productId })
-                .getRawMany();
+            const products = data as ProductDetails[];
+            if (products.length) {
+                const productDetails = new Array<Product>();
+                products.forEach(prod => {
+                    const product = productDetails.find(x => x.id === prod.id);
+                    if (product) {
+                        const image = new ProductImageDTO();
+                        image.name = prod.image;
+                        image.path = application.getImagePath.product + prod.image;
+                        product.images.push(image);
+                    } else {
+                        const productDetail = new Product();
+                        productDetail.id = prod.id;
+                        productDetail.name = prod.name;
+                        productDetail.description = prod.description;
+                        productDetail.about = prod.about;
+                        productDetail.star_rate = prod.star_rate;
+                        productDetail.is_returnable = prod.is_returnable;
+                        productDetail.exp_date = prod.exp_date;
+                        productDetail.bar_code = prod.bar_code;
+                        productDetail.price = prod.price;
+                        productDetail.total_qty = prod.total_qty;
+                        productDetail.left_qty = prod.left_qty;
+                        productDetail.category_id = prod.category_id;
+                        productDetail.offer_id = prod.offer_id;
 
-            if (result) {
-                imageResult.forEach(x => x.path = application.getImagePath.product + x.image);
-                result.images = imageResult;
-                res.status(200).json(result);
+                        const image = new ProductImageDTO();
+                        image.name = prod.image;
+                        image.path = application.getImagePath.product + prod.image;
+                        productDetail.images.push(image);
+
+                        productDetails.push(productDetail);
+                    }
+                });
+                res.status(200).json(productDetails);
             } else {
-                res.status(404).send(`Product with id: ${productId}  not found`);
+                res.status(404).send(`Product with Id: ${productId} not found`);
             }
-
         } catch (error) {
             res.status(500).send(error.message);
-        } finally {
-            await queryRunner.release();
         }
     };
 
     static getProductsByCategoryId = async (req: Request, res: Response) => {
 
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-
         try {
+            const productId = req.params?.id;
+            const connection = await connect();
 
-            const categoryId = req.params.id;
-            await queryRunner.connect();
+            const [data] = await connection.query(
+                `SELECT prod.id, prod.name, prod.description, prod.about, prod.batch_no, prod.star_rate,
+                        prod.is_returnable, prod.exp_date, prod.bar_code, price.price, ima.image, qty.left_qty,
+                        qty.total_qty, prod_cat.category_id, offer.id AS offer_id FROM products prod
+                        INNER JOIN product_categories prod_cat ON prod.id = prod_cat.product_id
+                        INNER JOIN product_prices price ON prod.id = price.product_id
+                        INNER JOIN product_quantity qty ON prod.id = qty.product_id
+                        INNER JOIN product_offers offer ON prod.id = offer.product_id
+                        INNER JOIN categories cat ON cat.id = prod_cat.category_id
+                        INNER JOIN product_images ima ON prod.id = ima.product_id WHERE prod_cat.category_id = ?`,
+                [productId]
+            );
 
+            const products = data as ProductDetails[];
+            if (products.length) {
+                const productDetails = new Array<Product>();
+                products.forEach(prod => {
+                    const product = productDetails.find(x => x.id === prod.id);
+                    if (product) {
+                        const image = new ProductImageDTO();
+                        image.name = prod.image;
+                        image.path = application.getImagePath.product + prod.image;
+                        product.images.push(image);
+                    } else {
+                        const productDetail = new Product();
+                        productDetail.id = prod.id;
+                        productDetail.name = prod.name;
+                        productDetail.description = prod.description;
+                        productDetail.about = prod.about;
+                        productDetail.star_rate = prod.star_rate;
+                        productDetail.is_returnable = prod.is_returnable;
+                        productDetail.exp_date = prod.exp_date;
+                        productDetail.bar_code = prod.bar_code;
+                        productDetail.price = prod.price;
+                        productDetail.total_qty = prod.total_qty;
+                        productDetail.left_qty = prod.left_qty;
+                        productDetail.category_id = prod.category_id;
+                        productDetail.offer_id = prod.offer_id;
 
-            const result = await queryRunner.manager.connection
-                .createQueryBuilder(Products, 'p')
-                .addSelect('p.id', 'id')
-                .addSelect('p.name', 'name')
-                .addSelect('p.description', 'description')
-                .addSelect('p.star_rate', 'star_rate')
-                .addSelect('pp.price', 'price')
-                .addSelect('pi.image', 'image')
-                .addSelect('pc.category_id', 'category_id')
-                .addSelect('c.name', 'category_name')
-                .innerJoin(ProductPrices, 'pp', 'pp.product_id = p.id')
-                .innerJoin(ProductImages, 'pi', 'pi.product_id = p.id')
-                .innerJoin(ProductCategories, 'pc', 'pc.product_id = p.id')
-                .innerJoin(Categories, 'c', 'pc.category_id = c.id')
-                .where('c.id = :id', { id: categoryId })
-                .getRawMany();
+                        const image = new ProductImageDTO();
+                        image.name = prod.image;
+                        image.path = application.getImagePath.product + prod.image;
+                        productDetail.images.push(image);
 
-            if (result) {
-                result.forEach(x => x.image = application.getImagePath.product + x.image);
-                res.status(200).json(result);
+                        productDetails.push(productDetail);
+                    }
+                });
+                res.status(200).json(productDetails);
+            } else {
+                res.status(404).send(`Product with Id: ${productId} not found`);
             }
-
         } catch (error) {
             res.status(500).send(error.message);
-        } finally {
-            await queryRunner.release();
         }
     };
 
     static createProduct = async (req: any, res: Response) => {
 
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-
         try {
+            const parsedData = JSON.parse(req.body.data);
+            const productDto = Object.assign(new ProductDTO(), parsedData);
 
-            const parsedData = JSON.parse(req.body.data)
-            const productModel = parsedData as ProductModel;
-            const productCategoryModel = parsedData.category as ProductCategoryModel;
-            const productOffersModel = parsedData.offer as ProductOffersModel;
-            const productQuantityModel = parsedData.quantity as ProductQuantityModel;
-            const productPricesModel = parsedData.price as ProductPricesModel;
-
-            const errors = await validate(productModel);
+            const errors = await validate(productDto);
             if (errors.length > 0) {
                 res.status(400).send(errors);
                 return;
             }
 
-            await queryRunner.connect();
-            await queryRunner.startTransaction();
+            let data: any;
+            const pool = await connect();
 
-            const product = await new ProductModel().getMappedEntity(productModel);
-            await queryRunner.manager.save(product);
+            let productId: any;
 
-            const productCategory = await new ProductCategoryModel().getMappedEntity(productCategoryModel);
-            productCategory.products = product;
-            await queryRunner.manager.save(productCategory);
+            await transaction(pool, async connection => {
 
-            const productQuantity = await new ProductQuantityModel().getMappedEntity(productQuantityModel);
-            productQuantity.products = product;
-            await queryRunner.manager.save(productQuantity);
+                const product = productDto as Product;
+                product.status = Status.Active;
+                product.created_at = new Date();
 
-            const productPrices = await new ProductPricesModel().getMappedEntity(productPricesModel);
-            productPrices.products = product;
-            await queryRunner.manager.save(productPrices);
+                [data] = await connection.query(
+                    `INSERT INTO products SET ?`, [product]
+                );
 
-            if (productOffersModel) {
-                const productOffers = await new ProductOffersModel().getMappedEntity(productOffersModel);
-                productOffers.products = product;
-                await queryRunner.manager.save(productOffers);
+                productId = data.insertId;
+
+                if (productId > 0) {
+                    const productCategory = new ProductCategory();
+                    productCategory.category_id = productDto.category_id;
+                    productCategory.product_id = productId;
+                    productCategory.status = Status.Active;
+                    productCategory.created_by = productDto.created_by;
+                    productCategory.created_at = new Date();
+
+                    [data] = await connection.query(
+                        `INSERT INTO product_categories SET ?`, [productCategory]
+                    );
+
+                    const productQuantity = new ProductQuantity();
+                    productQuantity.product_id = productId;
+                    productQuantity.left_qty = productDto.quantity.left_qty;
+                    productQuantity.total_qty = productDto.quantity.total_qty;
+                    productQuantity.created_by = productDto.created_by;
+                    productQuantity.created_at = new Date();
+
+                    [data] = await connection.query(
+                        `INSERT INTO product_quantity SET ?`, [productQuantity]
+                    );
+
+                    const productPrice = new ProductPrice();
+                    productPrice.product_id = productId;
+                    productPrice.created_by = productDto.created_by;
+                    productPrice.created_at = new Date();
+
+                    [data] = await connection.query(
+                        `INSERT INTO product_prices SET ?`, [productPrice]
+                    );
+
+                    if (productDto.offer_id && productDto.offer_id > 0) {
+
+                        const productOffer = new ProductOffers();
+                        productOffer.product_id = productId;
+                        productOffer.offer_id = productDto.offer_id;
+                        productOffer.created_by = productDto.created_by;
+                        productOffer.created_at = new Date();
+
+                        [data] = await connection.query(
+                            `INSERT INTO product_offers SET ?`, [productOffer]
+                        );
+                    }
+
+                    for (const file of req?.files) {
+                        const productImage = new ProductImage();
+                        productImage.product_id = productId;
+                        productImage.image = file.filename;
+                        productImage.created_by = productDto.created_by;
+                        productImage.created_at = new Date();
+
+                        [data] = await connection.query(
+                            `INSERT INTO product_images SET ?`, [productImage]
+                        );
+                    }
+                }
+            });
+
+            if (productId) {
+                res.status(201).send(`Created a product with Id: ${productId}`);
+            } else {
+                res.status(500).send(`Failed to create a product`);
             }
-
-            for (const file of req?.files) {
-                const productImagesModel = new ProductImagesModel();
-                productImagesModel.image = file.filename;
-                productImagesModel.inserted_by = productModel.created_by;
-                productImagesModel.inserted_at = new Date();
-
-                const productImages = await new ProductImagesModel().getMappedEntity(productImagesModel);
-                productImages.products = product;
-                await queryRunner.manager.save(productImages);
-            }
-
-            await queryRunner.commitTransaction();
-
-            res.status(201).send('Product created');
         }
         catch (error) {
             ProductController.unlinkUploadedFiles(req?.files);
-            await queryRunner.rollbackTransaction();
             res.status(500).send(error.message);
-        }
-        finally {
-            await queryRunner.release();
         }
     };
 
     static updateProduct = async (req: any, res: Response) => {
 
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-
         try {
-
             const productId = req.params.id;
             const parsedData = JSON.parse(req.body.data);
-            const productModel = parsedData as ProductModel;
-            const productCategoryModel = parsedData.category as ProductCategoryModel;
-            const productOffersModel = parsedData.offer as ProductOffersModel;
-            const productQuantityModel = parsedData.quantity as ProductQuantityModel;
-            const productPricesModel = parsedData.price as ProductPricesModel;
-            // const productImageObj = parsedData.images;
+            const productDto = Object.assign(new ProductDTO(), parsedData);
 
-            const errors = await validate(productModel);
+            const errors = await validate(productDto);
             if (errors.length > 0) {
                 res.status(400).send(errors);
                 return;
             }
 
-            await queryRunner.connect();
-            await queryRunner.startTransaction();
+            let data: any;
+            const pool = await connect();
 
-            const product = await new ProductModel().getMappedEntity(productModel);
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .update(Products)
-                .set(product)
-                .where('id = :id', { id: productId })
-                .execute();
+            [data] = await pool.query(
+                `SELECT 1 FROM products WHERE id = ?`, [productId]
+            );
 
-            const productCategory = await new ProductCategoryModel().getMappedEntity(productCategoryModel);
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .update(ProductCategories)
-                .set(productCategory)
-                .where('product_id = :id', { id: productId })
-                .execute();
-
-            if (productOffersModel) {
-                const productOffers = await new ProductOffersModel().getMappedEntity(productOffersModel);
-                await queryRunner.manager.connection
-                    .createQueryBuilder()
-                    .update(ProductOffers)
-                    .set(productOffers)
-                    .where('product_id = :id', { id: productId })
-                    .execute();
+            const productExists = data as Product[];
+            if (!productExists.length) {
+                res.status(404).send(`Product with Id: ${productId} not found`);
             }
 
-            const productQuantity = await new ProductQuantityModel().getMappedEntity(productQuantityModel);
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .update(ProductQuantity)
-                .set(productQuantity)
-                .where('product_id = :id', { id: productId })
-                .execute();
+            let isUpdated: any;
 
-            const productPrices = await new ProductPricesModel().getMappedEntity(productPricesModel);
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .update(ProductPrices)
-                .set(productPrices)
-                .where('product_id = :id', { id: productId })
-                .execute();
+            await transaction(pool, async connection => {
 
+                const product = productDto as Product;
+                product.updated_at = new Date();
 
-            const imageResult = await queryRunner.manager.connection
-                .createQueryBuilder(ProductImages, 'p')
-                .select('p.image', 'image')
-                .where('p.product_id = :id', { id: productId })
-                .getRawMany();
+                [data] = await connection.query(
+                    `UPDATE products SET ?`, [product]
+                );
+                isUpdated = data.affectedRows > 0;
 
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .delete()
-                .from(ProductImages)
-                .where('product_id = :id', { id: productId })
-                .execute();
+                if (isUpdated) {
 
-            for (const file of req?.files) {
-                const productImagesModel = new ProductImagesModel();
-                productImagesModel.image = file.filename;
-                productImagesModel.updated_by = productModel.updated_by;
-                productImagesModel.updated_at = new Date();
-                productImagesModel.inserted_at = new Date();
-                productImagesModel.product_id = productId;
+                    [data] = await connection.query(
+                        `UPDATE product_categories SET category_id = ? WHERE id = ?`,
+                        [productDto.category_id, productId]
+                    );
 
-                const productImages = await new ProductImagesModel().getMappedEntity(productImagesModel);
-                console.log(productImages)
-                await queryRunner.manager.connection
-                await queryRunner.manager.save(productImages);
+                    [data] = await connection.query(
+                        `UPDATE product_quantity SET left_qty = ?, total_qty = ? WHERE id = ?`,
+                        [productDto.left_qty, productDto.total_qty, productId]
+                    );
+
+                    [data] = await connection.query(
+                        `UPDATE product_prices SET price = ? WHERE id = ?`,
+                        [productDto.price, productId]
+                    );
+
+                    if (productDto.offer_id && productDto.offer_id > 0) {
+
+                        [data] = await connection.query(
+                            `UPDATE product_offers SET offer_id = ? WHERE id = ?`,
+                            [productDto.offer_id, productId]
+                        );
+                    }
+
+                    [data] = await connection.query(
+                        `DELETE FROM product_images WHERE product_id = ? WHERE id = ?`, [productId]
+                    );
+
+                    if (productDto.image && productDto.image.length) {
+                        productDto.image.forEach(async img => {
+                            const image = new ProductImage();
+                            image.product_id = productId;
+                            image.image = img;
+                            image.created_by = productDto.created_by;
+                            image.created_at = new Date();
+
+                            [data] = await connection.query(
+                                `INSERT INTO product_images SET ?`, [image]
+                            );
+                        });
+                    }
+
+                    for (const file of req?.files) {
+                        const productImage = new ProductImage();
+                        productImage.product_id = productId;
+                        productImage.image = file.filename;
+                        productImage.created_by = productDto.created_by;
+                        productImage.created_at = new Date();
+
+                        [data] = await connection.query(
+                            `INSERT INTO product_images SET ?`, [productImage]
+                        );
+                    }
+                }
+            });
+
+            if (productId) {
+                res.status(201).send(`Updated the product with Id: ${productId}`);
+            } else {
+                res.status(500).send(`Failed to update a product`);
             }
-            const files = [];
-            for (const image of imageResult) {
-                files.push({ path: application.storage.product + image.image });
-            }
-            ProductController.unlinkUploadedFiles(files);
-            await queryRunner.commitTransaction();
-
-            res.status(204).send('Product is upadted');
-
-        } catch (error) {
-            ProductController.unlinkUploadedFiles(req?.files);
-            await queryRunner.rollbackTransaction();
-            res.status(500).send(error.message);
         }
-        finally {
-            await queryRunner.release();
+        catch (error) {
+            ProductController.unlinkUploadedFiles(req?.files);
+            res.status(500).send(error.message);
         }
     };
 
     static deleteProduct = async (req: Request, res: Response) => {
 
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-
         try {
             const productId = req.params.id;
+            let data: any;
+            const pool = await connect();
 
-            await queryRunner.connect();
-            await queryRunner.startTransaction();
+            [data] = await pool.query(
+                `SELECT 1 FROM products WHERE id = ?`, [productId]
+            );
 
-            const prod = await queryRunner.manager.findOneOrFail<Products>(productId);
-            if (!prod) {
-                res.status(404).send(`Product with id: ${productId}  not found`);
-                return;
+            const productExists = data as Product[];
+            if (!productExists.length) {
+                res.status(404).send(`Product with Id: ${productId} not found`);
             }
 
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .delete()
-                .from(ProductCategories)
-                .where('product_id = :id', { id: productId })
-                .execute();
+            let isDeleted: any;
+            await transaction(pool, async connection => {
+                [data] = await connection.query(
+                    `UPDATE products SET status = ? WHERE id = ?`, [Status.Archived, productId]
+                );
+                isDeleted = data.affectedRows > 0;
+            });
 
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .delete()
-                .from(ProductOffers)
-                .where('product_id = :id', { id: productId })
-                .execute();
-
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .delete()
-                .from(ProductQuantity)
-                .where('product_id = :id', { id: productId })
-                .execute();
-
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .delete()
-                .from(ProductPrices)
-                .where('product_id = :id', { id: productId })
-                .execute();
-
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .delete()
-                .from(ProductImages)
-                .where('product_id = :id', { id: productId })
-                .execute();
-
-            const images = await getConnection()
-                .createQueryBuilder()
-                .select('image')
-                .from(ProductImages, 'image')
-                .where('image.product_id = :id', { id: productId })
-                .getMany();
-
-            const files = [];
-            for (const image of images) {
-                files.push({ path: image.image });
+            if (isDeleted) {
+                res.status(200).send(`Product with Id: ${productId} is deleted`);
+            } else {
+                res.status(500).send(`Product with Id: ${productId} is not deleted`);
             }
-            ProductController.unlinkUploadedFiles(files);
 
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .delete()
-                .from(Products)
-                .where('id = :id', { id: productId })
-                .execute();
-
-            await queryRunner.commitTransaction();
-
-            res.status(204).send('Product is deleted');
         } catch (error) {
-            await queryRunner.rollbackTransaction();
             res.status(500).send(error.message);
-        }
-        finally {
-            await queryRunner.release();
         }
     };
 

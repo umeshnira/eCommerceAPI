@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { validate } from 'class-validator';
-import { CategoryModel, CategorypathHeirarchy, AddSubCategoryDTO, UpdateSubCategoryDTO } from '../models';
-import { CategoryListModel } from '../models/category-list.model';
+import { CategoryModel, CategorypathHeirarchy, AddSubCategoryDTO, UpdateSubCategoryDTO, CategoryListModel } from '../models';
 import { connect, transaction } from '../context/db.context';
 import { Status } from '../enums';
 
