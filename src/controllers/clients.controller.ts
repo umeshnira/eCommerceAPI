@@ -1,21 +1,26 @@
 import { Request, Response } from 'express';
-import { getRepository, getConnection } from 'typeorm';
 import { validate } from 'class-validator';
-import { ClientModel, LoginModel } from '../models';
-import { Clients, Login } from '../entity';
+import { ClientModel, UserModel, AddUserDTO } from '../models';
+import { connect, transaction } from '../context/db.context';
+import { AddClientDTO, UpdateClientDTO } from '../models';
+import { Status } from '../enums';
 
 class ClientsController {
 
     static getAllClients = async (req: Request, res: Response) => {
 
         try {
+            const connection = await connect();
+            const [data] = await connection.query(
+                `SELECT id, user_id, name, address, landmark, pin_code, email, phone, created_by, created_at,
+                        updated_by, updated_at FROM clients`
+            );
 
-            const clientRepository = getRepository(Clients);
-            const clients = await clientRepository.createQueryBuilder("clients").getMany()
-            if (clients) {
+            const clients = data as ClientModel[];
+            if (clients.length) {
                 res.status(200).json(clients);
             } else {
-                res.status(404).send('Clients Not Found');
+                res.status(404).send('Clients not found');
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -25,21 +30,20 @@ class ClientsController {
     static getClient = async (req: Request, res: Response) => {
 
         try {
-
             const clientId = req.params?.id;
-            const clientRepository = getRepository(Clients);
-            const client = await clientRepository.createQueryBuilder()
-                .select("client")
-                .from(Clients, "client")
-                .where("client.id = :id", { id: clientId })
-                .getOne();
+            const connection = await connect();
 
-            if (client) {
-                res.status(200).json(client);
+            const [data] = await connection.query(
+                `SELECT id, user_id, name, address, landmark, pin_code, email, phone, created_by, created_at,
+                        updated_by, updated_at FROM clients WHERE id = ?`, [clientId]
+            );
+
+            const clients = data as ClientModel[];
+            if (clients.length) {
+                res.status(200).json(clients[0]);
             } else {
-                res.status(404).send('Client Not Found');
+                res.status(404).send(`Client with Id: ${clientId} not found`);
             }
-
         } catch (error) {
             res.status(500).send(error.message);
         }
@@ -47,126 +51,146 @@ class ClientsController {
 
     static createClient = async (req: Request, res: Response) => {
 
-        const clientModel = req.body as ClientModel;
-        const loginModel = req.body as LoginModel;
-
-        const errors = await validate(clientModel);
-        if (errors.length > 0) {
-            res.status(400).send(errors);
-            return;
-        }
-
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
         try {
-            const client = new ClientModel().getMappedEntity(clientModel);
-            const login = new LoginModel().getMappedEntity(loginModel);
+            const clientDto = Object.assign(new AddClientDTO(), req.body);
+            const userDto = Object.assign(new AddUserDTO(), req.body);
 
-            const result = await queryRunner.manager.save(client);
-            if (result) {
-                login.user_id = result.id;
-                const loginResult = await queryRunner.manager.save(login);
-                await queryRunner.commitTransaction();
+            const clientErrors = await validate(clientDto);
+            if (clientErrors.length > 0) {
+                res.status(400).send(clientErrors);
+                return;
             }
-            else {
-                res.status(409).send('username already exists');
+
+            const userErrors = await validate(userDto);
+            if (userErrors.length > 0) {
+                res.status(400).send(userErrors);
+                return;
             }
-        } catch (error) {
-            await queryRunner.rollbackTransaction();
+
+            const client = clientDto as ClientModel;
+            client.status = Status.Active;
+            client.created_at = new Date();
+
+            const user = userDto as UserModel;
+            user.created_at = new Date();
+
+            let data: any;
+            const pool = await connect();
+
+            [data] = await pool.query(
+                `SELECT 1 FROM clients WHERE email = ?`, [client.email]
+            );
+
+            const clientExists = data as ClientModel[];
+            if (clientExists.length) {
+                res.status(409).send(`Client with email id: ${client.email} already exists`);
+                return;
+            }
+
+            let clientId: any;
+
+            await transaction(pool, async connection => {
+                [data] = await connection.query(
+                    `INSERT INTO users SET ?`, [user]
+                );
+                client.user_id = data.insertId;
+
+                [data] = await connection.query(
+                    `INSERT INTO clients SET ?`, [client]
+                );
+                clientId = data.insertId;
+            });
+
+            if (clientId) {
+                res.status(201).send(`Created a client with Id: ${clientId}`);
+            } else {
+                res.status(500).send(`Failed to Create a client`);
+            }
+        }
+        catch (error) {
             res.status(500).send(error.message);
         }
-        finally {
-            await queryRunner.release();
-        }
-
-        res.status(201).send('Seller created');
     };
 
     static updateClient = async (req: Request, res: Response) => {
 
-        const clientId = req.params.id;
-        const clientModel = req.body as ClientModel;
-
-        const errors = await validate(clientModel);
-        if (errors.length > 0) {
-            res.status(400).send(errors);
-            return;
-        }
-
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
         try {
-            await queryRunner.manager.findOneOrFail(clientId);
-        } catch (error) {
-            res.status(404).send('Client not found');
-            return;
-        }
+            const clientId = req.params.id;
+            const clientDto = Object.assign(new UpdateClientDTO(), req.body);
 
-        try {
-            const client = new ClientModel().getMappedEntity(clientModel);
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .update(Clients)
-                .set(client)
-                .where("id = :id", { id: clientId })
-                .execute();
-            await queryRunner.commitTransaction();
+            const errors = await validate(clientDto);
+            if (errors.length > 0) {
+                res.status(400).send(errors);
+                return;
+            }
+
+            const client = clientDto as ClientModel;
+            client.updated_at = new Date();
+
+            let data: any;
+            const pool = await connect();
+
+            [data] = await pool.query(
+                `SELECT 1 FROM clients WHERE id = ?`, [clientId]
+            );
+
+            const clientExists = data as ClientModel[];
+            if (!clientExists.length) {
+                res.status(404).send(`Client with Id: ${clientId} not found`);
+            }
+
+            let isUpdated: any;
+            await transaction(pool, async connection => {
+                [data] = await connection.query(
+                    `UPDATE clients SET ? WHERE id = ?`, [client, clientId]
+                );
+                isUpdated = data.affectedRows > 0;
+            });
+
+            if (isUpdated) {
+                res.status(200).send(`Client with Id: ${clientId} is updated`);
+            } else {
+                res.status(500).send(`Client with Id: ${clientId} is not updated`);
+            }
+
         } catch (error) {
-            await queryRunner.rollbackTransaction();
             res.status(500).send(error.message);
         }
-        finally {
-            await queryRunner.release();
-        }
-
-        res.status(204).send("Updated Client");
     };
 
     static deleteClient = async (req: Request, res: Response) => {
 
-        const clientId = req.params.id;
-
-        const connection = getConnection();
-        const queryRunner = connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
         try {
-            await queryRunner.manager.findOneOrFail(clientId);
-        } catch (error) {
-            res.status(404).send('Resource not found');
-            return;
-        }
+            const clientId = req.params.id;
+            let data: any;
+            const pool = await connect();
 
-        try {
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .delete()
-                .from(Clients)
-                .where("id = :id", { id: clientId })
-                .execute();
-            await queryRunner.manager.connection
-                .createQueryBuilder()
-                .delete()
-                .from(Login)
-                .where("user_id = :id", { id: clientId })
-                .execute();
-            await queryRunner.commitTransaction();
+            [data] = await pool.query(
+                `SELECT 1 FROM clients WHERE id = ?`, [clientId]
+            );
+
+            const clientExists = data as ClientModel[];
+            if (!clientExists.length) {
+                res.status(404).send(`Client with Id: ${clientId} not found`);
+            }
+
+            let isDeleted: any;
+            await transaction(pool, async connection => {
+                [data] = await connection.query(
+                    `UPDATE clients SET status = ? WHERE id = ?`, [Status.Archived, clientId]
+                );
+                isDeleted = data.affectedRows > 0;
+            });
+
+            if (isDeleted) {
+                res.status(200).send(`Client with Id: ${clientId} is deleted`);
+            } else {
+                res.status(500).send(`Client with Id: ${clientId} is not deleted`);
+            }
+
         } catch (error) {
-            await queryRunner.rollbackTransaction();
             res.status(500).send(error.message);
         }
-        finally {
-            await queryRunner.release();
-        }
-
-        res.status(204).send('Deleted Client');
     };
 }
 

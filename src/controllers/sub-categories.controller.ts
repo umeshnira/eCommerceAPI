@@ -59,7 +59,7 @@ class SubCategoriesController {
 
             const categories = data as CategoryModel[];
             if (categories.length) {
-                res.status(200).json(categories);
+                res.status(200).json(categories[0]);
             } else {
                 res.status(404).send(`Sub category with Id: ${subCategoryId} not found`);
             }
@@ -138,7 +138,7 @@ class SubCategoriesController {
                 return;
             }
 
-            const subCategory = Object.assign(new CategoryModel(), subCategoryDto);
+            const subCategory = subCategoryDto as CategoryModel;
             subCategory.status = Status.Active;
             subCategory.created_at = new Date();
 
@@ -185,10 +185,7 @@ class SubCategoriesController {
                 return;
             }
 
-            const category = new CategoryModel();
-            category.name = subCategoryDto.name;
-            category.description = subCategoryDto.description;
-            category.updated_by = subCategoryDto.updated_by;
+            const category = subCategoryDto as CategoryModel;
             category.updated_at = new Date();
 
             let data: any;
