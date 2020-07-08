@@ -198,7 +198,7 @@ class ProductController {
                 product.batch_no = productDto.batch_no;
                 product.star_rate = productDto.star_rate;
                 product.is_returnable = productDto.is_returnable;
-                product.exp_date = productDto.exp_date;
+                product.exp_date = new Date(productDto.exp_date);
                 product.bar_code = productDto.bar_code;
                 product.status = Status.Active;
                 product.created_by = productDto.created_by;
