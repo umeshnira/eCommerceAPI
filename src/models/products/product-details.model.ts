@@ -1,7 +1,10 @@
+import { Status } from '../../enums';
+
 export class ProductDetails {
     id: number;
     name: string;
     description: string;
+    status: Status;
     about: string;
     batch_no: number;
     star_rate:number;
