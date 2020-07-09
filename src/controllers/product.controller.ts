@@ -391,8 +391,8 @@ class ProductController {
                 }
             });
 
-            if (productId) {
-                res.status(201).send(`Updated the product with Id: ${productId}`);
+            if (isUpdated) {
+                res.status(200).send(`Updated the product with Id: ${productId}`);
             } else {
                 res.status(500).send(`Failed to update a product`);
             }
