@@ -81,6 +81,7 @@ class ProductController {
                         productDetail.name = prod.name;
                         productDetail.description = prod.description;
                         productDetail.about = prod.about;
+                        productDetail.batch_no = prod.batch_no;
                         productDetail.star_rate = prod.star_rate;
                         productDetail.is_returnable = prod.is_returnable;
                         productDetail.exp_date = prod.exp_date;
@@ -133,9 +134,10 @@ class ProductController {
 
             const products = data as ProductDetails[];
             if (products.length) {
-                const productDetail = new Product();
-                products.forEach((prod, index) => {
-                    if (index === 0) {
+                const productDetails = new Array<Product>();
+                products.forEach(prod => {
+                   
+                        const productDetail = new Product();
                         productDetail.id = prod.id;
                         productDetail.name = prod.name;
                         productDetail.description = prod.description;
@@ -154,14 +156,11 @@ class ProductController {
                         image.name = prod.image;
                         image.path = application.getImagePath.product + prod.image;
                         productDetail.images.push(image);
-                    } else {
-                        const image = new ProductImageDTO();
-                        image.name = prod.image;
-                        image.path = application.getImagePath.product + prod.image;
-                        productDetail.images.push(image);
-                    }
+
+                        productDetails.push(productDetail);
+                    // }
                 });
-                res.status(200).json(productDetail);
+                res.status(200).json(productDetails);
             } else {
                 res.status(404).send(`Product with category Id: ${categoryId} not found`);
             }
