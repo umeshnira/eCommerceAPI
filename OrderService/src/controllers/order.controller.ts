@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { connect, transaction } from '../context/db.context';
-import { OrderModel, OrderDetailsModel, OrderLocationModel, OrderOffersModel, AddOrdersDTO, AddOrderDetailsDTO, AddOrderLocationDTO, AddOrderOfferDTO,UpdateOrderDetailsDTO,UpdateOrderLocationDTO,UpdateOrderOfferDTO } from '../models';
+import { OrderModel, OrderDetailsModel, OrderLocationModel, OrderOffersModel, OrdersDTO,OrderViewListModel } from '../models';
 import { validate } from 'class-validator';
 
 class OrderController {
@@ -19,7 +19,7 @@ class OrderController {
             d.status,
             d.price,
             d.qty,
-            d.ordered_date,
+            o.ordered_date,
             d.delivered_date,
             f.offer_id,
             k.name as offer_name,
@@ -30,14 +30,15 @@ class OrderController {
             inner join order_details d on o.id=d.order_id
             inner join products p on p.id=d.product_id
             inner join product_images i on p.id=i.product_id
-            inner join order_offers f on f.order_detail_id=d.id
+            left join order_offers f on f.order_detail_id=d.id
             inner join offers k on k.id=f.offer_id
             inner join order_status s on s.id=d.status
-            where o.is_delete=0 and d.is_delete=0
+            where o.is_delete=0 
             group by d.id
             `);
             if (data) {
-                res.status(200).json(data);
+                const order= data as OrderViewListModel[];
+                res.status(200).json(order);
             } else {
                 res.status(404).send('Orders not found');
             }
@@ -61,7 +62,7 @@ class OrderController {
             d.status,
             d.price,
             d.qty,
-            d.ordered_date,
+            o.ordered_date,
             d.delivered_date,
             f.offer_id,
             k.name as offer_name,
@@ -72,13 +73,14 @@ class OrderController {
             inner join order_details d on o.id=d.order_id
             inner join products p on p.id=d.product_id
             inner join product_images i on p.id=i.product_id
-            inner join order_offers f on f.order_detail_id=d.id
+            left join order_offers f on f.order_detail_id=d.id
             inner join offers k on k.id=f.offer_id
             inner join order_status s on s.id=d.status
-            WHERE o.id = ? and o.is_delete=0 and d.is_delete=0`, [orderId]
+            WHERE o.id = ? and o.is_delete=0 `, [orderId]
             );
             if (data) {
-                res.status(200).json(data[0]);
+                const order= data[0] as OrderViewListModel[];
+                res.status(200).json(order);
             } else {
                 res.status(404).send('Orders not found');
             }
@@ -91,54 +93,61 @@ class OrderController {
 
         try {
 
-            const pool = await connect();
-
-            const orderDto = Object.assign(new AddOrdersDTO(), req.body.order);
+            const orderDto = Object.assign(new OrdersDTO(), req.body.data);
             const errors = await validate(orderDto);
             if (errors.length > 0) {
                 res.status(400).send(errors);
                 return;
             }
-            const order = Object.assign(new OrderModel(), orderDto);
+
+            let data: any;
+            const pool = await connect();
             await transaction(pool, async connection => {
 
-                await connection.query('INSERT INTO `orders` SET ?', [order]);
-                const [orderId] = await connection.query(`select max(id) as orderId from orders`);
+                const order = new OrderModel();
+                order.user_id = orderDto.user_id;
+                order.status = orderDto.status;
+                order.ordered_date = new Date();
+                order.created_by = orderDto.created_by;
+                order.created_at = new Date();
+                order.is_delete = 0;
 
-                req.body.location.order_id = orderId[0].orderId;
+                [data] = await connection.query('INSERT INTO `orders` SET ?', [order]);
+                const orderId = data.insertId;
 
-                const locationDto = Object.assign(new AddOrderLocationDTO(), req.body.location);
-                const errors = await validate(locationDto);
-                if (errors.length > 0) {
-                    res.status(400).send(errors);
-                    return;
-                }
-                const location = Object.assign(new OrderLocationModel(), locationDto);
+                const location = new OrderLocationModel();
+                location.order_id = orderId;
+                location.name = orderDto.location.name;
+                location.address = orderDto.location.address;
+                location.lanmark = orderDto.location.lanmark;
+                location.pincode = orderDto.location.pincode;
+                location.email = orderDto.location.email;
+                location.phone = orderDto.location.phone;
+                location.location_date = orderDto.location.location_date;
+                location.created_by = orderDto.location.created_by;
+                location.created_date = new Date();
+
                 await connection.query('INSERT INTO `order_location` SET ?', [location]);
 
-                for (var i = 0; i < req.body.details.length; i++) {
+                for (var i = 0; i < orderDto.details.length; i++) {
 
-                    req.body.details[i].order_id = orderId[0].orderId;
+                    const details = new OrderDetailsModel();
+                    details.order_id = orderId;
+                    details.product_id = orderDto.details[i].product_id;
+                    details.status = orderDto.details[i].status;
+                    details.price = orderDto.details[i].price;
+                    details.qty = orderDto.details[i].qty;
+                    details.created_by = orderDto.details[i].created_by;
+                    details.created_at = new Date();
 
-                    const detailsDto = Object.assign(new AddOrderDetailsDTO(), req.body.details[i]);
-                    const errors = await validate(detailsDto);
-                    if (errors.length > 0) {
-                        res.status(400).send(errors);
-                        return;
-                    }
-                    const details = Object.assign(new OrderDetailsModel(), detailsDto);
-                    await connection.query('INSERT INTO `order_details` SET ?', [details]);
-                    const [order_detail_id] = await connection.query(`select max(id) as order_detail_id from order_details`);
+                    [data] = await connection.query('INSERT INTO `order_details` SET ?', [details]);
+                    const order_detail_id = data.insertId;
 
-                    req.body.offer[i].order_detail_id = order_detail_id[0].order_detail_id;
-
-                    const offerDto = Object.assign(new AddOrderOfferDTO(), req.body.offer[i]);
-                    const errors1 = await validate(offerDto);
-                    if (errors1.length > 0) {
-                        res.status(400).send(errors1);
-                        return;
-                    }
-                    const offer = Object.assign(new OrderOffersModel(), offerDto);
+                    const offer = new OrderOffersModel();
+                    offer.order_detail_id = order_detail_id;
+                    offer.offer_id = orderDto.offer[i].offer_id;
+                    offer.created_by = orderDto.offer[i].created_by;
+                    offer.created_at = new Date();
 
                     await connection.query('INSERT INTO `order_offers` SET ?', [offer]);
                 }
@@ -158,48 +167,66 @@ class OrderController {
 
             const orderId = req.params.id;
             const detailId = req.params.detailId;
+
+            const orderDto = Object.assign(new OrdersDTO(), req.body.data);
+            const errors = await validate(orderDto);
+            if (errors.length > 0) {
+                res.status(400).send(errors);
+                return;
+            }
             const pool = await connect();
+            let data: any;
+            let isUpdated: any;
             await transaction(pool, async connection => {
 
-                const orderDto = Object.assign(new AddOrdersDTO(), req.body.order);
-                const errors = await validate(orderDto);
-                if (errors.length > 0) {
-                    res.status(400).send(errors);
-                    return;
-                }
-                const order = Object.assign(new OrderModel(), orderDto);
-                
-                const detailsDto = Object.assign(new UpdateOrderDetailsDTO(), req.body.details);
-                const errors1 = await validate(detailsDto);
-                if (errors1.length > 0) {
-                    res.status(400).send(errors1);
-                    return;
-                }
-                const details = Object.assign(new OrderDetailsModel(), detailsDto);
+                const order = new OrderModel();
+                order.user_id = orderDto.user_id;
+                order.status = orderDto.status;
+                order.ordered_date = new Date();
+                order.updated_by = orderDto.updated_by;
+                order.updated_at = new Date();
 
-                const locationDto = Object.assign(new UpdateOrderLocationDTO(), req.body.location);
-                const errors2 = await validate(locationDto);
-                if (errors2.length > 0) {
-                    res.status(400).send(errors2);
-                    return;
-                }
-                const location = Object.assign(new OrderLocationModel(), locationDto);
-               
-                const offerDto = Object.assign(new UpdateOrderOfferDTO(), req.body.offer);
-                const errors3 = await validate(offerDto);
-                if (errors3.length > 0) {
-                    res.status(400).send(errors3);
-                    return;
-                }
-                const offer = Object.assign(new OrderOffersModel(), offerDto);
+                [data] = await connection.query('UPDATE `orders` SET ? WHERE `id` = ?', [order, orderId]);
+                isUpdated = data.affectedRows > 0;
+                if (isUpdated) {
 
-                await connection.query('UPDATE `orders` SET ? WHERE `id` = ?', [order, orderId]);
-                await connection.query('UPDATE `order_details` SET ? WHERE `id` = ?', [details, detailId]);
-                await connection.query('UPDATE `order_location` SET ? WHERE `order_id` = ?', [location, orderId]);
-                await connection.query('UPDATE `order_offers` SET ? WHERE `order_detail_id` = ?', [offer, detailId]);
+                    const details = new OrderDetailsModel();
+                    details.product_id = orderDto.details.product_id;
+                    details.status = orderDto.details.status;
+                    details.price = orderDto.details.price;
+                    details.qty = orderDto.details.qty;
+                    details.updated_by = orderDto.details.updated_by;
+                    details.updated_at = new Date();
 
-                res.status(201).send('Order Updated');
+                    await connection.query('UPDATE `order_details` SET ? WHERE `id` = ?', [details, detailId]);
+                  
+                    const location = new OrderLocationModel();
+                    location.name = orderDto.location.name;
+                    location.address = orderDto.location.address;
+                    location.lanmark = orderDto.location.lanmark;
+                    location.pincode = orderDto.location.pincode;
+                    location.email = orderDto.location.email;
+                    location.phone = orderDto.location.phone;
+                    location.location_date = orderDto.location.location_date;
+                    location.updated_by = orderDto.location.updated_by;
+                    location.updated_date = new Date();
+
+                    await connection.query('UPDATE `order_location` SET ? WHERE `order_id` = ?', [location, orderId]);
+                   
+                    const offer = new OrderOffersModel();
+                    offer.offer_id = orderDto.offer.offer_id;
+                    offer.updated_by = orderDto.offer.updated_by;
+                    offer.updated_at = new Date();
+
+                    await connection.query('UPDATE `order_offers` SET ? WHERE `order_detail_id` = ?', [offer, detailId]);
+
+                }
             });
+            if (isUpdated) {
+                res.status(200).send(`Updated the order with Id: ${orderId}`);
+            } else {
+                res.status(500).send(`Failed to update a order`);
+            }
         }
         catch (error) {
             res.status(500).send(error.message);
@@ -214,13 +241,8 @@ class OrderController {
             const pool = await connect();
             await transaction(pool, async connection => {
                 await connection.query('UPDATE `orders` SET is_delete=1 WHERE `id` = ?', [orderId]);
-                await connection.query('UPDATE `order_location` SET is_delete=1 WHERE `order_id` = ?', [orderId]);
-                await connection.query('UPDATE `order_details` SET is_delete=1 WHERE `order_id` = ?', [orderId]);
-                const [order_detail_id] = await connection.query(`select id  from order_details  WHERE order_id = ?`, [orderId]);
-                for (var i = 0; i < order_detail_id.length; i++) {
-                    await connection.query('UPDATE `order_offers` SET is_delete=1 WHERE `order_detail_id` = ?', [order_detail_id[i].id]);
-                }
-                res.status(204).send('Order is deleted');
+  
+                res.status(200).send('Order is deleted');
 
             });
 
@@ -244,7 +266,7 @@ class OrderController {
             d.status,
             d.price,
             d.qty,
-            d.ordered_date,
+            o.ordered_date,
             d.delivered_date,
             f.offer_id,
             k.name as offer_name,
@@ -255,13 +277,14 @@ class OrderController {
             inner join order_details d on o.id=d.order_id
             inner join products p on p.id=d.product_id
             inner join product_images i on p.id=i.product_id
-            inner join order_offers f on f.order_detail_id=d.id
+            left join order_offers f on f.order_detail_id=d.id
             inner join offers k on k.id=f.offer_id
             inner join order_status s on s.id=d.status
-            WHERE o.user_id = ? and o.is_delete=0 and d.is_delete=0
+            WHERE o.user_id = ? and o.is_delete=0 
             group by d.id`, [userId]);
             if (data) {
-                res.status(200).json(data);
+                const order= data as OrderViewListModel[];
+                res.status(200).json(order);
             } else {
                 res.status(404).send('Orders not found');
             }

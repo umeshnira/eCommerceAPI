@@ -1,7 +1,9 @@
-import { Length, IsNotEmpty, MaxLength,IsNumber,IsDate } from 'class-validator';
+import { Length, IsNotEmpty, MaxLength, IsNumber, IsDate } from 'class-validator';
 import { IsNotBlank } from '../../validators';
 
-export class AddOrderOfferDTO {
+export class OrderOfferDTO {
+
+    id: number;
 
     @IsNumber()
     @IsNotEmpty()
@@ -16,6 +18,10 @@ export class AddOrderOfferDTO {
 
     @IsNotEmpty()
     @Length(1, 255)
-    @IsNotBlank({  message: 'Value cannot contain empty spaces' })
+    @IsNotBlank({ message: 'Value cannot contain empty spaces' })
     created_by: string;
+
+    updated_by: string;
+
+    updated_at: Date;
 }

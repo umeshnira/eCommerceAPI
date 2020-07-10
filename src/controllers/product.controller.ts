@@ -130,7 +130,8 @@ class ProductController {
                         INNER JOIN product_quantity qty ON prod.id = qty.product_id
                         LEFT JOIN product_offers offer ON prod.id = offer.product_id
                         INNER JOIN categories cat ON cat.id = prod_cat.category_id
-                        INNER JOIN product_images ima ON prod.id = ima.product_id WHERE prod_cat.category_id = ?`,
+                        INNER JOIN product_images ima ON prod.id = ima.product_id WHERE prod_cat.category_id = ?
+                        group by prod.id`,
                 [categoryId]
             );
 
@@ -138,13 +139,13 @@ class ProductController {
             if (products.length) {
                 const productDetails = new Array<Product>();
                 products.forEach(prod => {
-                    const product = productDetails.find(x => x.id === prod.id);
-                    if (product) {
-                        const image = new ProductImageDTO();
-                        image.name = prod.image;
-                        image.path = application.getImagePath.product + prod.image;
-                        product.images.push(image);
-                    } else {
+                    // const product = productDetails.find(x => x.id === prod.id);
+                    // if (product) {
+                    //     const image = new ProductImageDTO();
+                    //     image.name = prod.image;
+                    //     image.path = application.getImagePath.product + prod.image;
+                    //     product.images.push(image);
+                    // } else {
                         const productDetail = new Product();
                         productDetail.id = prod.id;
                         productDetail.name = prod.name;
@@ -166,7 +167,7 @@ class ProductController {
                         productDetail.images.push(image);
 
                         productDetails.push(productDetail);
-                    }
+                    // }
                 });
                 res.status(200).json(productDetails);
             } else {
