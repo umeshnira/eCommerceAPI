@@ -74,16 +74,9 @@ class ProductController {
 
             const products = data as ProductDetails[];
             if (products.length) {
-                const productDetails = new Array<Product>();
-                products.forEach(prod => {
-                    const product = productDetails.find(x => x.id === prod.id);
-                    if (product) {
-                        const image = new ProductImageDTO();
-                        image.name = prod.image;
-                        image.path = application.getImagePath.product + prod.image;
-                        product.images.push(image);
-                    } else {
-                        const productDetail = new Product();
+                const productDetail = new Product();
+                products.forEach((prod, index) => {
+                    if (index === 0) {
                         productDetail.id = prod.id;
                         productDetail.name = prod.name;
                         productDetail.description = prod.description;
@@ -102,11 +95,14 @@ class ProductController {
                         image.name = prod.image;
                         image.path = application.getImagePath.product + prod.image;
                         productDetail.images.push(image);
-
-                        productDetails.push(productDetail);
+                    } else {
+                        const image = new ProductImageDTO();
+                        image.name = prod.image;
+                        image.path = application.getImagePath.product + prod.image;
+                        productDetail.images.push(image);
                     }
                 });
-                res.status(200).json(productDetails);
+                res.status(200).json(productDetail);
             } else {
                 res.status(404).send(`Product with Id: ${productId} not found`);
             }
@@ -137,16 +133,9 @@ class ProductController {
 
             const products = data as ProductDetails[];
             if (products.length) {
-                const productDetails = new Array<Product>();
-                products.forEach(prod => {
-                    // const product = productDetails.find(x => x.id === prod.id);
-                    // if (product) {
-                    //     const image = new ProductImageDTO();
-                    //     image.name = prod.image;
-                    //     image.path = application.getImagePath.product + prod.image;
-                    //     product.images.push(image);
-                    // } else {
-                        const productDetail = new Product();
+                const productDetail = new Product();
+                products.forEach((prod, index) => {
+                    if (index === 0) {
                         productDetail.id = prod.id;
                         productDetail.name = prod.name;
                         productDetail.description = prod.description;
@@ -165,11 +154,14 @@ class ProductController {
                         image.name = prod.image;
                         image.path = application.getImagePath.product + prod.image;
                         productDetail.images.push(image);
-
-                        productDetails.push(productDetail);
-                    // }
+                    } else {
+                        const image = new ProductImageDTO();
+                        image.name = prod.image;
+                        image.path = application.getImagePath.product + prod.image;
+                        productDetail.images.push(image);
+                    }
                 });
-                res.status(200).json(productDetails);
+                res.status(200).json(productDetail);
             } else {
                 res.status(404).send(`Product with category Id: ${categoryId} not found`);
             }
