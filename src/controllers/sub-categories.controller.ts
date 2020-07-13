@@ -171,7 +171,7 @@ class SubCategoriesController {
             });
 
             if (subCategoryId) {
-                res.status(201).send(`Created a sub category with Id: ${subCategoryId}`);
+                res.status(201).send({ message : `Sub category with Id: ${subCategoryId} is created` });
             } else {
                 res.status(500).send(`Failed to Create a sub category`);
             }
@@ -216,7 +216,7 @@ class SubCategoriesController {
             });
 
             if (isUpdated) {
-                res.status(200).send(`Sub category with Id: ${subCategoryId} is updated`);
+                res.status(200).send({ message : `Sub category with Id: ${subCategoryId} is updated` });
             } else {
                 res.status(500).send(`Sub category with Id: ${subCategoryId} is not updated`);
             }
@@ -259,7 +259,7 @@ class SubCategoriesController {
             });
 
             if (isDeleted) {
-                res.status(200).send(`Sub category with Id: ${subCategoryId} is deleted`);
+                res.status(200).send({ message : `Sub category with Id: ${subCategoryId} is deleted` });
             } else {
                 res.status(500).send(`Sub category with Id: ${subCategoryId} is not deleted`);
             }

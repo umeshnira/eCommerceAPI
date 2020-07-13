@@ -136,29 +136,27 @@ class ProductController {
             if (products.length) {
                 const productDetails = new Array<Product>();
                 products.forEach(prod => {
-                   
-                        const productDetail = new Product();
-                        productDetail.id = prod.id;
-                        productDetail.name = prod.name;
-                        productDetail.description = prod.description;
-                        productDetail.about = prod.about;
-                        productDetail.star_rate = prod.star_rate;
-                        productDetail.is_returnable = prod.is_returnable;
-                        productDetail.exp_date = prod.exp_date;
-                        productDetail.bar_code = prod.bar_code;
-                        productDetail.price = prod.price;
-                        productDetail.total_qty = prod.total_qty;
-                        productDetail.left_qty = prod.left_qty;
-                        productDetail.category_id = prod.category_id;
-                        productDetail.offer_id = prod.offer_id;
+                    const productDetail = new Product();
+                    productDetail.id = prod.id;
+                    productDetail.name = prod.name;
+                    productDetail.description = prod.description;
+                    productDetail.about = prod.about;
+                    productDetail.star_rate = prod.star_rate;
+                    productDetail.is_returnable = prod.is_returnable;
+                    productDetail.exp_date = prod.exp_date;
+                    productDetail.bar_code = prod.bar_code;
+                    productDetail.price = prod.price;
+                    productDetail.total_qty = prod.total_qty;
+                    productDetail.left_qty = prod.left_qty;
+                    productDetail.category_id = prod.category_id;
+                    productDetail.offer_id = prod.offer_id;
 
-                        const image = new ProductImageDTO();
-                        image.name = prod.image;
-                        image.path = application.getImagePath.product + prod.image;
-                        productDetail.images.push(image);
+                    const image = new ProductImageDTO();
+                    image.name = prod.image;
+                    image.path = application.getImagePath.product + prod.image;
+                    productDetail.images.push(image);
 
-                        productDetails.push(productDetail);
-                    // }
+                    productDetails.push(productDetail);
                 });
                 res.status(200).json(productDetails);
             } else {
@@ -268,7 +266,7 @@ class ProductController {
             });
 
             if (productId) {
-                res.status(201).send(`Created a product with Id: ${productId}`);
+                res.status(201).send({ message : `Product with Id: ${productId} is created` });
             } else {
                 res.status(500).send(`Failed to create a product`);
             }
@@ -384,7 +382,7 @@ class ProductController {
             });
 
             if (isUpdated) {
-                res.status(200).send(`Updated the product with Id: ${productId}`);
+                res.status(200).send({ message : `Product with Id: ${productId} is updated` });
             } else {
                 res.status(500).send(`Failed to update a product`);
             }
@@ -420,7 +418,7 @@ class ProductController {
             });
 
             if (isDeleted) {
-                res.status(200).send(`Product with Id: ${productId} is deleted`);
+                res.status(200).send({ message : `Product with Id: ${productId} is deleted` });
             } else {
                 res.status(500).send(`Product with Id: ${productId} is not deleted`);
             }

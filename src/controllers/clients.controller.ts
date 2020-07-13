@@ -102,7 +102,7 @@ class ClientsController {
             });
 
             if (clientId) {
-                res.status(201).send(`Created a client with Id: ${clientId}`);
+                res.status(201).send({ message : `Client with Id: ${clientId} is created` });
             } else {
                 res.status(500).send(`Failed to Create a client`);
             }
@@ -148,7 +148,7 @@ class ClientsController {
             });
 
             if (isUpdated) {
-                res.status(200).send(`Client with Id: ${clientId} is updated`);
+                res.status(200).send({ message : `Client with Id: ${clientId} is updated` });
             } else {
                 res.status(500).send(`Client with Id: ${clientId} is not updated`);
             }
@@ -183,7 +183,7 @@ class ClientsController {
             });
 
             if (isDeleted) {
-                res.status(200).send(`Client with Id: ${clientId} is deleted`);
+                res.status(200).send({ message : `Client with Id: ${clientId} is deleted` });
             } else {
                 res.status(500).send(`Client with Id: ${clientId} is not deleted`);
             }

@@ -63,7 +63,7 @@ class SaveLaterController {
             });
 
             if (saveLaterId) {
-                res.status(201).send(`Added a product to save later with Id: ${saveLaterId}`);
+                res.status(201).send({ message : `Save later with Id: ${saveLaterId} is created` });
             } else {
                 res.status(500).send(`Failed to add the product to save later`);
             }
@@ -109,7 +109,7 @@ class SaveLaterController {
             });
 
             if (isUpdated) {
-                res.status(200).send(`Save later with Id: ${saveLaterId} is updated`);
+                res.status(200).send({ message : `Save later with Id: ${saveLaterId} is updated` });
             } else {
                 res.status(500).send(`Save later with Id: ${saveLaterId} is not updated`);
             }
@@ -144,7 +144,7 @@ class SaveLaterController {
             });
 
             if (isDeleted) {
-                res.status(200).send(`Save later with Id: ${saveLaterId} is deleted`);
+                res.status(200).send({ message : `Save later with Id: ${saveLaterId} is deleted` });
             } else {
                 res.status(500).send(`Save later with Id: ${saveLaterId} is not deleted`);
             }

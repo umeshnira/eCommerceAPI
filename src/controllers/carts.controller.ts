@@ -63,7 +63,7 @@ class CartController {
             });
 
             if (cartId) {
-                res.status(201).send(`Added a product to cart with Id: ${cartId}`);
+                res.status(201).send({ message : `Cart with Id: ${cartId} is created` });
             } else {
                 res.status(500).send(`Failed to Add the product to cart`);
             }
@@ -109,7 +109,7 @@ class CartController {
             });
 
             if (isUpdated) {
-                res.status(200).send(`Cart with Id: ${cartId} is updated`);
+                res.status(200).send({ message : `Cart with Id: ${cartId} is updated` });
             } else {
                 res.status(500).send(`Cart with Id: ${cartId} is not updated`);
             }
@@ -144,7 +144,7 @@ class CartController {
             });
 
             if (isDeleted) {
-                res.status(200).send(`Cart with Id: ${cartId} is deleted`);
+                res.status(200).send({ message : `Cart with Id: ${cartId} is deleted` });
             } else {
                 res.status(500).send(`Cart with Id: ${cartId} is not deleted`);
             }

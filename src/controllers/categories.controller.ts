@@ -85,7 +85,7 @@ class CategoriesController {
             });
 
             if (categoryId) {
-                res.status(201).send(`Created a category with Id: ${categoryId}`);
+                res.status(201).send({ message : `Category with Id: ${categoryId} is created` });
             } else {
                 res.status(500).send(`Failed to CreatE a category`);
             }
@@ -131,7 +131,7 @@ class CategoriesController {
             });
 
             if (isUpdated) {
-                res.status(200).send(`Category with Id: ${categoryId} is updated`);
+                res.status(200).send({ message : `Category with Id: ${categoryId} is updated` });
             } else {
                 res.status(500).send(`Category with Id: ${categoryId} is not updated`);
             }
@@ -175,7 +175,7 @@ class CategoriesController {
             });
 
             if (isDeleted) {
-                res.status(200).send(`Category with Id: ${categoryId} is deleted`);
+                res.status(200).send({ message : `Category with Id: ${categoryId} is deleted` });
             } else {
                 res.status(500).send(`Category with Id: ${categoryId} is not deleted`);
             }
