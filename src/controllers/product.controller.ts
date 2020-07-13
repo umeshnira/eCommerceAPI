@@ -133,35 +133,28 @@ class ProductController {
 
             const products = data as ProductDetails[];
             if (products.length) {
-                const productDetail = new Product();
-                products.forEach((prod, index) => {
-                    if (index === 0) {
-                        productDetail.id = prod.id;
-                        productDetail.name = prod.name;
-                        productDetail.description = prod.description;
-                        productDetail.about = prod.about;
-                        productDetail.star_rate = prod.star_rate;
-                        productDetail.is_returnable = prod.is_returnable;
-                        productDetail.exp_date = prod.exp_date;
-                        productDetail.bar_code = prod.bar_code;
-                        productDetail.price = prod.price;
-                        productDetail.total_qty = prod.total_qty;
-                        productDetail.left_qty = prod.left_qty;
-                        productDetail.category_id = prod.category_id;
-                        productDetail.offer_id = prod.offer_id;
+                const productDetails = new Array<ProductDetails>();
+                products.forEach(prod => {
+                    const productDetail = new ProductDetails();
+                    productDetail.id = prod.id;
+                    productDetail.name = prod.name;
+                    productDetail.description = prod.description;
+                    productDetail.about = prod.about;
+                    productDetail.star_rate = prod.star_rate;
+                    productDetail.is_returnable = prod.is_returnable;
+                    productDetail.exp_date = prod.exp_date;
+                    productDetail.bar_code = prod.bar_code;
+                    productDetail.price = prod.price;
+                    productDetail.total_qty = prod.total_qty;
+                    productDetail.left_qty = prod.left_qty;
+                    productDetail.category_id = prod.category_id;
+                    productDetail.offer_id = prod.offer_id;
+                    productDetail.image=prod.image
+                    productDetail.path = application.getImagePath.product + prod.image;
+                    productDetails.push(productDetail);
 
-                        const image = new ProductImageDTO();
-                        image.name = prod.image;
-                        image.path = application.getImagePath.product + prod.image;
-                        productDetail.images.push(image);
-                    } else {
-                        const image = new ProductImageDTO();
-                        image.name = prod.image;
-                        image.path = application.getImagePath.product + prod.image;
-                        productDetail.images.push(image);
-                    }
                 });
-                res.status(200).json(productDetail);
+                res.status(200).json(productDetails);
             } else {
                 res.status(404).send(`Product with category Id: ${categoryId} not found`);
             }
