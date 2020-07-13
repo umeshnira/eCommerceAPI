@@ -13,6 +13,9 @@ router.get(
     '/orders/:id([0-9]+)', [], orderController.getOrder);
 
 router.get(
+    '/orders/mail/:id([0-9]+)', [], orderController.getOrderForMail);
+
+router.get(
     '/user/orders/:id([0-9]+)', [], orderController.getUserOrders);
 
 router.post(

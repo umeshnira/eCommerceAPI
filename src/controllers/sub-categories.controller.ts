@@ -26,8 +26,8 @@ class SubCategoriesController {
                     categories.push(new CategoryListModel(
                         mainCategory.id,
                         mainCategory.name,
-                        mainCategory.inserted_at,
-                        mainCategory.inserted_by
+                        mainCategory.created_at,
+                        mainCategory.created_by
                     ));
                 }
 
@@ -73,12 +73,12 @@ class SubCategoriesController {
             const connection = await connect();
 
             const [data] = await connection.query(
-                `WITH RECURSIVE category_path (id, name,parent_category_id,inserted_by, inserted_at, path) AS
+                `WITH RECURSIVE category_path (id, name,parent_category_id,created_by, created_at, path) AS
                  (
-                    SELECT id, name,parent_category_id,inserted_by, inserted_at, name as path FROM categories
+                    SELECT id, name,parent_category_id,created_by, created_at, name as path FROM categories
                            WHERE parent_category_id IS Not NULL
                     UNION ALL
-                    SELECT c.id, c.name,c.parent_category_id,c.inserted_by, c.inserted_at, CONCAT(cp.path, ' > ',
+                    SELECT c.id, c.name,c.parent_category_id,c.created_by, c.created_at, CONCAT(cp.path, ' > ',
                            c.name) FROM category_path AS cp JOIN categories AS c ON cp.id = c.parent_category_id
                 )
                 SELECT * FROM category_path
@@ -115,8 +115,8 @@ class SubCategoriesController {
                 categories.push(new CategoryListModel(
                     mainCategory.id,
                     mainCategory.name,
-                    mainCategory.inserted_at,
-                    mainCategory.inserted_by
+                    mainCategory.created_at,
+                    mainCategory.created_by
                 ));
             }
 
@@ -171,7 +171,7 @@ class SubCategoriesController {
             });
 
             if (subCategoryId) {
-                res.status(201).send(`Created a sub category with Id: ${subCategoryId}`);
+                res.status(201).send({ message : `Sub category with Id: ${subCategoryId} is created` });
             } else {
                 res.status(500).send(`Failed to Create a sub category`);
             }
@@ -216,7 +216,7 @@ class SubCategoriesController {
             });
 
             if (isUpdated) {
-                res.status(200).send(`Sub category with Id: ${subCategoryId} is updated`);
+                res.status(200).send({ message : `Sub category with Id: ${subCategoryId} is updated` });
             } else {
                 res.status(500).send(`Sub category with Id: ${subCategoryId} is not updated`);
             }
@@ -259,7 +259,7 @@ class SubCategoriesController {
             });
 
             if (isDeleted) {
-                res.status(200).send(`Sub category with Id: ${subCategoryId} is deleted`);
+                res.status(200).send({ message : `Sub category with Id: ${subCategoryId} is deleted` });
             } else {
                 res.status(500).send(`Sub category with Id: ${subCategoryId} is not deleted`);
             }
@@ -276,8 +276,8 @@ class SubCategoriesController {
                 category.subCategories.push(new CategoryListModel(
                     subCategory.id,
                     subCategory.name,
-                    subCategory.inserted_at,
-                    subCategory.inserted_by,
+                    subCategory.created_at,
+                    subCategory.created_by,
                     subCategory.parent_category_id
                 ));
                 return true;

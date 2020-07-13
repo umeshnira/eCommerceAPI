@@ -81,6 +81,7 @@ class ProductController {
                         productDetail.name = prod.name;
                         productDetail.description = prod.description;
                         productDetail.about = prod.about;
+                        productDetail.batch_no = prod.batch_no;
                         productDetail.star_rate = prod.star_rate;
                         productDetail.is_returnable = prod.is_returnable;
                         productDetail.exp_date = prod.exp_date;
@@ -262,7 +263,7 @@ class ProductController {
             });
 
             if (productId) {
-                res.status(201).send(`Created a product with Id: ${productId}`);
+                res.status(201).send({ message : `Product with Id: ${productId} is created` });
             } else {
                 res.status(500).send(`Failed to create a product`);
             }
@@ -378,7 +379,7 @@ class ProductController {
             });
 
             if (isUpdated) {
-                res.status(200).send(`Updated the product with Id: ${productId}`);
+                res.status(200).send({ message : `Product with Id: ${productId} is updated` });
             } else {
                 res.status(500).send(`Failed to update a product`);
             }
@@ -414,7 +415,7 @@ class ProductController {
             });
 
             if (isDeleted) {
-                res.status(200).send(`Product with Id: ${productId} is deleted`);
+                res.status(200).send({ message : `Product with Id: ${productId} is deleted` });
             } else {
                 res.status(500).send(`Product with Id: ${productId} is not deleted`);
             }

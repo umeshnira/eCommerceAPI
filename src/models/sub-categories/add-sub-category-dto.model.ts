@@ -6,7 +6,7 @@ export class AddSubCategoryDTO extends SubCategoryDTO {
 
     @IsNotEmpty()
     @IsInt()
-    parentId: number;
+    parent_category_id: number;
 
     @IsNotEmpty()
     @Length(1, 255)

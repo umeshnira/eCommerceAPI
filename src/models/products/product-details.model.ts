@@ -13,6 +13,7 @@ export class ProductDetails {
     bar_code: string;
     category_id: number;
     image: string;
+    path: string;
     price: number;
     offer_id: number;
     left_qty: number;

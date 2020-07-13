@@ -4,6 +4,9 @@
       "port":1338,
       "storage": {
          "order": "../../public/images/orders/"
+      },
+      "getImagePath":{
+         "product":"http://localhost:1337/images/products/"
       }
    },
    "database": {

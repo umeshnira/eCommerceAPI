@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { connect, transaction } from '../context/db.context';
-import { OrderModel, OrderDetailsModel, OrderLocationModel, OrderOffersModel, OrdersDTO,OrderViewListModel } from '../models';
+import { OrderModel, OrderDetailsModel, OrderLocationModel, OrderOffersModel, OrdersDTO, OrderViewListModel, OrderMailViewListModel } from '../models';
 import { validate } from 'class-validator';
+import { application } from '../config/app-settings.json';
 
 class OrderController {
 
@@ -37,8 +38,29 @@ class OrderController {
             group by d.id
             `);
             if (data) {
-                const order= data as OrderViewListModel[];
-                res.status(200).json(order);
+                const order = data as OrderViewListModel[];
+                const orderDetails = new Array<OrderViewListModel>();
+                order.forEach(prod => {
+                    const orderObj = new OrderViewListModel();
+                    orderObj.id=prod.id;
+                    orderObj.user_id=prod.user_id;
+                    orderObj.order_detail_id=prod.order_detail_id;
+                    orderObj.product_id=prod.product_id;
+                    orderObj.status=prod.status;
+                    orderObj.price=prod.price;
+                    orderObj.qty=prod.qty;
+                    orderObj.ordered_date=prod.ordered_date;
+                    orderObj.delivered_date=prod.delivered_date;
+                    orderObj.offer_id=prod.offer_id;
+                    orderObj.offer_name=prod.offer_name;
+                    orderObj.name=prod.name;
+                    orderObj.image=prod.image;
+                    orderObj.path= application.getImagePath.product+prod.image;
+                    orderObj.order_status=prod.order_status;
+                    orderDetails.push(orderObj);
+                });
+              
+                res.status(200).json(orderDetails);
             } else {
                 res.status(404).send('Orders not found');
             }
@@ -79,8 +101,29 @@ class OrderController {
             WHERE o.id = ? and o.is_delete=0 `, [orderId]
             );
             if (data) {
-                const order= data[0] as OrderViewListModel[];
-                res.status(200).json(order);
+                const order = data as OrderViewListModel[];
+                const orderDetails = new Array<OrderViewListModel>();
+                order.forEach(prod => {
+                    const orderObj = new OrderViewListModel();
+                    orderObj.id=prod.id;
+                    orderObj.user_id=prod.user_id;
+                    orderObj.order_detail_id=prod.order_detail_id;
+                    orderObj.product_id=prod.product_id;
+                    orderObj.status=prod.status;
+                    orderObj.price=prod.price;
+                    orderObj.qty=prod.qty;
+                    orderObj.ordered_date=prod.ordered_date;
+                    orderObj.delivered_date=prod.delivered_date;
+                    orderObj.offer_id=prod.offer_id;
+                    orderObj.offer_name=prod.offer_name;
+                    orderObj.name=prod.name;
+                    orderObj.image=prod.image;
+                    orderObj.path= application.getImagePath.product+prod.image;
+                    orderObj.order_status=prod.order_status;
+                    orderDetails.push(orderObj);
+                });
+              
+                res.status(200).json(orderDetails);
             } else {
                 res.status(404).send('Orders not found');
             }
@@ -88,7 +131,77 @@ class OrderController {
             res.status(500).send(error.message);
         }
     };
+    static getOrderForMail = async (req: Request, res: Response) => {
 
+        try {
+
+            const connection = await connect();
+            const orderId = req.params?.id;
+            const [data] = await connection.query(`
+            SELECT distinct
+            o.id,
+            o.user_id,
+            d.id as order_detail_id,
+            d.product_id,
+            d.status,
+            d.price,
+            d.qty,
+            o.ordered_date,
+            d.delivered_date,
+            f.offer_id,
+            k.name as offer_name,
+            p.name,
+            i.image,
+            s.name as order_status,
+            l.name as full_name,
+            l.address,
+            l.email,
+            l.phone
+            from orders o 
+            inner join order_details d on o.id=d.order_id
+            inner join products p on p.id=d.product_id
+            inner join product_images i on p.id=i.product_id
+            left join order_offers f on f.order_detail_id=d.id
+            inner join offers k on k.id=f.offer_id
+            inner join order_status s on s.id=d.status
+            inner join order_location l on o.id=l.order_id
+            WHERE o.id = ? and o.is_delete=0 `, [orderId]
+            );
+            if (data) {
+                const order = data as OrderMailViewListModel[];
+                const orderDetails = new Array<OrderMailViewListModel>();
+                order.forEach(prod => {
+                    const orderObj = new OrderMailViewListModel();
+                    orderObj.id=prod.id;
+                    orderObj.user_id=prod.user_id;
+                    orderObj.order_detail_id=prod.order_detail_id;
+                    orderObj.product_id=prod.product_id;
+                    orderObj.status=prod.status;
+                    orderObj.price=prod.price;
+                    orderObj.qty=prod.qty;
+                    orderObj.ordered_date=prod.ordered_date;
+                    orderObj.delivered_date=prod.delivered_date;
+                    orderObj.offer_id=prod.offer_id;
+                    orderObj.offer_name=prod.offer_name;
+                    orderObj.name=prod.name;
+                    orderObj.image=prod.image;
+                    orderObj.path= application.getImagePath.product+prod.image;
+                    orderObj.order_status=prod.order_status;
+                    orderObj.address=prod.address;
+                    orderObj.full_name=prod.full_name;
+                    orderObj.phone=prod.phone;
+                    orderObj.email=prod.email;
+                    orderDetails.push(orderObj);
+                });
+              
+                res.status(200).json(orderDetails);
+            } else {
+                res.status(404).send('Orders not found');
+            }
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
     static createOrder = async (req: any, res: Response) => {
 
         try {
@@ -199,7 +312,7 @@ class OrderController {
                     details.updated_at = new Date();
 
                     await connection.query('UPDATE `order_details` SET ? WHERE `id` = ?', [details, detailId]);
-                  
+
                     const location = new OrderLocationModel();
                     location.name = orderDto.location.name;
                     location.address = orderDto.location.address;
@@ -212,7 +325,7 @@ class OrderController {
                     location.updated_date = new Date();
 
                     await connection.query('UPDATE `order_location` SET ? WHERE `order_id` = ?', [location, orderId]);
-                   
+
                     const offer = new OrderOffersModel();
                     offer.offer_id = orderDto.offer.offer_id;
                     offer.updated_by = orderDto.offer.updated_by;
@@ -241,7 +354,7 @@ class OrderController {
             const pool = await connect();
             await transaction(pool, async connection => {
                 await connection.query('UPDATE `orders` SET is_delete=1 WHERE `id` = ?', [orderId]);
-  
+
                 res.status(200).send('Order is deleted');
 
             });
@@ -283,8 +396,29 @@ class OrderController {
             WHERE o.user_id = ? and o.is_delete=0 
             group by d.id`, [userId]);
             if (data) {
-                const order= data as OrderViewListModel[];
-                res.status(200).json(order);
+                const order = data as OrderViewListModel[];
+                const orderDetails = new Array<OrderViewListModel>();
+                order.forEach(prod => {
+                    const orderObj = new OrderViewListModel();
+                    orderObj.id=prod.id;
+                    orderObj.user_id=prod.user_id;
+                    orderObj.order_detail_id=prod.order_detail_id;
+                    orderObj.product_id=prod.product_id;
+                    orderObj.status=prod.status;
+                    orderObj.price=prod.price;
+                    orderObj.qty=prod.qty;
+                    orderObj.ordered_date=prod.ordered_date;
+                    orderObj.delivered_date=prod.delivered_date;
+                    orderObj.offer_id=prod.offer_id;
+                    orderObj.offer_name=prod.offer_name;
+                    orderObj.name=prod.name;
+                    orderObj.image=prod.image;
+                    orderObj.path= application.getImagePath.product+prod.image;
+                    orderObj.order_status=prod.order_status;
+                    orderDetails.push(orderObj);
+                });
+              
+                res.status(200).json(orderDetails);
             } else {
                 res.status(404).send('Orders not found');
             }

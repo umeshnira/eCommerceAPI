@@ -102,7 +102,7 @@ class SellersController {
             });
 
             if (sellerId) {
-                res.status(201).send(`Created a seller with Id: ${sellerId}`);
+                res.status(201).send({ message : `Seller with Id: ${sellerId} is created` });
             } else {
                 res.status(500).send(`Failed to create a seller`);
             }
@@ -148,7 +148,7 @@ class SellersController {
             });
 
             if (isUpdated) {
-                res.status(200).send(`Seller with Id: ${sellerId} is updated`);
+                res.status(200).send({ message : `Seller with Id: ${sellerId} is updated` });
             } else {
                 res.status(500).send(`Seller with Id: ${sellerId} is not updated`);
             }
@@ -183,7 +183,7 @@ class SellersController {
             });
 
             if (isDeleted) {
-                res.status(200).send(`Seller with Id: ${sellerId} is deleted`);
+                res.status(200).send({ message : `Seller with Id: ${sellerId} is deleted` });
             } else {
                 res.status(500).send(`Seller with Id: ${sellerId} is not deleted`);
             }
