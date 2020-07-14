@@ -8,7 +8,7 @@ class CartController {
     static getCartItems = async (req: Request, res: Response) => {
 
         try {
-            const cartId = req.params?.id;
+            const userId = req.params?.id;
             const connection = await connect();
 
             const [data] = await connection.query(
@@ -20,13 +20,15 @@ class CartController {
                         INNER JOIN product_offers offer ON prod.id = offer.product_id
                         INNER JOIN product_quantity qty ON prod.id = qty.product_id
                         INNER JOIN product_categories cat ON prod.id = cat.product_id
-                        INNER JOIN product_images ima ON prod.id = ima.product_id WHERE cart.id = ?`, [cartId]
+                        INNER JOIN product_images ima ON prod.id = ima.product_id WHERE cart.user_id = ?
+                        GROUP By cart.id`, [userId]
             );
+            console.log(data)
             const carts = data as CartModel[];
             if (carts.length) {
-                res.status(200).json(carts[0]);
+                res.status(200).json(carts);
             } else {
-                res.status(404).send(`Cart with Id: ${cartId} not found`);
+                res.status(404).send(`Cart with Id: ${userId} not found`);
             }
         } catch (error) {
             res.status(500).send(error.message);
