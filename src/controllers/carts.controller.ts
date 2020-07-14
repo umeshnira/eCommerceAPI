@@ -20,9 +20,8 @@ class CartController {
                         INNER JOIN product_offers offer ON prod.id = offer.product_id
                         INNER JOIN product_quantity qty ON prod.id = qty.product_id
                         INNER JOIN product_categories cat ON prod.id = cat.product_id
-                        INNER JOIN product_images ima ON prod.id = ima.product_id WHERE id = ?`, [cartId]
+                        INNER JOIN product_images ima ON prod.id = ima.product_id WHERE cart.id = ?`, [cartId]
             );
-
             const carts = data as CartModel[];
             if (carts.length) {
                 res.status(200).json(carts[0]);
