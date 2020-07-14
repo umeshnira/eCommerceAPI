@@ -11,6 +11,7 @@ export class UserModel {
     created_at: Date;
     updated_by: string;
     updated_at: Date;
+    cart_id: number;
 }
 
 

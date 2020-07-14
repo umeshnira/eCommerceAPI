@@ -27,9 +27,12 @@ class LoginController {
 
             const [loginDetails] = await connection.query(
                 `SELECT users.user_name as user_name,
+                users.id as user_id,
+                carts.id as cart_id,
                 roles.name as role
                 FROM users
                 INNER JOIN roles ON users.role = roles.id
+                INNER JOIN carts ON users.id = carts.user_id
                 where users.user_name = '${loginModel.user_name}' `
             )
             const userLoginDetails = loginDetails as UserModel[];
