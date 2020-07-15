@@ -22,7 +22,7 @@ class CartController {
                         INNER JOIN product_quantity qty ON prod.id = qty.product_id
                         INNER JOIN product_categories cat ON prod.id = cat.product_id
                         INNER JOIN product_images ima ON prod.id = ima.product_id WHERE cart.user_id = ?
-                        GROUP By cart.id`, [userId]
+                        GROUP By prod.id`, [userId]
             );
             const carts = data as CartModel[];
             if (carts.length) {
