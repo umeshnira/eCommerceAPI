@@ -95,7 +95,6 @@ class CartController {
             [data] = await pool.query(
                 `SELECT 1 FROM carts WHERE id = ?`, [cartId]
             );
-
             const cartExists = data as CartModel[];
             if (!cartExists.length) {
                 res.status(404).send(`Cart with Id: ${cartExists} not found`);
@@ -104,7 +103,7 @@ class CartController {
             let isUpdated: any;
             await transaction(pool, async connection => {
                 [data] = await connection.query(
-                    `UPDATE cart SET ? WHERE id = ?`, [cart, cartId]
+                    `UPDATE carts SET ? WHERE id = ?`, [cart, cartId]
                 );
                 isUpdated = data.affectedRows > 0;
             });
