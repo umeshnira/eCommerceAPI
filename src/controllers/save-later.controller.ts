@@ -34,6 +34,36 @@ class SaveLaterController {
         }
     }
 
+    static getSaveLaterItemsByUserId = async (req: Request, res: Response) => {
+
+        try {
+            const userId = req.params?.uid;
+            const connection = await connect();
+
+            const [data] = await connection.query(
+                `SELECT prod.id as productId, prod.name, prod.description, price.price,
+                        offer.offer_id, qty.left_qty, qty.total_qty, later.id as id, ima.image
+                        FROM save_later later
+                        INNER JOIN products prod ON prod.id = later.product_id
+                        INNER JOIN product_prices price ON prod.id = price.product_id
+                        INNER JOIN product_offers offer ON prod.id = offer.product_id
+                        INNER JOIN product_quantity qty ON prod.id = qty.product_id
+                        INNER JOIN product_categories cat ON prod.id = cat.product_id
+                        INNER JOIN product_images ima ON prod.id = ima.product_id WHERE later.user_id = ?
+                        GROUP BY later.id`, [userId]
+            );
+
+            const saveLater = data as SaveLaterModel[];
+            if (saveLater.length) {
+                res.status(200).json(saveLater);
+            } else {
+                res.status(404).send(`Save Later with Id: ${userId} not found`);
+            }
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    }
+
     static createSaveLater = async (req: Request, res: Response) => {
 
         try {
