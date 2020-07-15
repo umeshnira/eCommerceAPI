@@ -13,7 +13,8 @@ class CartController {
 
             const [data] = await connection.query(
                 `SELECT prod.id, prod.name, prod.description, price.price,
-                        offer.offer_id, qty.left_qty, qty.total_qty, cart.id as CartId, ima.image
+                        offer.offer_id, qty.left_qty, qty.total_qty, cart.id as CartId,
+                        cart.quantity, ima.image
                         FROM carts cart
                         INNER JOIN products prod ON prod.id = cart.product_id
                         INNER JOIN product_prices price ON prod.id = price.product_id
@@ -23,7 +24,6 @@ class CartController {
                         INNER JOIN product_images ima ON prod.id = ima.product_id WHERE cart.user_id = ?
                         GROUP By cart.id`, [userId]
             );
-            console.log(data)
             const carts = data as CartModel[];
             if (carts.length) {
                 res.status(200).json(carts);
