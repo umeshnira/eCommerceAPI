@@ -12,11 +12,10 @@ export class OrdersDTO {
     @IsNotEmpty()
     user_id: number;
 
-    @IsNotEmpty()
-    @IsNumber()
+ 
     status: number;
 
-    @IsNotEmpty()
+
     ordered_date: Date;
 
     @IsNotEmpty()
@@ -24,7 +23,7 @@ export class OrdersDTO {
     @IsNotBlank({ message: 'Value cannot contain empty spaces' })
     created_by: string;
 
-    @IsNotEmpty()
+ 
     created_at: Date;
 
     details: OrderDetailsDTO[];

@@ -5,8 +5,7 @@ export class OrderLocationDTO {
 
     id: number;
 
-    @IsNumber()
-    @IsNotEmpty()
+
     order_id: number;
 
     @IsNotEmpty()
@@ -22,12 +21,12 @@ export class OrderLocationDTO {
     @IsNotEmpty()
     @Length(1, 255)
     @IsNotBlank({ message: 'Value cannot contain empty spaces' })
-    lanmark: string;
+    landmark: string;
 
     @IsNotEmpty()
     @Length(1, 10)
     @IsNotBlank({ message: 'Value cannot contain empty spaces' })
-    pincode: string;
+    pin_code: string;
 
     @IsNotEmpty()
     @Length(1, 50)
@@ -39,7 +38,6 @@ export class OrderLocationDTO {
     @IsNotBlank({ message: 'Value cannot contain empty spaces' })
     phone: string;
 
-    @IsNotEmpty()
     location_date: Date;
 
     @IsNotEmpty()
@@ -47,7 +45,7 @@ export class OrderLocationDTO {
     @IsNotBlank({ message: 'Value cannot contain empty spaces' })
     created_by: string;
 
-    @IsNotEmpty()
+
     created_date: Date;
 
     updated_by: string;

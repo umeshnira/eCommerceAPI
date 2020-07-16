@@ -192,6 +192,28 @@ class ClientsController {
             res.status(500).send(error.message);
         }
     };
+
+    static getDetailsUserID = async (req: Request, res: Response) => {
+
+        try {
+            const userid = req.params?.id;
+            const connection = await connect();
+
+            const [data] = await connection.query(
+                `SELECT id, user_id, name, address, landmark, pin_code, email, phone, created_by, created_at,
+                        updated_by, updated_at FROM clients WHERE user_id = ?`, [userid]
+            );
+
+            const clients = data as ClientModel[];
+            if (clients.length) {
+                res.status(200).json(clients[0]);
+            } else {
+                res.status(404).send(`Client with Id: ${userid} not found`);
+            }
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
 }
 
 export default ClientsController;

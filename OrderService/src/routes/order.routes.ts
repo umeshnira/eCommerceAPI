@@ -27,4 +27,10 @@ router.put(
 router.delete(
     '/orders/:id([0-9]+)', [], orderController.deleteOrder);
 
+router.post(
+    '/cancel/orders/:id([0-9]+)', [], orderController.cancelOrder);
+
+router.get(
+    '/cancel/orders/:id([0-9]+)', [], orderController.getUserCancelOrders);
+
 export default router;

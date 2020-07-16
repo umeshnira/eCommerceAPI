@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { connect, transaction } from '../context/db.context';
-import { OrderModel, OrderDetailsModel, OrderLocationModel, OrderOffersModel, OrdersDTO, OrderViewListModel, OrderMailViewListModel } from '../models';
+import { OrderModel, OrderDetailsModel, OrderLocationModel, OrderOffersModel, OrdersDTO, OrderViewListModel, OrderMailViewListModel, OrderLocationDTO } from '../models';
 import { validate } from 'class-validator';
 import { application } from '../config/app-settings.json';
 
@@ -32,7 +32,7 @@ class OrderController {
             inner join products p on p.id=d.product_id
             inner join product_images i on p.id=i.product_id
             left join order_offers f on f.order_detail_id=d.id
-            inner join offers k on k.id=f.offer_id
+            left join offers k on k.id=f.offer_id
             inner join order_status s on s.id=d.status
             where o.is_delete=0 
             group by d.id
@@ -42,24 +42,24 @@ class OrderController {
                 const orderDetails = new Array<OrderViewListModel>();
                 order.forEach(prod => {
                     const orderObj = new OrderViewListModel();
-                    orderObj.id=prod.id;
-                    orderObj.user_id=prod.user_id;
-                    orderObj.order_detail_id=prod.order_detail_id;
-                    orderObj.product_id=prod.product_id;
-                    orderObj.status=prod.status;
-                    orderObj.price=prod.price;
-                    orderObj.qty=prod.qty;
-                    orderObj.ordered_date=prod.ordered_date;
-                    orderObj.delivered_date=prod.delivered_date;
-                    orderObj.offer_id=prod.offer_id;
-                    orderObj.offer_name=prod.offer_name;
-                    orderObj.name=prod.name;
-                    orderObj.image=prod.image;
-                    orderObj.path= application.getImagePath.product+prod.image;
-                    orderObj.order_status=prod.order_status;
+                    orderObj.id = prod.id;
+                    orderObj.user_id = prod.user_id;
+                    orderObj.order_detail_id = prod.order_detail_id;
+                    orderObj.product_id = prod.product_id;
+                    orderObj.status = prod.status;
+                    orderObj.price = prod.price;
+                    orderObj.qty = prod.qty;
+                    orderObj.ordered_date = prod.ordered_date;
+                    orderObj.delivered_date = prod.delivered_date;
+                    orderObj.offer_id = prod.offer_id;
+                    orderObj.offer_name = prod.offer_name;
+                    orderObj.name = prod.name;
+                    orderObj.image = prod.image;
+                    orderObj.path = application.getImagePath.product + prod.image;
+                    orderObj.order_status = prod.order_status;
                     orderDetails.push(orderObj);
                 });
-              
+
                 res.status(200).json(orderDetails);
             } else {
                 res.status(404).send('Orders not found');
@@ -96,7 +96,7 @@ class OrderController {
             inner join products p on p.id=d.product_id
             inner join product_images i on p.id=i.product_id
             left join order_offers f on f.order_detail_id=d.id
-            inner join offers k on k.id=f.offer_id
+            left join offers k on k.id=f.offer_id
             inner join order_status s on s.id=d.status
             WHERE o.id = ? and o.is_delete=0 `, [orderId]
             );
@@ -105,24 +105,24 @@ class OrderController {
                 const orderDetails = new Array<OrderViewListModel>();
                 order.forEach(prod => {
                     const orderObj = new OrderViewListModel();
-                    orderObj.id=prod.id;
-                    orderObj.user_id=prod.user_id;
-                    orderObj.order_detail_id=prod.order_detail_id;
-                    orderObj.product_id=prod.product_id;
-                    orderObj.status=prod.status;
-                    orderObj.price=prod.price;
-                    orderObj.qty=prod.qty;
-                    orderObj.ordered_date=prod.ordered_date;
-                    orderObj.delivered_date=prod.delivered_date;
-                    orderObj.offer_id=prod.offer_id;
-                    orderObj.offer_name=prod.offer_name;
-                    orderObj.name=prod.name;
-                    orderObj.image=prod.image;
-                    orderObj.path= application.getImagePath.product+prod.image;
-                    orderObj.order_status=prod.order_status;
+                    orderObj.id = prod.id;
+                    orderObj.user_id = prod.user_id;
+                    orderObj.order_detail_id = prod.order_detail_id;
+                    orderObj.product_id = prod.product_id;
+                    orderObj.status = prod.status;
+                    orderObj.price = prod.price;
+                    orderObj.qty = prod.qty;
+                    orderObj.ordered_date = prod.ordered_date;
+                    orderObj.delivered_date = prod.delivered_date;
+                    orderObj.offer_id = prod.offer_id;
+                    orderObj.offer_name = prod.offer_name;
+                    orderObj.name = prod.name;
+                    orderObj.image = prod.image;
+                    orderObj.path = application.getImagePath.product + prod.image;
+                    orderObj.order_status = prod.order_status;
                     orderDetails.push(orderObj);
                 });
-              
+
                 res.status(200).json(orderDetails);
             } else {
                 res.status(404).send('Orders not found');
@@ -162,7 +162,7 @@ class OrderController {
             inner join products p on p.id=d.product_id
             inner join product_images i on p.id=i.product_id
             left join order_offers f on f.order_detail_id=d.id
-            inner join offers k on k.id=f.offer_id
+            left join offers k on k.id=f.offer_id
             inner join order_status s on s.id=d.status
             inner join order_location l on o.id=l.order_id
             WHERE o.id = ? and o.is_delete=0 `, [orderId]
@@ -172,28 +172,28 @@ class OrderController {
                 const orderDetails = new Array<OrderMailViewListModel>();
                 order.forEach(prod => {
                     const orderObj = new OrderMailViewListModel();
-                    orderObj.id=prod.id;
-                    orderObj.user_id=prod.user_id;
-                    orderObj.order_detail_id=prod.order_detail_id;
-                    orderObj.product_id=prod.product_id;
-                    orderObj.status=prod.status;
-                    orderObj.price=prod.price;
-                    orderObj.qty=prod.qty;
-                    orderObj.ordered_date=prod.ordered_date;
-                    orderObj.delivered_date=prod.delivered_date;
-                    orderObj.offer_id=prod.offer_id;
-                    orderObj.offer_name=prod.offer_name;
-                    orderObj.name=prod.name;
-                    orderObj.image=prod.image;
-                    orderObj.path= application.getImagePath.product+prod.image;
-                    orderObj.order_status=prod.order_status;
-                    orderObj.address=prod.address;
-                    orderObj.full_name=prod.full_name;
-                    orderObj.phone=prod.phone;
-                    orderObj.email=prod.email;
+                    orderObj.id = prod.id;
+                    orderObj.user_id = prod.user_id;
+                    orderObj.order_detail_id = prod.order_detail_id;
+                    orderObj.product_id = prod.product_id;
+                    orderObj.status = prod.status;
+                    orderObj.price = prod.price;
+                    orderObj.qty = prod.qty;
+                    orderObj.ordered_date = prod.ordered_date;
+                    orderObj.delivered_date = prod.delivered_date;
+                    orderObj.offer_id = prod.offer_id;
+                    orderObj.offer_name = prod.offer_name;
+                    orderObj.name = prod.name;
+                    orderObj.image = prod.image;
+                    orderObj.path = application.getImagePath.product + prod.image;
+                    orderObj.order_status = prod.order_status;
+                    orderObj.address = prod.address;
+                    orderObj.full_name = prod.full_name;
+                    orderObj.phone = prod.phone;
+                    orderObj.email = prod.email;
                     orderDetails.push(orderObj);
                 });
-              
+
                 res.status(200).json(orderDetails);
             } else {
                 res.status(404).send('Orders not found');
@@ -219,7 +219,7 @@ class OrderController {
 
                 const order = new OrderModel();
                 order.user_id = orderDto.user_id;
-                order.status = orderDto.status;
+                order.status = 1;
                 order.ordered_date = new Date();
                 order.created_by = orderDto.created_by;
                 order.created_at = new Date();
@@ -232,13 +232,14 @@ class OrderController {
                 location.order_id = orderId;
                 location.name = orderDto.location.name;
                 location.address = orderDto.location.address;
-                location.lanmark = orderDto.location.lanmark;
-                location.pincode = orderDto.location.pincode;
+                location.lanmark = orderDto.location.landmark;
+                location.pincode = orderDto.location.pin_code;
                 location.email = orderDto.location.email;
                 location.phone = orderDto.location.phone;
-                location.location_date = orderDto.location.location_date;
+                location.location_date = new Date();
                 location.created_by = orderDto.location.created_by;
                 location.created_date = new Date();
+                console.log(JSON.stringify(location));
 
                 await connection.query('INSERT INTO `order_location` SET ?', [location]);
 
@@ -247,26 +248,29 @@ class OrderController {
                     const details = new OrderDetailsModel();
                     details.order_id = orderId;
                     details.product_id = orderDto.details[i].product_id;
-                    details.status = orderDto.details[i].status;
+                    details.status = 1;
                     details.price = orderDto.details[i].price;
                     details.qty = orderDto.details[i].qty;
                     details.created_by = orderDto.details[i].created_by;
                     details.created_at = new Date();
 
                     [data] = await connection.query('INSERT INTO `order_details` SET ?', [details]);
-                    const order_detail_id = data.insertId;
 
-                    const offer = new OrderOffersModel();
-                    offer.order_detail_id = order_detail_id;
-                    offer.offer_id = orderDto.offer[i].offer_id;
-                    offer.created_by = orderDto.offer[i].created_by;
-                    offer.created_at = new Date();
+                    if (orderDto.offer[i].offer_id) {
+                        const order_detail_id = data.insertId;
 
-                    await connection.query('INSERT INTO `order_offers` SET ?', [offer]);
+                        const offer = new OrderOffersModel();
+                        offer.order_detail_id = order_detail_id;
+                        offer.offer_id = orderDto.offer[i].offer_id;
+                        offer.created_by = orderDto.offer[i].created_by;
+                        offer.created_at = new Date();
+
+                        await connection.query('INSERT INTO `order_offers` SET ?', [offer]);
+                    }
                 }
 
 
-                res.status(201).send('Order created');
+                res.status(201).json(orderId);
             });
         }
         catch (error) {
@@ -391,7 +395,7 @@ class OrderController {
             inner join products p on p.id=d.product_id
             inner join product_images i on p.id=i.product_id
             left join order_offers f on f.order_detail_id=d.id
-            inner join offers k on k.id=f.offer_id
+            left join offers k on k.id=f.offer_id
             inner join order_status s on s.id=d.status
             WHERE o.user_id = ? and o.is_delete=0 
             group by d.id`, [userId]);
@@ -400,24 +404,24 @@ class OrderController {
                 const orderDetails = new Array<OrderViewListModel>();
                 order.forEach(prod => {
                     const orderObj = new OrderViewListModel();
-                    orderObj.id=prod.id;
-                    orderObj.user_id=prod.user_id;
-                    orderObj.order_detail_id=prod.order_detail_id;
-                    orderObj.product_id=prod.product_id;
-                    orderObj.status=prod.status;
-                    orderObj.price=prod.price;
-                    orderObj.qty=prod.qty;
-                    orderObj.ordered_date=prod.ordered_date;
-                    orderObj.delivered_date=prod.delivered_date;
-                    orderObj.offer_id=prod.offer_id;
-                    orderObj.offer_name=prod.offer_name;
-                    orderObj.name=prod.name;
-                    orderObj.image=prod.image;
-                    orderObj.path= application.getImagePath.product+prod.image;
-                    orderObj.order_status=prod.order_status;
+                    orderObj.id = prod.id;
+                    orderObj.user_id = prod.user_id;
+                    orderObj.order_detail_id = prod.order_detail_id;
+                    orderObj.product_id = prod.product_id;
+                    orderObj.status = prod.status;
+                    orderObj.price = prod.price;
+                    orderObj.qty = prod.qty;
+                    orderObj.ordered_date = prod.ordered_date;
+                    orderObj.delivered_date = prod.delivered_date;
+                    orderObj.offer_id = prod.offer_id;
+                    orderObj.offer_name = prod.offer_name;
+                    orderObj.name = prod.name;
+                    orderObj.image = prod.image;
+                    orderObj.path = application.getImagePath.product + prod.image;
+                    orderObj.order_status = prod.order_status;
                     orderDetails.push(orderObj);
                 });
-              
+
                 res.status(200).json(orderDetails);
             } else {
                 res.status(404).send('Orders not found');
@@ -426,7 +430,89 @@ class OrderController {
             res.status(500).send(error.message);
         }
     };
+
+    static cancelOrder = async (req: Request, res: Response) => {
+        try {
+            const Id = req.params.id;
+
+            const pool = await connect();
+            await transaction(pool, async connection => {
+                await connection.query('UPDATE `order_details` SET status=3 WHERE `id` = ?', [Id]);
+
+                res.status(200).send('Order is cancelled');
+
+            });
+
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    }
+
+    static getUserCancelOrders = async (req: Request, res: Response) => {
+
+        try {
+
+            const connection = await connect();
+            const userId = req.params?.id;
+            const [data] = await connection.query(`
+            SELECT distinct
+            o.id,
+            o.user_id,
+            d.id as order_detail_id,
+            d.product_id,
+            d.status,
+            d.price,
+            d.qty,
+            o.ordered_date,
+            d.delivered_date,
+            f.offer_id,
+            k.name as offer_name,
+            p.name,
+            i.image,
+            s.name as order_status
+            from orders o 
+            inner join order_details d on o.id=d.order_id
+            inner join products p on p.id=d.product_id
+            inner join product_images i on p.id=i.product_id
+            left join order_offers f on f.order_detail_id=d.id
+            left join offers k on k.id=f.offer_id
+            inner join order_status s on s.id=d.status
+            WHERE o.user_id = ? and o.is_delete=0  and d.status=3
+            group by d.id`, [userId]);
+            if (data) {
+                const order = data as OrderViewListModel[];
+                const orderDetails = new Array<OrderViewListModel>();
+                order.forEach(prod => {
+                    const orderObj = new OrderViewListModel();
+                    orderObj.id = prod.id;
+                    orderObj.user_id = prod.user_id;
+                    orderObj.order_detail_id = prod.order_detail_id;
+                    orderObj.product_id = prod.product_id;
+                    orderObj.status = prod.status;
+                    orderObj.price = prod.price;
+                    orderObj.qty = prod.qty;
+                    orderObj.ordered_date = prod.ordered_date;
+                    orderObj.delivered_date = prod.delivered_date;
+                    orderObj.offer_id = prod.offer_id;
+                    orderObj.offer_name = prod.offer_name;
+                    orderObj.name = prod.name;
+                    orderObj.image = prod.image;
+                    orderObj.path = application.getImagePath.product + prod.image;
+                    orderObj.order_status = prod.order_status;
+                    orderDetails.push(orderObj);
+                });
+
+                res.status(200).json(orderDetails);
+            } else {
+                res.status(404).send('Orders not found');
+            }
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
+
 }
+
 
 export default OrderController;
 

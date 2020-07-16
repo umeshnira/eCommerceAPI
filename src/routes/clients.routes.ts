@@ -7,6 +7,8 @@ router.get('/clients', [], clientController.getAllClients);
 
 router.get('/clients/:id([0-9]+)', [], clientController.getClient);
 
+router.get('/clients/user/:id([0-9]+)', [], clientController.getDetailsUserID);
+
 // Create a new client
 router.post('/clients', [], clientController.createClient);
 

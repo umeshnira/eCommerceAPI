@@ -5,15 +5,14 @@ export class OrderOfferDTO {
 
     id: number;
 
-    @IsNumber()
-    @IsNotEmpty()
+
     order_detail_id: number;
 
     @IsNumber()
     @IsNotEmpty()
     offer_id: number;
 
-    @IsNotEmpty()
+  
     created_at: Date;
 
     @IsNotEmpty()

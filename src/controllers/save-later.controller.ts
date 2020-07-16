@@ -46,7 +46,7 @@ class SaveLaterController {
                         FROM save_later later
                         INNER JOIN products prod ON prod.id = later.product_id
                         INNER JOIN product_prices price ON prod.id = price.product_id
-                        INNER JOIN product_offers offer ON prod.id = offer.product_id
+                        LEFT JOIN product_offers offer ON prod.id = offer.product_id
                         INNER JOIN product_quantity qty ON prod.id = qty.product_id
                         INNER JOIN product_categories cat ON prod.id = cat.product_id
                         INNER JOIN product_images ima ON prod.id = ima.product_id WHERE later.user_id = ?
