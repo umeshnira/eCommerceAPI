@@ -439,7 +439,7 @@ class OrderController {
             await transaction(pool, async connection => {
                 await connection.query('UPDATE `order_details` SET status=3 WHERE `id` = ?', [Id]);
 
-                res.status(200).send('Order is cancelled');
+                res.status(201).json('Order is cancelled');
 
             });
 

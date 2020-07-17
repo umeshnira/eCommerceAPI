@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { validate } from 'class-validator';
-import { SaveLaterModel, UpdateSaveLaterDTO, AddSaveLaterDTO } from '../models';
+import { SaveLaterModel, UpdateSaveLaterDTO, AddSaveLaterDTO,SaveLaterViewModels } from '../models';
 import { connect, transaction } from '../context/db.context';
+import { application } from '../config/app-settings.json';
 
 class SaveLaterController {
 
@@ -23,9 +24,21 @@ class SaveLaterController {
                         INNER JOIN product_images ima ON prod.id = ima.product_id WHERE id = ?`, [cartId]
             );
 
-            const saveLater = data as SaveLaterModel[];
-            if (saveLater.length) {
-                res.status(200).json(saveLater[0]);
+            const saveLater = data ;
+            if (saveLater) {
+                const saveObj = new SaveLaterViewModels();
+                saveObj.id = saveLater.id;
+                saveObj.name = saveLater.name
+                saveObj.description = saveLater.description
+                saveObj.price = saveLater.price
+                saveObj.offer_id = saveLater.offer_id
+                saveObj.left_qty = saveLater.left_qty
+                saveObj.total_qty = saveLater.total_qty
+                saveObj.productId = saveLater.productId
+                saveObj.image = saveLater.image
+                saveObj.path = application.getImagePath.product + saveLater.image
+
+                res.status(200).json(saveObj);
             } else {
                 res.status(404).send(`Save Later with Id: ${cartId} not found`);
             }
@@ -53,9 +66,26 @@ class SaveLaterController {
                         GROUP BY later.id`, [userId]
             );
 
-            const saveLater = data as SaveLaterModel[];
-            if (saveLater.length) {
-                res.status(200).json(saveLater);
+            const saveLater = data as SaveLaterViewModels[];
+            if (saveLater) {
+
+                const saveLaterDetails = new Array<SaveLaterViewModels>();
+                saveLater.forEach(x => {
+                    const saveObj = new SaveLaterViewModels();
+                    saveObj.id = x.id;
+                    saveObj.name = x.name
+                    saveObj.description = x.description
+                    saveObj.price = x.price
+                    saveObj.offer_id = x.offer_id
+                    saveObj.left_qty = x.left_qty
+                    saveObj.total_qty = x.total_qty
+                    saveObj.productId = x.productId
+                    saveObj.image = x.image
+                    saveObj.path = application.getImagePath.product + x.image
+                    saveLaterDetails.push(saveObj);
+                });
+
+                res.status(200).json(saveLaterDetails);
             } else {
                 res.status(404).send(`Save Later with Id: ${userId} not found`);
             }

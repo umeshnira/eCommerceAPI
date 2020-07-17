@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { validate } from 'class-validator';
-import { AddCartDTO, CartModel, UpdateCartDTO } from '../models';
+import { AddCartDTO, CartModel, UpdateCartDTO, CartDetatilsViewModels } from '../models';
 import { connect, transaction } from '../context/db.context';
+import { application } from '../config/app-settings.json';
 
 class CartController {
 
@@ -24,9 +25,27 @@ class CartController {
                         INNER JOIN product_images ima ON prod.id = ima.product_id WHERE cart.user_id = ?
                         GROUP By prod.id`, [userId]
             );
-            const carts = data as CartModel[];
-            if (carts.length) {
-                res.status(200).json(carts);
+            if (data) {
+                const carts = data as CartDetatilsViewModels[];
+                const cartDetails = new Array<CartDetatilsViewModels>();
+                carts.forEach(x => {
+                    const cartObj = new CartDetatilsViewModels();
+                    cartObj.id = x.id;
+                    cartObj.name = x.name
+                    cartObj.description = x.description
+                    cartObj.price = x.price
+                    cartObj.offer_id = x.offer_id
+                    cartObj.left_qty = x.left_qty
+                    cartObj.total_qty = x.total_qty
+                    cartObj.CartId = x.CartId
+                    cartObj.quantity = x.quantity
+                    cartObj.image = x.image
+                    cartObj.path = application.getImagePath.product + x.image
+                    cartDetails.push(cartObj);
+                });
+              
+                    res.status(200).json(cartDetails);
+                
             } else {
                 res.status(404).send(`Cart with Id: ${userId} not found`);
             }
@@ -64,7 +83,7 @@ class CartController {
             });
 
             if (cartId) {
-                res.status(201).send({ message : `Cart with Id: ${cartId} is created` });
+                res.status(201).send({ message: `Cart with Id: ${cartId} is created` });
             } else {
                 res.status(500).send(`Failed to Add the product to cart`);
             }
@@ -109,7 +128,7 @@ class CartController {
             });
 
             if (isUpdated) {
-                res.status(200).send({ message : `Cart with Id: ${cartId} is updated` });
+                res.status(200).send({ message: `Cart with Id: ${cartId} is updated` });
             } else {
                 res.status(500).send(`Cart with Id: ${cartId} is not updated`);
             }
@@ -144,7 +163,7 @@ class CartController {
             });
 
             if (isDeleted) {
-                res.status(200).send({ message : `Cart with Id: ${cartId} is deleted` });
+                res.status(200).send({ message: `Cart with Id: ${cartId} is deleted` });
             } else {
                 res.status(500).send(`Cart with Id: ${cartId} is not deleted`);
             }

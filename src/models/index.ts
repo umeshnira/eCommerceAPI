@@ -29,11 +29,13 @@ export * from './products/product-image-dto.model';
 export * from './products/product-details.model';
 
 export * from './carts/cart.model';
+export * from './carts/cart-details-view.models';
 export * from './carts/cart-dto.model';
 export * from './carts/add-cart-dto.model';
 export * from './carts/update-cart-dto.model';
 
 export * from './savelater/save-later.model';
+export * from './savelater/save-later-view.models';
 export * from './savelater/save-later-dto.model';
 export * from './savelater/add-save-later-dto.model';
 export * from './savelater/update-save-later-dto.model';
