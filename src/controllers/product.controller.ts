@@ -47,7 +47,7 @@ class ProductController {
                 });
                 res.status(200).json(productDetails);
             } else {
-                res.status(404).send(`Products not found`);
+                res.status(404).send({message:`Products not found`});
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -105,7 +105,7 @@ class ProductController {
                 });
                 res.status(200).json(productDetail);
             } else {
-                res.status(404).send(`Product with Id: ${productId} not found`);
+                res.status(404).send({message: `Product with Id: ${productId} not found`});
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -157,7 +157,7 @@ class ProductController {
                 });
                 res.status(200).json(productDetails);
             } else {
-                res.status(404).send(`Product with category Id: ${categoryId} not found`);
+                res.status(404).send({message: `Product with category Id: ${categoryId} not found`});
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -265,7 +265,7 @@ class ProductController {
             if (productId) {
                 res.status(201).send({ message : `Product with Id: ${productId} is created` });
             } else {
-                res.status(500).send(`Failed to create a product`);
+                res.status(500).send({message: `Failed to create a product`});
             }
         }
         catch (error) {
@@ -296,7 +296,7 @@ class ProductController {
 
             const productExists = data as Product[];
             if (!productExists.length) {
-                res.status(404).send(`Product with Id: ${productId} not found`);
+                res.status(404).send({message: `Product with Id: ${productId} not found`});
             }
 
             let isUpdated: any;
@@ -370,10 +370,11 @@ class ProductController {
                         productImage.image = file.filename;
                         productImage.created_by = productDto.created_by;
                         productImage.created_at = new Date();
-
+                       
                         [data] = await connection.query(
                             `INSERT INTO product_images SET ?`, [productImage]
                         );
+                       
                     }
                 }
             });
@@ -381,7 +382,7 @@ class ProductController {
             if (isUpdated) {
                 res.status(200).send({ message : `Product with Id: ${productId} is updated` });
             } else {
-                res.status(500).send(`Failed to update a product`);
+                res.status(500).send({message: `Failed to update a product`});
             }
         }
         catch (error) {
@@ -403,7 +404,7 @@ class ProductController {
 
             const productExists = data as Product[];
             if (!productExists.length) {
-                res.status(404).send(`Product with Id: ${productId} not found`);
+                res.status(404).send({message: `Product with Id: ${productId} not found`});
             }
 
             let isDeleted: any;
@@ -417,7 +418,7 @@ class ProductController {
             if (isDeleted) {
                 res.status(200).send({ message : `Product with Id: ${productId} is deleted` });
             } else {
-                res.status(500).send(`Product with Id: ${productId} is not deleted`);
+                res.status(500).send({message: `Product with Id: ${productId} is not deleted`});
             }
 
         } catch (error) {

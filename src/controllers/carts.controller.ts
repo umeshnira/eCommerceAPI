@@ -43,11 +43,11 @@ class CartController {
                     cartObj.path = application.getImagePath.product + x.image
                     cartDetails.push(cartObj);
                 });
-              
-                    res.status(200).json(cartDetails);
-                
+
+                res.status(200).json(cartDetails);
+
             } else {
-                res.status(404).send(`Cart with Id: ${userId} not found`);
+                res.status(404).send({ message: `Cart with Id: ${userId} not found` });
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -85,7 +85,7 @@ class CartController {
             if (cartId) {
                 res.status(201).send({ message: `Cart with Id: ${cartId} is created` });
             } else {
-                res.status(500).send(`Failed to Add the product to cart`);
+                res.status(500).send({ message: `Failed to Add the product to cart` });
             }
         }
         catch (error) {
@@ -116,7 +116,7 @@ class CartController {
             );
             const cartExists = data as CartModel[];
             if (!cartExists.length) {
-                res.status(404).send(`Cart with Id: ${cartExists} not found`);
+                res.status(404).send({ message: `Cart with Id: ${cartExists} not found` });
             }
 
             let isUpdated: any;
@@ -130,7 +130,7 @@ class CartController {
             if (isUpdated) {
                 res.status(200).send({ message: `Cart with Id: ${cartId} is updated` });
             } else {
-                res.status(500).send(`Cart with Id: ${cartId} is not updated`);
+                res.status(500).send({ message: `Cart with Id: ${cartId} is not updated` });
             }
 
         } catch (error) {
@@ -151,7 +151,7 @@ class CartController {
 
             const cartExists = data as CartModel[];
             if (!cartExists.length) {
-                res.status(404).send(`Cart with Id: ${cartExists} not found`);
+                res.status(404).send({ message: `Cart with Id: ${cartExists} not found` });
             }
 
             let isDeleted: any;
@@ -165,7 +165,7 @@ class CartController {
             if (isDeleted) {
                 res.status(200).send({ message: `Cart with Id: ${cartId} is deleted` });
             } else {
-                res.status(500).send(`Cart with Id: ${cartId} is not deleted`);
+                res.status(500).send({ message: `Cart with Id: ${cartId} is not deleted` });
             }
 
         } catch (error) {

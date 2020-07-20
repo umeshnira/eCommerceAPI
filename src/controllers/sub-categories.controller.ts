@@ -38,7 +38,7 @@ class SubCategoriesController {
 
                 res.status(200).json(categories);
             } else {
-                res.status(404).send('Sub categories not found');
+                res.status(404).send({ message :'Sub categories not found'});
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -60,7 +60,7 @@ class SubCategoriesController {
             if (categories.length) {
                 res.status(200).json(categories[0]);
             } else {
-                res.status(404).send(`Sub category with Id: ${subCategoryId} not found`);
+                res.status(404).send({ message :`Sub category with Id: ${subCategoryId} not found`});
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -89,7 +89,7 @@ class SubCategoriesController {
             if (categories.length) {
                 res.status(200).json(categories);
             } else {
-                res.status(404).send('Sub categories not found');
+                res.status(404).send({ message :'Sub categories not found'});
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -127,7 +127,7 @@ class SubCategoriesController {
             if (categories.length) {
                 res.status(200).json(categories);
             } else {
-                res.status(404).send(`Sub category with Id: ${subCategoryId} not found`);
+                res.status(404).send({ message :`Sub category with Id: ${subCategoryId} not found`});
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -158,7 +158,7 @@ class SubCategoriesController {
 
             const subCategoryExists = data as CategoryModel[];
             if (subCategoryExists.length) {
-                res.status(409).send('Sub category already exists');
+                res.status(409).send({ message :'Sub category already exists'});
                 return;
             }
 
@@ -173,7 +173,7 @@ class SubCategoriesController {
             if (subCategoryId) {
                 res.status(201).send({ message : `Sub category with Id: ${subCategoryId} is created` });
             } else {
-                res.status(500).send(`Failed to Create a sub category`);
+                res.status(500).send({ message :`Failed to Create a sub category`});
             }
         }
         catch (error) {
@@ -204,7 +204,7 @@ class SubCategoriesController {
 
             const categoryExists = data as CategoryModel[];
             if (!categoryExists.length) {
-                res.status(404).send(`Sub category with Id: ${subCategoryId} not found`);
+                res.status(404).send({ message :`Sub category with Id: ${subCategoryId} not found`});
             }
 
             let isUpdated: any;
@@ -218,7 +218,7 @@ class SubCategoriesController {
             if (isUpdated) {
                 res.status(200).send({ message : `Sub category with Id: ${subCategoryId} is updated` });
             } else {
-                res.status(500).send(`Sub category with Id: ${subCategoryId} is not updated`);
+                res.status(500).send({ message :`Sub category with Id: ${subCategoryId} is not updated`});
             }
 
         } catch (error) {
@@ -238,7 +238,7 @@ class SubCategoriesController {
 
             const subCategoryExists = data as CategoryModel[];
             if (!subCategoryExists.length) {
-                res.status(404).send(`Sub category with Id: ${subCategoryId} not found`);
+                res.status(404).send({ message :`Sub category with Id: ${subCategoryId} not found`});
             }
 
             [data] = await pool.query(
@@ -247,7 +247,7 @@ class SubCategoriesController {
 
             const innerSubCategoryExists = data as CategoryModel[];
             if (innerSubCategoryExists.length) {
-                res.status(209).send(`Sub category with Id: ${subCategoryId} has sub categories`);
+                res.status(209).send({ message :`Sub category with Id: ${subCategoryId} has sub categories`});
             }
 
             let isDeleted: any;
@@ -261,7 +261,7 @@ class SubCategoriesController {
             if (isDeleted) {
                 res.status(200).send({ message : `Sub category with Id: ${subCategoryId} is deleted` });
             } else {
-                res.status(500).send(`Sub category with Id: ${subCategoryId} is not deleted`);
+                res.status(500).send({ message :`Sub category with Id: ${subCategoryId} is not deleted`});
             }
 
         } catch (error) {
