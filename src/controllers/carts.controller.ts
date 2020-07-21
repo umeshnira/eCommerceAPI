@@ -171,6 +171,45 @@ class CartController {
         } catch (error) {
             res.status(500).send(error.message);
         }
+    };
+
+    static moveWishListItemToCart = async (req: Request, res: Response) => {
+
+        try {
+            const cartDto = Object.assign(new AddCartDTO(), req.body);
+
+            const errors = await validate(cartDto);
+            if (errors.length > 0) {
+                res.status(400).send(errors);
+                return;
+            }
+
+            const cart = cartDto as CartModel;
+            cart.created_at = new Date();
+
+            let data: any;
+            const pool = await connect();
+
+            let cartId: any;
+            await transaction(pool, async connection => {
+                [data] = await connection.query(
+                    `INSERT INTO carts SET ?`, [cart]
+                );
+                cartId = data.insertId;
+                [data] = await connection.query(
+                    `DELETE FROM wishlist WHERE product_id = ? AND user_id = ?`, [cart.product_id, cart.user_id]
+                );
+            });
+
+            if (cartId) {
+                res.status(201).send({ message: `Cart with Id: ${cartId} is created` });
+            } else {
+                res.status(500).send({ message: `Failed to Add the product to cart` });
+            }
+        }
+        catch (error) {
+            res.status(500).send(error.message);
+        }
     }
 }
 

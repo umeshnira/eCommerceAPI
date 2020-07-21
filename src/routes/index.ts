@@ -8,6 +8,7 @@ import subCategories from './sub-categories.routes';
 import carts from './carts.routes';
 import saveLater from './save-later.routes';
 import login from './login.routes';
+import wishlist from './wish-list.routes';
 
 const routes = Router();
 
@@ -20,5 +21,6 @@ routes.use('/', clients);
 routes.use('/', carts);
 routes.use('/', saveLater);
 routes.use('/', login);
+routes.use('/', wishlist);
 
 export default routes;

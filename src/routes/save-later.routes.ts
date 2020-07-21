@@ -3,8 +3,6 @@ import SaveLaterController from '../controllers/save-later.controller';
 
 const router = Router();
 
-// router.get('/savelater/:id([0-9]+)', [], SaveLaterController.getSaveLaterItems);
-
 router.get('/savelater/:uid([0-9]+)', [], SaveLaterController.getSaveLaterItemsByUserId);
 
 router.post('/savelater', [], SaveLaterController.createSaveLater);

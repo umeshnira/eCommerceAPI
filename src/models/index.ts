@@ -50,3 +50,9 @@ export * from './categories/category-dto.model';
 export * from './categories/category-path-hierachy.model';
 export * from './categories/add-category-dto.model';
 export * from './categories/update-category-dto.model';
+
+export * from './wish-list/add-wish-list-dto.model';
+export * from './wish-list/update-wish-list-dto.model';
+export * from './wish-list/wish-list-dto.model';
+export * from './wish-list/wish-list-view.model';
+export * from './wish-list/wish-list.model';

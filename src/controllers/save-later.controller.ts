@@ -6,47 +6,6 @@ import { application } from '../config/app-settings.json';
 
 class SaveLaterController {
 
-    static getSaveLaterItems = async (req: Request, res: Response) => {
-
-        try {
-            const cartId = req.params?.id;
-            const connection = await connect();
-
-            const [data] = await connection.query(
-                `SELECT prod.id, prod.name, prod.description, price.price,
-                        offer.offer_id, qty.left_qty, qty.total_qty, later.id as CartId, ima.image
-                        FROM save_later later
-                        INNER JOIN products prod ON prod.id = cart.product_id
-                        INNER JOIN product_prices price ON prod.id = price.product_id
-                        INNER JOIN product_offers offer ON prod.id = offer.product_id
-                        INNER JOIN product_quantity qty ON prod.id = qty.product_id
-                        INNER JOIN product_categories cat ON prod.id = cat.product_id
-                        INNER JOIN product_images ima ON prod.id = ima.product_id WHERE id = ?`, [cartId]
-            );
-
-            const saveLater = data ;
-            if (saveLater) {
-                const saveObj = new SaveLaterViewModels();
-                saveObj.id = saveLater.id;
-                saveObj.name = saveLater.name
-                saveObj.description = saveLater.description
-                saveObj.price = saveLater.price
-                saveObj.offer_id = saveLater.offer_id
-                saveObj.left_qty = saveLater.left_qty
-                saveObj.total_qty = saveLater.total_qty
-                saveObj.productId = saveLater.productId
-                saveObj.image = saveLater.image
-                saveObj.path = application.getImagePath.product + saveLater.image
-
-                res.status(200).json(saveObj);
-            } else {
-                res.status(404).send(`Save Later with Id: ${cartId} not found`);
-            }
-        } catch (error) {
-            res.status(500).send(error.message);
-        }
-    }
-
     static getSaveLaterItemsByUserId = async (req: Request, res: Response) => {
 
         try {

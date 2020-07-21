@@ -1,4 +1,4 @@
-export class SaveLaterViewModels {
+export class WishListViewModel {
 
     productId: number;
     name: string;

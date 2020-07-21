@@ -7,7 +7,9 @@ router.get('/carts/:id([0-9]+)', [], CartController.getCartItems);
 
 router.post('/carts', [], CartController.createCart);
 
-router.put('/carts/:id([0-9]+)', [], CartController.updateCart);
+router.patch('/carts/:id([0-9]+)', [], CartController.updateCart);
+
+router.put('/carts/:id([0-9]+)', [], CartController.moveWishListItemToCart);
 
 router.delete('/carts/:id([0-9]+)', [], CartController.deleteCart);
 
