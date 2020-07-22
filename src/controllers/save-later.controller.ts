@@ -172,6 +172,53 @@ class SaveLaterController {
             res.status(500).send(error.message);
         }
     }
+
+    static moveItemToSaveLater = async (req: Request, res: Response) => {
+
+        try {
+            const saveLaterDto = Object.assign(new AddSaveLaterDTO(), req.body);
+
+            const errors = await validate(saveLaterDto);
+            if (errors.length > 0) {
+                res.status(400).send(errors);
+                return;
+            }
+
+            const saveLater = saveLaterDto as SaveLaterModel;
+            saveLater.created_at = new Date();
+
+            let dataExists: any;
+            const pool = await connect();
+
+            await transaction(pool, async connection => {
+                [dataExists] = await connection.query(
+                    `SELECT 1 FROM save_later WHERE product_id = ? AND user_id = ?`, [saveLater.product_id, saveLater.user_id]
+                );
+            });
+
+            if (!dataExists || dataExists.length === 0) {
+                let saveLaterId: any;
+                let data: any;
+                await transaction(pool, async connection => {
+                    [data] = await connection.query(
+                        `INSERT INTO wishlist SET ?`, [saveLater]
+                    );
+                    saveLaterId = data.insertId;
+                });
+
+                if (saveLaterId) {
+                    res.status(201).send({ message: `Moved the Item to Save Later with Id: ${saveLaterId}` });
+                } else {
+                    res.status(500).send({ message: `Failed to Add the product to Save Later` });
+                }
+            } else {
+                res.status(201).send({ message: `Item already exists in SaveLater` });
+            }
+        }
+        catch (error) {
+            res.status(500).send(error.message);
+        }
+    }
 }
 
 export default SaveLaterController;

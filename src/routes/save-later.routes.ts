@@ -9,6 +9,8 @@ router.post('/savelater', [], SaveLaterController.createSaveLater);
 
 router.put('/savelater/:id([0-9]+)', [], SaveLaterController.updateSaveLater);
 
+router.put('/savelater', [], SaveLaterController.moveItemToSaveLater);
+
 router.delete('/savelater/:id([0-9]+)', [], SaveLaterController.deleteSaveLater);
 
 export default router;

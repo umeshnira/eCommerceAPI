@@ -6,7 +6,7 @@ import { application } from '../config/app-settings.json';
 
 class CartController {
 
-    static getCartItems = async (req: Request, res: Response) => {
+    static getCartItemsByUserId = async (req: Request, res: Response) => {
 
         try {
             const userId = req.params?.id;
@@ -77,9 +77,6 @@ class CartController {
                     `INSERT INTO carts SET ?`, [cart]
                 );
                 cartId = data.insertId;
-                [data] = await connection.query(
-                    `DELETE FROM save_later WHERE product_id = ? AND user_id = ?`, [cart.product_id, cart.user_id]
-                );
             });
 
             if (cartId) {
@@ -173,7 +170,7 @@ class CartController {
         }
     };
 
-    static moveWishListItemToCart = async (req: Request, res: Response) => {
+    static moveItemToCart = async (req: Request, res: Response) => {
 
         try {
             const cartDto = Object.assign(new AddCartDTO(), req.body);
@@ -187,30 +184,38 @@ class CartController {
             const cart = cartDto as CartModel;
             cart.created_at = new Date();
 
-            let data: any;
+            let dataExists: any;
             const pool = await connect();
 
-            let cartId: any;
             await transaction(pool, async connection => {
-                [data] = await connection.query(
-                    `INSERT INTO carts SET ?`, [cart]
-                );
-                cartId = data.insertId;
-                [data] = await connection.query(
-                    `DELETE FROM wishlist WHERE product_id = ? AND user_id = ?`, [cart.product_id, cart.user_id]
+                [dataExists] = await connection.query(
+                    `SELECT 1 FROM carts WHERE product_id = ? AND user_id = ?`, [cart.product_id, cart.user_id]
                 );
             });
 
-            if (cartId) {
-                res.status(201).send({ message: `Cart with Id: ${cartId} is created` });
+            if (!dataExists || dataExists.length === 0) {
+                let cartId: any;
+                let data: any;
+                await transaction(pool, async connection => {
+                    [data] = await connection.query(
+                        `INSERT INTO carts SET ?`, [cart]
+                    );
+                    cartId = data.insertId;
+                });
+
+                if (cartId) {
+                    res.status(201).send({ message: `Moved the Item to Cart with Id: ${cartId}` });
+                } else {
+                    res.status(500).send({ message: `Failed to Add the product to cart` });
+                }
             } else {
-                res.status(500).send({ message: `Failed to Add the product to cart` });
+                res.status(201).send({message: `Item already exists in cart`});
             }
         }
         catch (error) {
             res.status(500).send(error.message);
         }
-    }
+    };
 }
 
 export default CartController;

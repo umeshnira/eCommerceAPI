@@ -85,8 +85,9 @@ class WishListController {
             const connection = await connect();
 
             const [data] = await connection.query(
-                `SELECT prod.id as productId, prod.name, prod.description, price.price,
-                        offer.offer_id, qty.left_qty, qty.total_qty, later.id as id, ima.image
+                `SELECT prod.id as productId, prod.name, prod.description, prod.star_rate, price.price,
+                        offer.offer_id, qty.left_qty, qty.total_qty, wishlist.id as id,
+                        wishlist.created_at as createdDate, ima.image
                         FROM wishlist
                         INNER JOIN products prod ON prod.id = wishlist.product_id
                         INNER JOIN product_prices price ON prod.id = price.product_id
@@ -106,11 +107,13 @@ class WishListController {
                     wishListObj.id = x.id;
                     wishListObj.name = x.name
                     wishListObj.description = x.description
+                    wishListObj.star_rate = x.star_rate
                     wishListObj.price = x.price
                     wishListObj.offer_id = x.offer_id
                     wishListObj.left_qty = x.left_qty
                     wishListObj.total_qty = x.total_qty
                     wishListObj.productId = x.productId
+                    wishListObj.createdDate = x.createdDate
                     wishListObj.image = x.image
                     wishListObj.path = application.getImagePath.product + x.image
                     wishListDetails.push(wishListObj);
@@ -125,7 +128,7 @@ class WishListController {
         }
     };
 
-    static moveSaveLaterItemToWishList = async (req: Request, res: Response) => {
+    static moveItemToWishList = async (req: Request, res: Response) => {
 
         try {
             const wishListDto = Object.assign(new AddWishListDTO(), req.body);
@@ -139,24 +142,32 @@ class WishListController {
             const wishList = wishListDto as WishListModel;
             wishList.created_at = new Date();
 
-            let data: any;
+            let dataExists: any;
             const pool = await connect();
 
-            let wishListId: any;
             await transaction(pool, async connection => {
-                [data] = await connection.query(
-                    `INSERT INTO wishlist SET ?`, [wishList]
-                );
-                wishListId = data.insertId;
-                [data] = await connection.query(
-                    `DELETE FROM save_later WHERE product_id = ? AND user_id = ?`, [wishList.product_id, wishList.user_id]
+                [dataExists] = await connection.query(
+                    `SELECT 1 FROM wishList WHERE product_id = ? AND user_id = ?`, [wishList.product_id, wishList.user_id]
                 );
             });
 
-            if (wishListId) {
-                res.status(201).send({ message: `WishList with Id: ${wishListId} is created` });
+            if (!dataExists || dataExists.length === 0) {
+                let wishListId: any;
+                let data: any;
+                await transaction(pool, async connection => {
+                    [data] = await connection.query(
+                        `INSERT INTO wishlist SET ?`, [wishList]
+                    );
+                    wishListId = data.insertId;
+                });
+
+                if (wishListId) {
+                    res.status(201).send({ message: `Moved the Item to WishList with Id: ${wishListId}` });
+                } else {
+                    res.status(500).send({ message: `Failed to Add the product to wishlist` });
+                }
             } else {
-                res.status(500).send({ message: `Failed to Add the product to wishlist` });
+                res.status(201).send({ message: `Item already exists in WishList` });
             }
         }
         catch (error) {

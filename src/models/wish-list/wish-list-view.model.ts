@@ -10,4 +10,6 @@ export class WishListViewModel {
     id: number;
     image: string;
     path: string;
+    createdDate: Date;
+    star_rate: number;
 }

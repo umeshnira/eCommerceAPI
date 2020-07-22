@@ -7,7 +7,7 @@ router.get('/wishlist/:uid([0-9]+)', [], WishListController.getWishListItemsByUs
 
 router.post('/wishlist', [], WishListController.createWishList);
 
-router.put('/wishlist', [], WishListController.moveSaveLaterItemToWishList);
+router.put('/wishlist', [], WishListController.moveItemToWishList);
 
 router.delete('/wishlist/:id([0-9]+)', [], WishListController.deleteWishListItem);
 
