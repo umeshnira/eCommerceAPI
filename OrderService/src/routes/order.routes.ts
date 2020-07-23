@@ -33,4 +33,13 @@ router.post(
 router.get(
     '/cancel/orders/:id([0-9]+)', [], orderController.getUserCancelOrders);
 
+router.post(
+        '/orders/return', [], orderController.returnOrder);
+
+router.get(
+    '/orders/buyAgain/:id([0-9]+)', [], orderController.getBuyAgain);
+
+ router.get(
+        '/orders/openOrder/:id([0-9]+)', [], orderController.getYourOrder);
+
 export default router;

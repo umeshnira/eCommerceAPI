@@ -7,4 +7,6 @@ export * from './DTO/order-offers-dto.model';
 export * from './DTO/order-location-dto.model';
 export * from './DTO/order-details-dto.model';
 export * from './DTO/order-view-list-model';
+export * from './DTO/order-return-dto.model';
 export * from './order-view-list-model';
+export * from './order-return.model';
