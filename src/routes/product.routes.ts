@@ -15,6 +15,9 @@ router.get(
 router.get(
     '/categories/:id([0-9]+)/products', [], productController.getProductsByCategoryId);
 
+router.get(
+    '/sellers/:id([0-9]+)/products', [], productController.getProductsBySellerId);
+
 router.post(
     '/products', [], setUploadPath(settings.application.storage.product), file_upload.array('image'), productController.createProduct);
 

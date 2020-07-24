@@ -1,8 +1,9 @@
-import { AddWishListDTO, WishListModel, WishListViewModel, AddCartDTO, CartModel } from '../models';
+import { AddWishListDTO, WishListModel, WishListViewModel, WishListProductsModel } from '../models';
 import { validate } from 'class-validator';
 import { connect, transaction } from '../context/db.context';
 import { Request, Response } from 'express';
 import { application } from '../config/app-settings.json';
+import { AddWishListProductsDTO } from '../models/wish-list/add-wish-list-products-dto.model';
 
 
 class WishListController {
@@ -85,17 +86,18 @@ class WishListController {
             const connection = await connect();
 
             const [data] = await connection.query(
-                `SELECT prod.id as productId, prod.name, prod.description, prod.star_rate, price.price,
-                        offer.offer_id, qty.left_qty, qty.total_qty, wishlist.id as id,
-                        wishlist.created_at as createdDate, ima.image
-                        FROM wishlist
-                        INNER JOIN products prod ON prod.id = wishlist.product_id
+                `SELECT prod.id as productId, prod.name as productName, prod.description, prod.star_rate, price.price,
+                        offer.offer_id, qty.left_qty, qty.total_qty,
+                        wishlist_products.id as id, wishlist_products.wishlist_id,
+                        wishlist_products.created_at as createdDate, ima.image
+                        FROM wishlist_products
+                        INNER JOIN products prod ON prod.id = wishlist_products.product_id
                         INNER JOIN product_prices price ON prod.id = price.product_id
                         LEFT JOIN product_offers offer ON prod.id = offer.product_id
                         INNER JOIN product_quantity qty ON prod.id = qty.product_id
                         INNER JOIN product_categories cat ON prod.id = cat.product_id
-                        INNER JOIN product_images ima ON prod.id = ima.product_id WHERE wishlist.user_id = ?
-                        GROUP BY wishlist.id`, [userId]
+                        INNER JOIN product_images ima ON prod.id = ima.product_id WHERE wishlist_products.user_id = ?
+                        GROUP BY wishlist_products.id`, [userId]
             );
 
             const wishList = data as WishListViewModel[];
@@ -105,6 +107,7 @@ class WishListController {
                 wishList.forEach(x => {
                     const wishListObj = new WishListViewModel();
                     wishListObj.id = x.id;
+                    wishListObj.wishlist_id = x.wishlist_id;
                     wishListObj.name = x.name
                     wishListObj.description = x.description
                     wishListObj.star_rate = x.star_rate
@@ -113,6 +116,63 @@ class WishListController {
                     wishListObj.left_qty = x.left_qty
                     wishListObj.total_qty = x.total_qty
                     wishListObj.productId = x.productId
+                    wishListObj.productName = x.productName;
+                    wishListObj.createdDate = x.createdDate
+                    wishListObj.image = x.image
+                    wishListObj.path = application.getImagePath.product + x.image
+                    wishListDetails.push(wishListObj);
+                });
+
+                res.status(200).json(wishListDetails);
+            } else {
+                res.status(404).send(`Wish List with userId: ${userId} not found`);
+            }
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
+
+    static getWishListItemsById = async (req: Request, res: Response) => {
+
+        try {
+            const userId = req.params?.uid;
+            const wishlistId = req.params?.wid;
+            const connection = await connect();
+
+            const [data] = await connection.query(
+                `SELECT prod.id as productId, prod.name as productName, prod.description, prod.star_rate, price.price,
+                        offer.offer_id, qty.left_qty, qty.total_qty,
+                        wishlist_products.id as id, wishlist.name as name, wishlist_products.wishlist_id,
+                        wishlist_products.created_at as createdDate, ima.image
+                        FROM wishlist_products
+                        INNER JOIN wishlist ON wishlist.id = wishlist_products.wishlist_id
+                        INNER JOIN products prod ON prod.id = wishlist_products.product_id
+                        INNER JOIN product_prices price ON prod.id = price.product_id
+                        LEFT JOIN product_offers offer ON prod.id = offer.product_id
+                        INNER JOIN product_quantity qty ON prod.id = qty.product_id
+                        INNER JOIN product_categories cat ON prod.id = cat.product_id
+                        INNER JOIN product_images ima ON prod.id = ima.product_id
+                        WHERE wishlist_products.user_id = ? AND wishlist_products.wishlist_id = ?
+                        GROUP BY wishlist_products.id`, [userId, wishlistId]
+            );
+
+            const wishList = data as WishListViewModel[];
+            if (wishList) {
+
+                const wishListDetails = new Array<WishListViewModel>();
+                wishList.forEach(x => {
+                    const wishListObj = new WishListViewModel();
+                    wishListObj.id = x.id;
+                    wishListObj.wishlist_id = x.wishlist_id;
+                    wishListObj.name = x.name
+                    wishListObj.description = x.description
+                    wishListObj.star_rate = x.star_rate
+                    wishListObj.price = x.price
+                    wishListObj.offer_id = x.offer_id
+                    wishListObj.left_qty = x.left_qty
+                    wishListObj.total_qty = x.total_qty
+                    wishListObj.productId = x.productId
+                    wishListObj.productName = x.productName;
                     wishListObj.createdDate = x.createdDate
                     wishListObj.image = x.image
                     wishListObj.path = application.getImagePath.product + x.image
@@ -131,7 +191,7 @@ class WishListController {
     static moveItemToWishList = async (req: Request, res: Response) => {
 
         try {
-            const wishListDto = Object.assign(new AddWishListDTO(), req.body);
+            const wishListDto = Object.assign(new AddWishListProductsDTO(), req.body);
 
             const errors = await validate(wishListDto);
             if (errors.length > 0) {
@@ -139,7 +199,7 @@ class WishListController {
                 return;
             }
 
-            const wishList = wishListDto as WishListModel;
+            const wishList = wishListDto as WishListProductsModel;
             wishList.created_at = new Date();
 
             let dataExists: any;
@@ -147,7 +207,8 @@ class WishListController {
 
             await transaction(pool, async connection => {
                 [dataExists] = await connection.query(
-                    `SELECT 1 FROM wishList WHERE product_id = ? AND user_id = ?`, [wishList.product_id, wishList.user_id]
+                    `SELECT 1 FROM wishlist_products WHERE product_id = ? AND user_id = ? AND wishlist_id`,
+                     [wishList.product_id, wishList.user_id, wishList.wishlist_id]
                 );
             });
 
@@ -156,7 +217,7 @@ class WishListController {
                 let data: any;
                 await transaction(pool, async connection => {
                     [data] = await connection.query(
-                        `INSERT INTO wishlist SET ?`, [wishList]
+                        `INSERT INTO wishlist_products SET ?`, [wishList]
                     );
                     wishListId = data.insertId;
                 });

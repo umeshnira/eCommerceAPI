@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { validate } from 'class-validator';
 import {
     ProductList, Product, ProductCategory, ProductQuantity,
-    ProductPrice, ProductOffers, ProductImage, ProductDTO, ProductImageDTO, ProductDetails
+    ProductPrice, ProductOffers, ProductImage, ProductDTO, ProductImageDTO, ProductDetails, SellerProducts
 } from '../models';
 import { application } from '../config/app-settings.json';
 import { connect, transaction } from '../context/db.context';
@@ -121,8 +121,10 @@ class ProductController {
             const [data] = await connection.query(
                 `SELECT prod.id, prod.name, prod.description, prod.about, prod.batch_no, prod.star_rate,
                         prod.is_returnable, prod.exp_date, prod.bar_code, price.price, ima.image, qty.left_qty,
-                        qty.total_qty, prod_cat.category_id, offer.id AS offer_id FROM products prod
+                        qty.total_qty, prod_cat.category_id, offer.id AS offer_id , seller_prod.seller_id
+                        FROM products prod
                         INNER JOIN product_categories prod_cat ON prod.id = prod_cat.product_id
+                        INNER JOIN seller_products seller_prod ON prod.id = seller_prod.product_id
                         INNER JOIN product_prices price ON prod.id = price.product_id
                         INNER JOIN product_quantity qty ON prod.id = qty.product_id
                         LEFT JOIN product_offers offer ON prod.id = offer.product_id
@@ -149,6 +151,7 @@ class ProductController {
                     productDetail.total_qty = prod.total_qty;
                     productDetail.left_qty = prod.left_qty;
                     productDetail.category_id = prod.category_id;
+                    productDetail.seller_id = prod.seller_id;
                     productDetail.offer_id = prod.offer_id;
                     productDetail.image=prod.image
                     productDetail.path = application.getImagePath.product + prod.image;
@@ -199,9 +202,9 @@ class ProductController {
                 [data] = await connection.query(
                     `INSERT INTO products SET ?`, [product]
                 );
-
+               
                 productId = data.insertId;
-
+                
                 if (productId > 0) {
                     const productCategory = new ProductCategory();
                     productCategory.category_id = productDto.category_id;
@@ -233,6 +236,17 @@ class ProductController {
 
                     [data] = await connection.query(
                         `INSERT INTO product_prices SET ?`, [productPrice]
+                    );
+
+                    const sellerProducts = new SellerProducts();
+                    sellerProducts.product_id = productId;
+                    sellerProducts.seller_id = productDto.seller_id;
+                    sellerProducts.status = Status.Active;
+                    sellerProducts.created_by = productDto.created_by;
+                    sellerProducts.created_at = new Date();
+
+                    [data] = await connection.query(
+                        `INSERT INTO seller_products SET ?`, [sellerProducts]
                     );
 
                     if (productDto.offer_id && productDto.offer_id > 0) {
@@ -329,6 +343,11 @@ class ProductController {
                     );
 
                     [data] = await connection.query(
+                        `UPDATE seller_products SET seller_id = ? WHERE product_id = ?`,
+                        [productDto.seller_id, productId]
+                    );
+
+                    [data] = await connection.query(
                         `UPDATE product_quantity SET left_qty = ?, total_qty = ? WHERE product_id = ?`,
                         [productDto.left_qty, productDto.total_qty, productId]
                     );
@@ -421,6 +440,62 @@ class ProductController {
                 res.status(500).send({message: `Product with Id: ${productId} is not deleted`});
             }
 
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
+
+   
+    static getProductsBySellerId = async (req: Request, res: Response) => {
+
+        try {
+            const sellerId = req.params?.id;
+            const connection = await connect();
+
+            const [data] = await connection.query(
+                `SELECT prod.id, prod.name, prod.description, prod.about, prod.batch_no, prod.star_rate,
+                        prod.is_returnable, prod.exp_date, prod.bar_code, price.price, ima.image, qty.left_qty,
+                        qty.total_qty, prod_cat.category_id, offer.id AS offer_id, seller_prod.seller_id
+                        FROM products prod
+                        INNER JOIN product_categories prod_cat ON prod.id = prod_cat.product_id
+                        INNER JOIN seller_products seller_prod ON prod.id = seller_prod.product_id
+                        INNER JOIN product_prices price ON prod.id = price.product_id
+                        INNER JOIN product_quantity qty ON prod.id = qty.product_id
+                        LEFT JOIN product_offers offer ON prod.id = offer.product_id
+                        INNER JOIN categories cat ON cat.id = prod_cat.category_id
+                        INNER JOIN product_images ima ON prod.id = ima.product_id WHERE seller_prod.seller_id = ?
+                        group by prod.id`,
+                [sellerId]
+            );
+
+            const products = data as ProductDetails[];
+            if (products.length) {
+                const productDetails = new Array<ProductDetails>();
+                products.forEach(prod => {
+                    const productDetail = new ProductDetails();
+                    productDetail.id = prod.id;
+                    productDetail.name = prod.name;
+                    productDetail.description = prod.description;
+                    productDetail.about = prod.about;
+                    productDetail.star_rate = prod.star_rate;
+                    productDetail.is_returnable = prod.is_returnable;
+                    productDetail.exp_date = prod.exp_date;
+                    productDetail.bar_code = prod.bar_code;
+                    productDetail.price = prod.price;
+                    productDetail.total_qty = prod.total_qty;
+                    productDetail.left_qty = prod.left_qty;
+                    productDetail.category_id = prod.category_id;
+                    productDetail.offer_id = prod.offer_id;
+                    productDetail.seller_id = prod.seller_id;
+                    productDetail.image=prod.image
+                    productDetail.path = application.getImagePath.product + prod.image;
+                    productDetails.push(productDetail);
+
+                });
+                res.status(200).json(productDetails);
+            } else {
+                res.status(404).send({message: `Products with Seller Id: ${sellerId} not found`});
+            }
         } catch (error) {
             res.status(500).send(error.message);
         }

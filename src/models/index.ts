@@ -7,6 +7,8 @@ export * from './sellers/seller.model';
 export * from './sellers/seller-dto.model';
 export * from './sellers/add-seller-dto.model';
 export * from './sellers/update-seller-dto.model';
+export * from './sellers/seller-products-dto.model';
+export * from './sellers/seller-products.model';
 
 export * from './users/user.model';
 export * from './users/user-dto.model';
@@ -55,4 +57,7 @@ export * from './wish-list/add-wish-list-dto.model';
 export * from './wish-list/update-wish-list-dto.model';
 export * from './wish-list/wish-list-dto.model';
 export * from './wish-list/wish-list-view.model';
+export * from './wish-list/wish-list-products.model';
 export * from './wish-list/wish-list.model';
+export * from './wish-list/wish-list-products-dto.model';
+export * from './wish-list/add-wish-list-products-dto.model';

@@ -1,4 +1,10 @@
+import { IsNotEmpty, MaxLength } from 'class-validator';
+import { IsNotBlank } from '../../../NotificationService/src/validators';
+
 export class WishListDTO {
-    user_id: number;
-    product_id: number;
+
+    @IsNotEmpty()
+    @MaxLength(255)
+    @IsNotBlank({  message: 'Value cannot contain empty spaces' })
+    name: string;
 }

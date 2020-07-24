@@ -1,13 +1,15 @@
 export class WishListViewModel {
 
     productId: number;
-    name: string;
+    productName: string;
     description: string;
     price: number;
     offer_id: number;
     left_qty: number;
     total_qty: number;
     id: number;
+    wishlist_id: number;
+    name: string;
     image: string;
     path: string;
     createdDate: Date;

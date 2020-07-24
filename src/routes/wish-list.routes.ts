@@ -5,6 +5,8 @@ const router = Router();
 
 router.get('/wishlist/:uid([0-9]+)', [], WishListController.getWishListItemsByUserId);
 
+router.get('/wishlist/:uid([0-9]+)/:wid([0-9]+)', [], WishListController.getWishListItemsById);
+
 router.post('/wishlist', [], WishListController.createWishList);
 
 router.put('/wishlist', [], WishListController.moveItemToWishList);

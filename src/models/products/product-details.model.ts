@@ -18,6 +18,7 @@ export class ProductDetails {
     offer_id: number;
     left_qty: number;
     total_qty: number;
+    seller_id: number;
     created_by: string;
     created_at: Date;
     updated_by: string;

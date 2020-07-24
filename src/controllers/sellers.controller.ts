@@ -71,7 +71,12 @@ class SellersController {
             seller.status = Status.Active;
             seller.created_at = new Date();
 
-            const user = userDto as UserModel;
+            const user = new UserModel();
+            user.user_name = userDto.user_name;
+            user.password = userDto.password;
+            user.status = Status.Active;
+            user.role = userDto.role;
+            user.created_by = userDto.created_by;
             user.created_at = new Date();
 
             let data: any;
@@ -88,13 +93,13 @@ class SellersController {
             }
 
             let sellerId: any;
-
+           
             await transaction(pool, async connection => {
                 [data] = await connection.query(
                     `INSERT INTO users SET ?`, [user]
                 );
                 seller.user_id = data.insertId;
-
+                console.log(user);
                 [data] = await connection.query(
                     `INSERT INTO sellers SET ?`, [seller]
                 );

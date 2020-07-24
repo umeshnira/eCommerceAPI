@@ -21,7 +21,7 @@ export class SellerDTO {
     @IsNotEmpty()
     @Length(1, 255)
     @IsNotBlank({  message: 'Value cannot contain empty spaces' })
-    pin_code: string;
+    pincode: string;
 
     @IsNotEmpty()
     @Length(1, 255)

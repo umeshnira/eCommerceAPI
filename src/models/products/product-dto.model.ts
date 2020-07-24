@@ -1,6 +1,7 @@
 import { IsNotEmpty, Length, IsInt } from 'class-validator';
 import { IsNotBlank } from '../../validators';
 import { ProductCategoryDTO, ProductQuantityDTO, ProductOfferDTO, ProductPriceDTO } from '..';
+import { SellerProductsDTO } from '../sellers/seller-products-dto.model';
 
 export class ProductDTO {
 
@@ -28,6 +29,7 @@ export class ProductDTO {
     offers: ProductOfferDTO[];
     price: ProductPriceDTO;
     quantity: ProductQuantityDTO;
+    seller: SellerProductsDTO;
 
     images: string[];
 
