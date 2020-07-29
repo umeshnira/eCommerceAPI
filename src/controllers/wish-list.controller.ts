@@ -228,7 +228,7 @@ class WishListController {
                     res.status(500).send({ message: `Failed to Add the product to wishlist` });
                 }
             } else {
-                res.status(201).send({ message: `Item already exists in WishList` });
+                res.status(200).send({ message: `Item already exists in WishList` });
             }
         }
         catch (error) {

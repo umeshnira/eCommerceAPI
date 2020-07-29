@@ -12,7 +12,8 @@ class CategoriesController {
             const connection = await connect();
             const [data] = await connection.query(
                 `SELECT id, name, description, status, created_by, created_at, updated_by, updated_at
-                        FROM categories WHERE parent_category_id IS NULL`
+                        FROM categories
+                         WHERE parent_category_id IS NULL`
             );
 
             const categories = data as CategoryModel[];
@@ -34,7 +35,8 @@ class CategoriesController {
 
             const [data] = await connection.query(
                 `SELECT id, name, description, status, created_by, created_at, updated_by, updated_at
-                 FROM categories WHERE parent_category_id IS NULL AND id = ?`, [categoryId]
+                 FROM categories
+                 WHERE parent_category_id IS NULL AND id = ?`, [categoryId]
             );
 
             const categories = data as CategoryModel[];

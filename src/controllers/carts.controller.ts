@@ -209,7 +209,7 @@ class CartController {
                     res.status(500).send({ message: `Failed to Add the product to cart` });
                 }
             } else {
-                res.status(201).send({message: `Item already exists in cart`});
+                res.status(200).send({message: `Item already exists in cart`});
             }
         }
         catch (error) {
