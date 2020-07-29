@@ -5,19 +5,21 @@
       "storage": {
          "user": "../../public/images/users/",
          "category": "../../public/images/categories/",
-         "product": "../../public/images/products/"
+         "product": "../../public/images/products/",
+         "review": "../../public/images/review/"
       },
       "getImagePath":{
-         "product":"http://localhost:1337/images/products/"
+         "product":"http://localhost:1337/images/products/",
+         "review":"http://localhost:1337/images/review/"
       }
    },
    "database": {
       "type": "mysql",
       "host": "localhost",
       "port": 3306,
-      "username": "root",
-      "password": "Warning@123",
-      "database": "test_ecommerce",
+      "username": "user",
+      "password": "root",
+      "database": "ecommerce",
       "queueLimit": 0,
       "waitForConnections": true,
       "decimalNumbers": true,

@@ -61,3 +61,8 @@ export * from './wish-list/wish-list-products.model';
 export * from './wish-list/wish-list.model';
 export * from './wish-list/wish-list-products-dto.model';
 export * from './wish-list/add-wish-list-products-dto.model';
+
+export * from './review/review-ratings-images.model';
+export * from './review/review-ratings.model';
+export * from './review/reviewDTO.model';
+export * from './review/review-view-details.model';

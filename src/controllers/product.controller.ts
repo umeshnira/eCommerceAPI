@@ -2,7 +2,8 @@ import { Request, Response } from 'express';
 import { validate } from 'class-validator';
 import {
     ProductList, Product, ProductCategory, ProductQuantity,
-    ProductPrice, ProductOffers, ProductImage, ProductDTO, ProductImageDTO, ProductDetails, SellerProducts
+    ProductPrice, ProductOffers, ProductImage, ProductDTO, ProductImageDTO, ProductDetails, SellerProducts,
+    ReviewViewDetailsModel,ReviewDTOModel,ReviewRatingsModel,ReviewRatingsImageModel
 } from '../models';
 import { application } from '../config/app-settings.json';
 import { connect, transaction } from '../context/db.context';
@@ -47,7 +48,7 @@ class ProductController {
                 });
                 res.status(200).json(productDetails);
             } else {
-                res.status(404).send({message:`Products not found`});
+                res.status(404).send({ message: `Products not found` });
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -105,7 +106,7 @@ class ProductController {
                 });
                 res.status(200).json(productDetail);
             } else {
-                res.status(404).send({message: `Product with Id: ${productId} not found`});
+                res.status(404).send({ message: `Product with Id: ${productId} not found` });
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -153,14 +154,14 @@ class ProductController {
                     productDetail.category_id = prod.category_id;
                     productDetail.seller_id = prod.seller_id;
                     productDetail.offer_id = prod.offer_id;
-                    productDetail.image=prod.image
+                    productDetail.image = prod.image
                     productDetail.path = application.getImagePath.product + prod.image;
                     productDetails.push(productDetail);
 
                 });
                 res.status(200).json(productDetails);
             } else {
-                res.status(404).send({message: `Product with category Id: ${categoryId} not found`});
+                res.status(404).send({ message: `Product with category Id: ${categoryId} not found` });
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -202,9 +203,9 @@ class ProductController {
                 [data] = await connection.query(
                     `INSERT INTO products SET ?`, [product]
                 );
-               
+
                 productId = data.insertId;
-                
+
                 if (productId > 0) {
                     const productCategory = new ProductCategory();
                     productCategory.category_id = productDto.category_id;
@@ -277,9 +278,9 @@ class ProductController {
             });
 
             if (productId) {
-                res.status(201).send({ message : `Product with Id: ${productId} is created` });
+                res.status(201).send({ message: `Product with Id: ${productId} is created` });
             } else {
-                res.status(500).send({message: `Failed to create a product`});
+                res.status(500).send({ message: `Failed to create a product` });
             }
         }
         catch (error) {
@@ -310,7 +311,7 @@ class ProductController {
 
             const productExists = data as Product[];
             if (!productExists.length) {
-                res.status(404).send({message: `Product with Id: ${productId} not found`});
+                res.status(404).send({ message: `Product with Id: ${productId} not found` });
             }
 
             let isUpdated: any;
@@ -389,19 +390,19 @@ class ProductController {
                         productImage.image = file.filename;
                         productImage.created_by = productDto.created_by;
                         productImage.created_at = new Date();
-                       
+
                         [data] = await connection.query(
                             `INSERT INTO product_images SET ?`, [productImage]
                         );
-                       
+
                     }
                 }
             });
 
             if (isUpdated) {
-                res.status(200).send({ message : `Product with Id: ${productId} is updated` });
+                res.status(200).send({ message: `Product with Id: ${productId} is updated` });
             } else {
-                res.status(500).send({message: `Failed to update a product`});
+                res.status(500).send({ message: `Failed to update a product` });
             }
         }
         catch (error) {
@@ -423,7 +424,7 @@ class ProductController {
 
             const productExists = data as Product[];
             if (!productExists.length) {
-                res.status(404).send({message: `Product with Id: ${productId} not found`});
+                res.status(404).send({ message: `Product with Id: ${productId} not found` });
             }
 
             let isDeleted: any;
@@ -435,9 +436,9 @@ class ProductController {
             });
 
             if (isDeleted) {
-                res.status(200).send({ message : `Product with Id: ${productId} is deleted` });
+                res.status(200).send({ message: `Product with Id: ${productId} is deleted` });
             } else {
-                res.status(500).send({message: `Product with Id: ${productId} is not deleted`});
+                res.status(500).send({ message: `Product with Id: ${productId} is not deleted` });
             }
 
         } catch (error) {
@@ -445,7 +446,7 @@ class ProductController {
         }
     };
 
-   
+
     static getProductsBySellerId = async (req: Request, res: Response) => {
 
         try {
@@ -487,14 +488,135 @@ class ProductController {
                     productDetail.category_id = prod.category_id;
                     productDetail.offer_id = prod.offer_id;
                     productDetail.seller_id = prod.seller_id;
-                    productDetail.image=prod.image
+                    productDetail.image = prod.image
                     productDetail.path = application.getImagePath.product + prod.image;
                     productDetails.push(productDetail);
 
                 });
                 res.status(200).json(productDetails);
             } else {
-                res.status(404).send({message: `Products with Seller Id: ${sellerId} not found`});
+                res.status(404).send({ message: `Products with Seller Id: ${sellerId} not found` });
+            }
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
+
+    static createReview = async (req: any, res: Response) => {
+
+        try {
+            const parsedData = JSON.parse(req.body.data);
+            const reviewDto = Object.assign(new ReviewDTOModel(), parsedData);
+
+            const errors = await validate(reviewDto);
+            if (errors.length > 0) {
+                res.status(400).send(errors);
+                return;
+            }
+
+            let data: any;
+            const pool = await connect();
+
+            let review_rating_id: any;
+
+            await transaction(pool, async connection => {
+
+                const review = new ReviewRatingsModel();
+                review.product_id = reviewDto.product_id;
+                review.description = reviewDto.description;
+                review.date = new Date()
+                review.rate = reviewDto.rate;
+                review.status = 2;
+                review.title = reviewDto.title;
+                review.user_id = reviewDto.user_id
+                review.created_by = reviewDto.user_id
+                review.created_at = new Date();
+
+                [data] = await connection.query(
+                    `INSERT INTO review_ratings SET ?`, [review]
+                );
+
+                review_rating_id = data.insertId;
+
+                if (review_rating_id > 0) {
+                   
+                    for (const file of req?.files) {
+                        const reviewImage = new ReviewRatingsImageModel();
+                        reviewImage.review_rating_id = review_rating_id;
+                        reviewImage.image = file.filename;
+                        reviewImage.created_by = reviewDto.created_by;
+                        reviewImage.created_at = new Date();
+
+                        [data] = await connection.query(
+                            `INSERT INTO review_ratings_images SET ?`, [reviewImage]
+                        );
+                    }
+                }
+            });
+
+            if (review_rating_id) {
+                res.status(201).send({ message: `Review with Id: ${review_rating_id} is created` });
+            } else {
+                res.status(500).send({ message: `Failed to create a Review` });
+            }
+        }
+        catch (error) {
+            ProductController.unlinkUploadedFiles(req?.files);
+            res.status(500).send(error.message);
+        }
+    };
+
+
+    static getSellerReviews = async (req: Request, res: Response) => {
+
+        try {
+            const userId = req.params?.id;
+            const connection = await connect();
+
+            const [data] = await connection.query(
+                    `SELECT rr.id,
+                     prod.name,
+                     ima.image,
+                     rr.title,
+                     rr.description,
+                     rr.rate,
+                     s.name as status,
+                     rr.date,
+                     c.name as author
+                        FROM products prod
+                        INNER JOIN seller_products sp ON prod.id = sp.product_id
+                        INNER JOIN sellers ss ON ss.id=sp.seller_id
+                        INNER JOIN product_images ima ON prod.id = ima.product_id
+                        INNER JOIN review_ratings rr ON rr.product_id = prod.id
+                        inner join status s on s.id=rr.status
+                        inner join clients c on c.user_id=rr.user_id
+                         WHERE ss.user_id = ?
+                        group by prod.id`,
+                [userId]
+            );
+
+            const products = data as ReviewViewDetailsModel[];
+            if (products.length) {
+                const productDetails = new Array<ReviewViewDetailsModel>();
+                products.forEach(prod => {
+                    const productDetail = new ReviewViewDetailsModel();
+                    productDetail.id = prod.id;
+                    productDetail.name = prod.name;
+                    productDetail.description = prod.description;
+                    productDetail.author = prod.author;
+                    productDetail.rate = prod.rate;
+                    productDetail.date = prod.date;
+                    productDetail.status = prod.status;
+                    productDetail.title = prod.title;
+                    productDetail.seller_id = prod.seller_id;
+                    productDetail.image = prod.image
+                    productDetail.path = application.getImagePath.product + prod.image;
+                    productDetails.push(productDetail);
+
+                });
+                res.status(200).json(productDetails);
+            } else {
+                res.status(404).send({ message: `Products with  Id: ${userId} not found` });
             }
         } catch (error) {
             res.status(500).send(error.message);

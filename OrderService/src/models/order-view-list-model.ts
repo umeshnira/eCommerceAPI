@@ -12,6 +12,7 @@ export class OrderViewListModel {
     offer_name: string;
     name: string;
     image: string;
+    reason: string;
     path:string;
     order_status: string;
 }

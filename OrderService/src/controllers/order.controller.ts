@@ -682,6 +682,132 @@ class OrderController {
         }
     };
 
+    static getSellerOrders = async (req: Request, res: Response) => {
+
+        try {
+
+            const connection = await connect();
+            const userId = req.params?.id;
+            const [data] = await connection.query(`
+            SELECT distinct
+            o.id,
+            o.user_id,
+            d.id as order_detail_id,
+            d.product_id,
+            d.status,
+            d.price,
+            d.qty,
+            o.ordered_date,
+            d.delivered_date,
+            p.name,
+            i.image,
+            s.name as order_status
+            from orders o 
+            inner join order_details d on o.id=d.order_id
+            inner join seller_products sp on sp.product_id=d.product_id
+            inner join products p on p.id=sp.product_id
+            inner join product_images i on p.id=i.product_id
+            inner join sellers ss on ss.id=sp.seller_id
+            inner join order_status s on s.id=d.status
+            WHERE ss.user_id = ? and o.is_delete=0  
+            group by d.id`, [userId]);
+            if (data) {
+                const order = data as OrderViewListModel[];
+                const orderDetails = new Array<OrderViewListModel>();
+                order.forEach(prod => {
+                    const orderObj = new OrderViewListModel();
+                    orderObj.id = prod.id;
+                    orderObj.user_id = prod.user_id;
+                    orderObj.order_detail_id = prod.order_detail_id;
+                    orderObj.product_id = prod.product_id;
+                    orderObj.status = prod.status;
+                    orderObj.price = prod.price;
+                    orderObj.qty = prod.qty;
+                    orderObj.ordered_date = prod.ordered_date;
+                    orderObj.delivered_date = prod.delivered_date;
+                    orderObj.offer_id = prod.offer_id;
+                    orderObj.offer_name = prod.offer_name;
+                    orderObj.name = prod.name;
+                    orderObj.image = prod.image;
+                    orderObj.path = application.getImagePath.product + prod.image;
+                    orderObj.order_status = prod.order_status;
+                    orderDetails.push(orderObj);
+                });
+
+                res.status(200).json(orderDetails);
+            } else {
+                res.status(404).send('Orders not found');
+            }
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
+
+
+    static getSellerReturnOrders = async (req: Request, res: Response) => {
+
+        try {
+
+            const connection = await connect();
+            const userId = req.params?.id;
+            const [data] = await connection.query(`
+            SELECT distinct
+            ort.id,
+            o.user_id,
+            d.id as order_detail_id,
+            d.product_id,
+            d.status,
+            d.price,
+            d.qty,
+            o.ordered_date,
+            d.delivered_date,
+            p.name,
+            i.image,
+            ort.reason,
+            s.name as order_status
+            from orders o 
+            inner join order_details d on o.id=d.order_id
+            inner join order_returns ort on ort.order_detail_id=d.id
+            inner join seller_products sp on sp.product_id=d.product_id
+            inner join products p on p.id=sp.product_id
+            inner join product_images i on p.id=i.product_id
+            inner join sellers ss on ss.id=sp.seller_id
+            inner join order_status s on s.id=d.status
+            WHERE ss.user_id = ? and o.is_delete=0  and (d.status=4 or d.status=5)
+            group by d.id`, [userId]);
+            if (data) {
+                const order = data as OrderViewListModel[];
+                const orderDetails = new Array<OrderViewListModel>();
+                order.forEach(prod => {
+                    const orderObj = new OrderViewListModel();
+                    orderObj.id = prod.id;
+                    orderObj.user_id = prod.user_id;
+                    orderObj.order_detail_id = prod.order_detail_id;
+                    orderObj.product_id = prod.product_id;
+                    orderObj.status = prod.status;
+                    orderObj.price = prod.price;
+                    orderObj.qty = prod.qty;
+                    orderObj.ordered_date = prod.ordered_date;
+                    orderObj.delivered_date = prod.delivered_date;
+                    orderObj.offer_id = prod.offer_id;
+                    orderObj.offer_name = prod.offer_name;
+                    orderObj.name = prod.name;
+                    orderObj.image = prod.image;
+                    orderObj.reason = prod.reason;
+                    orderObj.path = application.getImagePath.product + prod.image;
+                    orderObj.order_status = prod.order_status;
+                    orderDetails.push(orderObj);
+                });
+
+                res.status(200).json(orderDetails);
+            } else {
+                res.status(404).send('Orders not found');
+            }
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
+
 }
 
 

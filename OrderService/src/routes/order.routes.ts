@@ -34,12 +34,17 @@ router.get(
     '/cancel/orders/:id([0-9]+)', [], orderController.getUserCancelOrders);
 
 router.post(
-        '/orders/return', [], orderController.returnOrder);
+    '/orders/return', [], orderController.returnOrder);
 
 router.get(
     '/orders/buyAgain/:id([0-9]+)', [], orderController.getBuyAgain);
 
- router.get(
-        '/orders/openOrder/:id([0-9]+)', [], orderController.getYourOrder);
+router.get(
+    '/orders/openOrder/:id([0-9]+)', [], orderController.getYourOrder);
+
+router.get(
+    '/orders/sellerorders/:id([0-9]+)', [], orderController.getSellerOrders);
+router.get(
+    '/orders/sellerreturnorders/:id([0-9]+)', [], orderController.getSellerReturnOrders);
 
 export default router;
