@@ -26,7 +26,7 @@ class LoginController {
             }
 
             const [loginDetails] = await connection.query(
-                `SELECT users.user_name as user_name,
+                `SELECT users.user_name as user_name, users.status,
                 users.id as user_id,
                 roles.name as role
                 FROM users

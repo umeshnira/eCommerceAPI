@@ -212,7 +212,7 @@ class SaveLaterController {
                     res.status(500).send({ message: `Failed to Add the product to Save Later` });
                 }
             } else {
-                res.status(201).send({ message: `Item already exists in SaveLater` });
+                res.status(200).send({ message: `Item already exists in SaveLater` });
             }
         }
         catch (error) {
