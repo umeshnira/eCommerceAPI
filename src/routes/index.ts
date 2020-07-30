@@ -9,6 +9,7 @@ import carts from './carts.routes';
 import saveLater from './save-later.routes';
 import login from './login.routes';
 import wishlist from './wish-list.routes';
+import offer from './offer.routes';
 
 const routes = Router();
 
@@ -22,5 +23,7 @@ routes.use('/', carts);
 routes.use('/', saveLater);
 routes.use('/', login);
 routes.use('/', wishlist);
+routes.use('/', offer);
+
 
 export default routes;
