@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { connect, transaction } from '../context/db.context';
 import { OrderViewListModel } from '../models/index';
 import { sendMailMiddleWare } from '../middlewares/send-mail.middleware'
 import fetch from 'node-fetch';
@@ -23,7 +22,7 @@ class MailController {
                 else{
                     res.status(404).send(`Mail not send `);
                 }
-              
+
             } else {
                 res.status(404).send('Orders not found');
             }

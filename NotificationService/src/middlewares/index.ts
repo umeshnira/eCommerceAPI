@@ -1,1 +1,1 @@
-export * from './upload.middleware';
+export * from './send-mail.middleware';
