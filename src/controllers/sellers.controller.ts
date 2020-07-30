@@ -15,12 +15,13 @@ class SellersController {
                  sellers.landmark, sellers.pincode, sellers.email,sellers.phone,sellers.aadhar_card_no,
                  sellers.pan_card_no, sellers.bank_name,sellers.bank_ac_no, sellers.branch_name, sellers.ifsc_code,
                  sellers.created_by, sellers.created_at,sellers.updated_by, sellers.updated_at,
+                 sellers.image, sellers.star_rate,
                 users.user_name as username,
                 status.id as status
                 FROM sellers
                 INNER JOIN users on sellers.user_id  = users.id
                 INNER JOIN status on sellers.status  = status.id
-                ORDER By sellers.id`
+                ORDER By sellers.star_rate DESC`
             );
 
             const sellers = data as SellerModel[];

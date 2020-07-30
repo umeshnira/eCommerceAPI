@@ -12,6 +12,7 @@ export class ProductDetails {
     exp_date: Date;
     bar_code: string;
     category_id: number;
+    category: string;
     image: string;
     path: string;
     price: number;

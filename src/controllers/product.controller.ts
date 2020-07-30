@@ -23,7 +23,8 @@ class ProductController {
                         INNER JOIN product_prices price ON prod.id = price.product_id
                         INNER JOIN product_categories prod_cat ON prod.id = prod_cat.product_id
                         INNER JOIN categories cat ON cat.id = prod_cat.category_id
-                        INNER JOIN product_images ima ON prod.id = ima.product_id`
+                        INNER JOIN product_images ima ON prod.id = ima.product_id
+                        ORDER By prod.star_rate DESC`
             );
 
             const products = data as ProductList[];
@@ -48,7 +49,7 @@ class ProductController {
                 });
                 res.status(200).json(productDetails);
             } else {
-                res.status(404).send({ message: `Products not found` });
+                res.status(404).send({message:`Products not found`});
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -446,7 +447,6 @@ class ProductController {
         }
     };
 
-
     static getProductsBySellerId = async (req: Request, res: Response) => {
 
         try {
@@ -456,7 +456,7 @@ class ProductController {
             const [data] = await connection.query(
                 `SELECT prod.id, prod.name, prod.description, prod.about, prod.batch_no, prod.star_rate,
                         prod.is_returnable, prod.exp_date, prod.bar_code, price.price, ima.image, qty.left_qty,
-                        qty.total_qty, prod_cat.category_id, offer.id AS offer_id, seller_prod.seller_id
+                        qty.total_qty, prod_cat.category_id, offer.id AS offer_id, seller_prod.seller_id, cat.name as category
                         FROM products prod
                         INNER JOIN product_categories prod_cat ON prod.id = prod_cat.product_id
                         INNER JOIN seller_products seller_prod ON prod.id = seller_prod.product_id
@@ -465,7 +465,8 @@ class ProductController {
                         LEFT JOIN product_offers offer ON prod.id = offer.product_id
                         INNER JOIN categories cat ON cat.id = prod_cat.category_id
                         INNER JOIN product_images ima ON prod.id = ima.product_id WHERE seller_prod.seller_id = ?
-                        group by prod.id`,
+                        group by prod.id
+                        ORDER By prod.star_rate DESC`,
                 [sellerId]
             );
 
@@ -486,16 +487,17 @@ class ProductController {
                     productDetail.total_qty = prod.total_qty;
                     productDetail.left_qty = prod.left_qty;
                     productDetail.category_id = prod.category_id;
+                    productDetail.category = prod.category;
                     productDetail.offer_id = prod.offer_id;
                     productDetail.seller_id = prod.seller_id;
-                    productDetail.image = prod.image
+                    productDetail.image=prod.image
                     productDetail.path = application.getImagePath.product + prod.image;
                     productDetails.push(productDetail);
 
                 });
                 res.status(200).json(productDetails);
             } else {
-                res.status(404).send({ message: `Products with Seller Id: ${sellerId} not found` });
+                res.status(404).send({message: `Products with Seller Id: ${sellerId} not found`});
             }
         } catch (error) {
             res.status(500).send(error.message);
@@ -565,7 +567,6 @@ class ProductController {
             res.status(500).send(error.message);
         }
     };
-
 
     static getSellerReviews = async (req: Request, res: Response) => {
 

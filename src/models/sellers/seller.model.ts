@@ -17,6 +17,8 @@ export class SellerModel {
   bank_ac_no: string;
   branch_name: string;
   ifsc_code: string;
+  image: string;
+  star_rate;
   created_by: string;
   created_at: Date;
   updated_by: string;
