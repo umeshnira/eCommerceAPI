@@ -16,7 +16,7 @@ export async function sendMailMiddleWare(order): Promise<any> {
     });
 
     const upperBody = `<table width="600" border="1" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="text-align:left">
-    <tbody> 
+    <tbody>
         <tr>
             <td width="20" style="border-top:none;border-left:none;border-right:none"></td>
             <td style="border-top:none;border-left:none;border-right:none">
@@ -46,11 +46,11 @@ export async function sendMailMiddleWare(order): Promise<any> {
                     </tr>`
         totalPrice = totalPrice + (x.price * x.qty)
     });
-    let bottomBoady = `</tbody></table>
+    const bottomBoady = `</tbody></table>
                     </td>
                     <td width="20" style="border-top:none;border-bottom:none;border-left:none;border-right:none"></td>
-                </tr>     
-                                        
+                </tr>
+
                 <tr>
                     <td width="20" style="border-top:none;border-left:none;border-right:none"></td>
                     <td style="border-top:none;border-left:none;border-right:none">
@@ -62,14 +62,14 @@ export async function sendMailMiddleWare(order): Promise<any> {
                                 <td style="font-size:14px;color:#666;line-height:30px">
                                     <span style="margin-right:10px"><strong>Subtotal:</strong> ₹ ${totalPrice}</span>
                                     <span><strong>
-                                    
+
                                     </strong></span>
                                 </td>
                             </tr>
                             <tr>
                                 <td style="font-size:14px;color:#666;line-height:30px">
                                     <span style="margin-right:10px"><strong>Shipping:</strong> ₹0</span>
-                                    
+
                                 </td>
                             </tr>
                             <tr>
@@ -124,7 +124,7 @@ export async function sendMailMiddleWare(order): Promise<any> {
                 </tr>
                                     </tbody>
         </table>`
-    let mailOptions = {
+    const mailOptions = {
         from: 'varunr@nirasystems.com',
         to: order[0].email,
         subject: 'Nira Systems Shopping Cart',
