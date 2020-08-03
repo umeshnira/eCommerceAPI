@@ -74,14 +74,14 @@ class SubCategoriesController {
 
             const [data] = await connection.query(
                 `WITH RECURSIVE category_path (id, name,parent_category_id,created_by, created_at, path) AS
-                (
-                   SELECT id, name,parent_category_id,created_by, created_at, name as path FROM categories
-                   UNION ALL
-                   SELECT c.id, c.name,c.parent_category_id,c.created_by, c.created_at, CONCAT(cp.path, ' > ',
-                          c.name) FROM category_path AS cp JOIN categories AS c ON cp.id = c.parent_category_id
-               )
-               SELECT * FROM categories
-               ORDER BY id`
+                 (
+                    SELECT id, name,parent_category_id,created_by, created_at, name as path FROM categories
+                    WHERE parent_category_id IS NULL
+                    UNION ALL
+                    SELECT c.id, c.name,c.parent_category_id,c.created_by, c.created_at, CONCAT(cp.path, ' > ',
+                           c.name) FROM category_path AS cp JOIN categories AS c ON cp.id = c.parent_category_id
+                )
+                SELECT * FROM category_path`
             );
 
             const categories = data as CategorypathHeirarchy[];
