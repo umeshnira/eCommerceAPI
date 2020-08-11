@@ -15,13 +15,14 @@ class CartController {
             const [data] = await connection.query(
                 `SELECT prod.id, prod.name, prod.description, price.price,
                         offer.offer_id, qty.left_qty, qty.total_qty, cart.id as CartId,
-                        cart.quantity, ima.image
+                        cart.quantity, ima.image,f.name as offer_name
                         FROM carts cart
                         INNER JOIN products prod ON prod.id = cart.product_id
                         INNER JOIN product_prices price ON prod.id = price.product_id
                         LEFT JOIN product_offers offer ON prod.id = offer.product_id
                         INNER JOIN product_quantity qty ON prod.id = qty.product_id
                         INNER JOIN product_categories cat ON prod.id = cat.product_id
+                        inner join offers f ON f.id = offer.offer_id
                         INNER JOIN product_images ima ON prod.id = ima.product_id WHERE cart.user_id = ?
                         GROUP By prod.id`, [userId]
             );
@@ -35,6 +36,7 @@ class CartController {
                     cartObj.description = x.description
                     cartObj.price = x.price
                     cartObj.offer_id = x.offer_id
+                    cartObj.offer_name = x.offer_name
                     cartObj.left_qty = x.left_qty
                     cartObj.total_qty = x.total_qty
                     cartObj.CartId = x.CartId

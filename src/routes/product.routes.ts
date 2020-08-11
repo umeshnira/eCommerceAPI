@@ -24,12 +24,16 @@ router.post(
 router.put(
     '/products/:id([0-9]+)', [], setUploadPath(settings.application.storage.product), file_upload.array('image'), productController.updateProduct);
 
+router.get(
+    '/products/sellerreview/:id([0-9]+)', [], productController.getSellerReviews);
+
+router.delete(
+    '/products/:id([0-9]+)', [], productController.deleteProduct);
+
 router.post(
     '/products/review', [], setUploadPath(settings.application.storage.review), file_upload.array('image'), productController.createReview);
 
 router.get(
-        '/products/sellerreview/:id([0-9]+)', [], productController.getSellerReviews);
-router.delete(
-    '/products/:id([0-9]+)', [], productController.deleteProduct);
+        '/products/:id([0-9]+)/review', [], productController.getProductReviews);    
 
 export default router;

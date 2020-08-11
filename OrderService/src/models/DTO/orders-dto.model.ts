@@ -3,6 +3,7 @@ import { IsNotBlank } from '../../validators';
 import { OrderDetailsDTO } from './order-details-dto.model'
 import { OrderLocationDTO } from './order-location-dto.model'
 import { OrderOfferDTO } from './order-offers-dto.model'
+import { OrderProductDTOModel } from './order-product-dto.model'
 
 export class OrdersDTO {
 
@@ -12,9 +13,7 @@ export class OrdersDTO {
     @IsNotEmpty()
     user_id: number;
 
- 
     status: number;
-
 
     ordered_date: Date;
 
@@ -23,7 +22,6 @@ export class OrdersDTO {
     @IsNotBlank({ message: 'Value cannot contain empty spaces' })
     created_by: string;
 
- 
     created_at: Date;
 
     details: OrderDetailsDTO[];
@@ -31,6 +29,8 @@ export class OrdersDTO {
     location: OrderLocationDTO[];
 
     offer: OrderOfferDTO[]
+
+    product: OrderProductDTOModel[]
 
     updated_by: string;
 

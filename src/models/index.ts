@@ -70,3 +70,4 @@ export * from './review/review-view-details.model';
 export * from './offer/offer.model';
 export * from './offer/offer-view-details.model';
 export * from './offer/offer-dto.model';
+export * from './offer/multiple-product-offer-dto.model';

@@ -14,7 +14,7 @@ export class OfferDTOModel {
     description: string;
 
     price: number;
-    
+
     percentage: number;
 
     @IsNotEmpty()

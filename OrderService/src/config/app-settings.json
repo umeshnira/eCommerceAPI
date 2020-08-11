@@ -9,6 +9,10 @@
          "product":"http://localhost:1337/images/products/"
       }
    },
+   "mail":{
+      "toMail":"varunr@nirasystems.com",
+      "subject": "Nira Systems Shopping Cart"
+   },
    "database": {
       "type": "mysql",
       "host": "localhost",

@@ -12,11 +12,11 @@ router.get(
 router.get(
     '/orders/:id([0-9]+)', [], orderController.getOrder);
 
-router.get(
-    '/orders/mail/:id([0-9]+)', [], orderController.getOrderForMail);
+router.post(
+    '/orders/:id([0-9]+)/mail', [], orderController.getOrderForMail);
 
 router.get(
-    '/user/orders/:id([0-9]+)', [], orderController.getUserOrders);
+    '/orders/:id([0-9]+)/user', [], orderController.getUserOrders);
 
 router.post(
     '/orders', [], orderController.createOrder);
@@ -24,23 +24,29 @@ router.post(
 router.put(
     '/orders/:id([0-9]+)/:detailId([0-9]+)', [], orderController.updateOrder);
 
+router.patch(
+        '/orders/:id([0-9]+)/status', [], orderController.orderStatusChange);
+
 router.delete(
     '/orders/:id([0-9]+)', [], orderController.deleteOrder);
 
-router.post(
-    '/cancel/orders/:id([0-9]+)', [], orderController.cancelOrder);
+// router.post(
+//     '/cancel/orders/:id([0-9]+)', [], orderController.cancelOrder);
 
-router.get(
-    '/cancel/orders/:id([0-9]+)', [], orderController.getUserCancelOrders);
+// router.get(
+//     '/cancel/orders/:id([0-9]+)', [], orderController.getUserCancelOrders);
+
+    router.get(
+        '/orders/:id([0-9]+)/status', [], orderController.getUserOrdersByStatus);
 
 router.post(
     '/orders/return', [], orderController.returnOrder);
 
-router.get(
-    '/orders/buyAgain/:id([0-9]+)', [], orderController.getBuyAgain);
+// router.get(
+//     '/orders/buyAgain/:id([0-9]+)', [], orderController.getBuyAgain);
 
-router.get(
-    '/orders/openOrder/:id([0-9]+)', [], orderController.getYourOrder);
+// router.get(
+//     '/orders/openOrder/:id([0-9]+)', [], orderController.getYourOrder);
 
 router.get(
     '/orders/sellerorders/:id([0-9]+)', [], orderController.getSellerOrders);

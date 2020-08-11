@@ -1,10 +1,11 @@
 {
    "application": {
       "environment": "DEV",
-      "port":1339,
-      "storage": {
-         "order": "../../public/images/orders/"
-      }
+      "port":1339
+   },
+   "mail":{
+      "user": "varunrajother@gmail.com",
+      "pass": "12345678vr"
    },
    "database": {
       "type": "mysql",

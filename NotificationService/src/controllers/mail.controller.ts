@@ -1,20 +1,26 @@
 import { Request, Response } from 'express';
-import { OrderViewListModel } from '../models/index';
-import { sendMailMiddleWare } from '../middlewares/send-mail.middleware'
-import fetch from 'node-fetch';
+import { OrderCreateMailModel } from '../models/index';
+import { sendMailMiddleWare } from '../middlewares/send-mail.middleware';
+import { validate } from 'class-validator';
 
 class MailController {
 
     static sendMail = async (req: Request, res: Response) => {
 
-        const order_id =  req.params.id;
+
         try {
 
-            const response = await fetch(`http://localhost:1338/ecommerce/orders/mail/${order_id}`);
-            const json = await response.json();
-            if (json) {
-                const order = json as OrderViewListModel[];
-                const mailResp =await sendMailMiddleWare(order);
+            const orderDto = Object.assign(new OrderCreateMailModel(), req.body);
+            const errors = await validate(orderDto);
+            if (errors.length > 0) {
+                res.status(400).send(errors);
+                return;
+            }
+            orderDto.body=orderDto.body.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&')
+            // console.log(orderDto)
+            // orderDto=JSON.parse(orderDto)
+            console.log(orderDto.body)
+                const mailResp =await sendMailMiddleWare(orderDto);
 
                 if(mailResp.accepted.length>0){
                     res.status(201).send(`Mail send `);
@@ -23,9 +29,6 @@ class MailController {
                     res.status(404).send(`Mail not send `);
                 }
 
-            } else {
-                res.status(404).send('Orders not found');
-            }
         } catch (error) {
             res.status(500).send(error.message);
         }

@@ -2,7 +2,8 @@ import { Request, Response } from 'express';
 import { connect, transaction } from '../context/db.context';
 import { application } from '../config/app-settings.json';
 import { validate } from 'class-validator';
-import { OfferDTOModel, OfferModel, OfferViewDetailsModel } from '../models';
+import { OfferDTOModel, OfferModel, OfferViewDetailsModel, MultipleProductOfferDTOModel, ProductOffers } from '../models';
+import { Status } from '../enums/status.enum'
 
 class OfferController {
 
@@ -26,7 +27,7 @@ class OfferController {
             offer.name = offerDto.name;
             offer.percentage = offerDto.percentage;
             offer.price = offerDto.price;
-            offer.status = 1;
+            offer.status = Status.Active;
 
             let data: any;
             const pool = await connect();
@@ -42,7 +43,51 @@ class OfferController {
             if (data.insertId > 0) {
                 res.status(201).send({ message: `offer is created` });
             } else {
-                res.status(500).send(`Failed to create offer`);
+                res.status(500).send({ message: `Failed to create offer` });
+            }
+        }
+        catch (error) {
+            res.status(500).send(error.message);
+        }
+    }
+
+
+    static createMultipleProductsOffer = async (req: any, res: Response) => {
+        try {
+
+            const offerId = req.params.id;
+            const offerDto = Object.assign(new MultipleProductOfferDTOModel(), req.body);
+
+            const errors = await validate(offerDto);
+            if (errors.length > 0) {
+                res.status(400).send(errors);
+                return;
+            }
+
+            let data: any;
+            const pool = await connect();
+
+            for (const x of offerDto.product_id) {
+                const offer = new ProductOffers();
+                offer.created_at = new Date();
+                offer.product_id = x;
+                offer.created_by = offerDto.updated_by;
+                offer.offer_id = offerId;
+                console.log(JSON.stringify(offer));
+
+                await transaction(pool, async connection => {
+                    [data] = await connection.query(
+                        `INSERT INTO product_offers SET ?`, [offer]
+                    );
+                });
+
+            }
+
+
+            if (data.insertId > 0) {
+                res.status(201).send({ message: `Product offers are added` });
+            } else {
+                res.status(500).send({ message: `Failed to add product offers` });
             }
         }
         catch (error) {
@@ -86,7 +131,7 @@ class OfferController {
 
             await transaction(pool, async connection => {
                 [data] = await connection.query(
-                    `UPDATE offers SET ? WHERE id = ?`, [offer,offerId]
+                    `UPDATE offers SET ? WHERE id = ?`, [offer, offerId]
                 );
 
             });
@@ -96,7 +141,7 @@ class OfferController {
             if (isUpdated > 0) {
                 res.status(200).send({ message: `offer is updated` });
             } else {
-                res.status(500).send(`Failed to update offer`);
+                res.status(500).send({ message: `Failed to update offer` });
             }
         }
         catch (error) {
@@ -108,8 +153,8 @@ class OfferController {
         try {
 
             const offerId = req.params.id;
-            const status=req.query.status;
-            
+            const status = req.query.status;
+
             let data: any;
             const pool = await connect();
 
@@ -124,7 +169,7 @@ class OfferController {
 
             await transaction(pool, async connection => {
                 [data] = await connection.query(
-                    `UPDATE offers SET status = ? WHERE id = ?`, [status,offerId]
+                    `UPDATE offers SET status = ? WHERE id = ?`, [status, offerId]
                 );
 
             });
@@ -134,7 +179,7 @@ class OfferController {
             if (isUpdated > 0) {
                 res.status(201).send({ message: `offer is updated` });
             } else {
-                res.status(500).send(`Failed to update offer`);
+                res.status(500).send({ message: `Failed to update offer` });
             }
         }
         catch (error) {
@@ -148,7 +193,7 @@ class OfferController {
             const connection = await connect();
 
             const [data] = await connection.query(
-                `SELECT 
+                `SELECT
                 f.id,
                 f.name,
                 f.description,
@@ -190,11 +235,11 @@ class OfferController {
 
     static getOffersByStatus = async (req: any, res: Response) => {
         try {
-            const status=req.params.status;
+            const status = req.params.status;
             const connection = await connect();
 
             const [data] = await connection.query(
-                `SELECT 
+                `SELECT
                 f.id,
                 f.name,
                 f.description,
@@ -214,7 +259,7 @@ class OfferController {
             if (offers.length) {
                 const offerDetails = new Array<OfferViewDetailsModel>();
                 offers.forEach(x => {
-                    const offer = new OfferViewDetailsModel();  
+                    const offer = new OfferViewDetailsModel();
                     offer.ValidFrom = x.ValidFrom;
                     offer.ValidTo = x.ValidTo;
                     offer.description = x.description;
@@ -240,7 +285,7 @@ class OfferController {
             const connection = await connect();
 
             const [data] = await connection.query(
-                `SELECT 
+                `SELECT
                 f.id,
                 f.name,
                 f.description,
@@ -259,19 +304,17 @@ class OfferController {
             const offers = data[0] as OfferViewDetailsModel;
             if (offers) {
 
-                    const offer = new OfferViewDetailsModel();
-                    
-                    offer.ValidFrom = offers.ValidFrom;
-                    offer.ValidTo = offers.ValidTo;
-                    offer.created_by = offers.created_by;
-                    offer.description = offers.description;
-                    offer.name = offers.name;
-                    offer.percentage = offers.percentage;
-                    offer.price = offers.price;
-                    offer.status = offers.status;
+                const offer = new OfferViewDetailsModel();
 
+                offer.ValidFrom = offers.ValidFrom;
+                offer.ValidTo = offers.ValidTo;
+                offer.created_by = offers.created_by;
+                offer.description = offers.description;
+                offer.name = offers.name;
+                offer.percentage = offers.percentage;
+                offer.price = offers.price;
+                offer.status = offers.status;
 
-                
                 res.status(200).json(offer);
             } else {
                 res.status(404).send({ message: `offers not found` });
@@ -281,6 +324,60 @@ class OfferController {
         }
     }
 
+    static getProductOffers = async (req: any, res: Response) => {
+        try {
+            const productId = req.params.id;
+            const status = req.query.status;
+            let tempStatus;
+            const connection = await connect();
+
+            if (status) {
+                tempStatus = status;
+            } else {
+                tempStatus = null;
+            }
+
+            const [data] = await connection.query(
+                `SELECT
+                f.id,
+                f.name,
+                f.description,
+                f.price,
+                f.percentage,
+                f.ValidFrom,
+                f.ValidTo,
+                s.name as status
+                FROM offers f
+                inner join status s on s.id=f.status
+                inner join product_offers pf on pf.offer_id=f.id
+                where pf.product_id = ? and ((${tempStatus} is null ) or (f.status = ${tempStatus}))
+                 `,
+                [productId]
+            );
+
+            const offers = data as OfferViewDetailsModel[];
+            if (offers.length) {
+                const offerDetails = new Array<OfferViewDetailsModel>();
+                offers.forEach(x => {
+                    const offer = new OfferViewDetailsModel();
+                    offer.ValidFrom = x.ValidFrom;
+                    offer.ValidTo = x.ValidTo;
+                    offer.description = x.description;
+                    offer.name = x.name;
+                    offer.percentage = x.percentage;
+                    offer.price = x.price;
+                    offer.status = x.status;
+                    offerDetails.push(offer);
+
+                });
+                res.status(200).json(offerDetails);
+            } else {
+                res.status(404).send({ message: `offers not found` });
+            }
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    }
 }
 
 export default OfferController;

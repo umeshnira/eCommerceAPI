@@ -1,1 +1,1 @@
-export * from './order-view-list-model';
+export * from './order-create-mail-dto.model';
