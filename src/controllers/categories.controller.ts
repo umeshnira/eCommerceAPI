@@ -11,9 +11,9 @@ class CategoriesController {
         try {
             const connection = await connect();
             const [data] = await connection.query(
-                `SELECT id, name, description, status, created_by, created_at, updated_by, updated_at
+                `SELECT id, name, description, status,parent_category_id, created_by, created_at, updated_by, updated_at
                         FROM categories
-                         WHERE parent_category_id IS NULL`
+                        WHERE status = ?`,[Status.Active]
             );
 
             const categories = data as CategoryModel[];

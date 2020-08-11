@@ -24,7 +24,8 @@ class ProductController {
                         INNER JOIN product_categories prod_cat ON prod.id = prod_cat.product_id
                         INNER JOIN categories cat ON cat.id = prod_cat.category_id
                         INNER JOIN product_images ima ON prod.id = ima.product_id
-                        ORDER By prod.star_rate DESC`
+                        WHERE prod.status = ?
+                        ORDER By prod.star_rate DESC`,[Status.Active]
             );
 
             const products = data as ProductList[];
@@ -131,9 +132,10 @@ class ProductController {
                         INNER JOIN product_quantity qty ON prod.id = qty.product_id
                         LEFT JOIN product_offers offer ON prod.id = offer.product_id
                         INNER JOIN categories cat ON cat.id = prod_cat.category_id
-                        INNER JOIN product_images ima ON prod.id = ima.product_id WHERE prod_cat.category_id = ?
+                        INNER JOIN product_images ima ON prod.id = ima.product_id 
+                        WHERE prod_cat.category_id = ? &&  prod.status = ?
                         group by prod.id`,
-                [categoryId]
+                [categoryId, Status.Active]
             );
 
             const products = data as ProductDetails[];
@@ -464,10 +466,11 @@ class ProductController {
                         INNER JOIN product_quantity qty ON prod.id = qty.product_id
                         LEFT JOIN product_offers offer ON prod.id = offer.product_id
                         INNER JOIN categories cat ON cat.id = prod_cat.category_id
-                        INNER JOIN product_images ima ON prod.id = ima.product_id WHERE seller_prod.seller_id = ?
+                        INNER JOIN product_images ima ON prod.id = ima.product_id 
+                        WHERE seller_prod.seller_id = ? && prod.status = ?
                         group by prod.id
                         ORDER By prod.star_rate DESC`,
-                [sellerId]
+                [sellerId, Status.Active]
             );
 
             const products = data as ProductDetails[];
