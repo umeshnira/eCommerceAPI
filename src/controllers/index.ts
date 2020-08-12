@@ -6,3 +6,4 @@ export * from './sub-categories.controller';
 export * from './hello-world.controller';
 export * from './carts.controller';
 export * from './offer.controller';
+export * from './review.controller';

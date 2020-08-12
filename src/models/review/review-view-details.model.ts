@@ -11,5 +11,7 @@ export class ReviewViewDetailsModel {
     rate: number;
     user_id: number;
     seller_id: number;
-    date:Date;
+    date: Date;
+    product_id: number;
+    images:any[]
 }

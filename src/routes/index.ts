@@ -10,6 +10,7 @@ import saveLater from './save-later.routes';
 import login from './login.routes';
 import wishlist from './wish-list.routes';
 import offer from './offer.routes';
+import review from './review.routes';
 
 const routes = Router();
 
@@ -24,6 +25,7 @@ routes.use('/', saveLater);
 routes.use('/', login);
 routes.use('/', wishlist);
 routes.use('/', offer);
+routes.use('/', review);
 
 
 export default routes;

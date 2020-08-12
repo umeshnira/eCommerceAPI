@@ -30,11 +30,7 @@ router.patch(
 router.delete(
     '/orders/:id([0-9]+)', [], orderController.deleteOrder);
 
-// router.post(
-//     '/cancel/orders/:id([0-9]+)', [], orderController.cancelOrder);
 
-// router.get(
-//     '/cancel/orders/:id([0-9]+)', [], orderController.getUserCancelOrders);
 
     router.get(
         '/orders/:id([0-9]+)/status', [], orderController.getUserOrdersByStatus);
@@ -42,15 +38,10 @@ router.delete(
 router.post(
     '/orders/return', [], orderController.returnOrder);
 
-// router.get(
-//     '/orders/buyAgain/:id([0-9]+)', [], orderController.getBuyAgain);
-
-// router.get(
-//     '/orders/openOrder/:id([0-9]+)', [], orderController.getYourOrder);
+router.get(
+    '/user/:id([0-9]+)/orders/sellerorders', [], orderController.getSellerOrders);
 
 router.get(
-    '/orders/sellerorders/:id([0-9]+)', [], orderController.getSellerOrders);
-router.get(
-    '/orders/sellerreturnorders/:id([0-9]+)', [], orderController.getSellerReturnOrders);
+    '/user/:id([0-9]+)/orders/sellerreturnorders', [], orderController.getSellerReturnOrders);
 
 export default router;
