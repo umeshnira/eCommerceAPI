@@ -66,6 +66,8 @@ export * from './review/review-ratings-images.model';
 export * from './review/review-ratings.model';
 export * from './review/review-dto.model';
 export * from './review/review-view-details.model';
+export * from './review/seller-review-dto.model';
+export * from './review/seller-review.model';
 
 export * from './offer/offer.model';
 export * from './offer/offer-view-details.model';

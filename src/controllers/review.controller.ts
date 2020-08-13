@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { validate } from 'class-validator';
 import {
     ProductImageDTO, ReviewViewDetailsModel, ReviewDTOModel,
-    ReviewRatingsModel, ReviewRatingsImageModel
+    ReviewRatingsModel, ReviewRatingsImageModel,SellerReviewDtoModel,SellerReviewModel
 } from '../models';
 import { application } from '../config/app-settings.json';
 import { connect, transaction } from '../context/db.context';
@@ -78,8 +78,8 @@ class ReviewController {
     static createSellerReview = async (req: any, res: Response) => {
 
         try {
-            const parsedData = JSON.parse(req.body.data);
-            const reviewDto = Object.assign(new ReviewDTOModel(), parsedData);
+
+            const reviewDto = Object.assign(new SellerReviewDtoModel(), req.body);
 
             const errors = await validate(reviewDto);
             if (errors.length > 0) {
@@ -90,12 +90,11 @@ class ReviewController {
             let data: any;
             const pool = await connect();
 
-            let review_rating_id: any;
 
             await transaction(pool, async connection => {
 
-                const review = new ReviewRatingsModel();
-                review.product_id = reviewDto.product_id;
+                const review = new SellerReviewModel();
+                review.seller_id = reviewDto.seller_id;
                 review.description = reviewDto.description;
                 review.date = new Date()
                 review.rate = reviewDto.rate;
@@ -106,15 +105,13 @@ class ReviewController {
                 review.created_at = new Date();
 
                 [data] = await connection.query(
-                    `INSERT INTO review_ratings SET ?`, [review]
+                    `INSERT INTO seller_review SET ?`, [review]
                 );
-
-                review_rating_id = data.insertId;
 
             });
 
             if (data.insertId>0) {
-                res.status(201).send({ message: `Review with Id: ${review_rating_id} is created` });
+                res.status(201).send({ message: `Review with Id: ${data.insertId} is created` });
             } else {
                 res.status(500).send({ message: `Failed to create a Review` });
             }
@@ -231,6 +228,53 @@ class ReviewController {
         }
     };
 
+    static getsellerReviewsWithStatus = async (req: Request, res: Response) => {
+
+        try {
+            const sellerID = req.params?.id;
+            const status = req.query?.status;
+
+            const connection = await connect();
+
+            const [data] = await connection.query(
+                `select
+                wr.id,
+                wr.title,
+                wr.description,
+                wr.rate,
+                wr.date,
+                wr.seller_id,
+                c.name
+                from seller_review wr
+                inner join clients c on c.user_id=wr.user_id
+                where wr.status=${status}  and wr.seller_id=?`,
+                [sellerID]
+            );
+
+            const review = data as ReviewViewDetailsModel[];
+            if (review.length) {
+                const productDetails = new Array<ReviewViewDetailsModel>();
+                review.forEach(prod => {
+                    const productDetail = new ReviewViewDetailsModel();
+                    productDetail.id = prod.id;
+                    productDetail.name = prod.name;
+                    productDetail.description = prod.description;
+                    productDetail.rate = prod.rate;
+                    productDetail.date = prod.date;
+                    productDetail.status = prod.status;
+                    productDetail.title = prod.title;
+                    productDetail.seller_id = prod.seller_id;
+                    productDetails.push(productDetail);
+
+                });
+                res.status(200).json(productDetails);
+            } else {
+                res.status(404).send({ message: `Reviw with seller Id: ${sellerID} not found` });
+            }
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
 
     static unlinkUploadedFiles(files: any[]) {
         if (files) {

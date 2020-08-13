@@ -1,7 +1,7 @@
 import { Length, IsNotEmpty, MaxLength, IsNumber, IsDate } from 'class-validator';
 import { IsNotBlank } from '../../validators';
 
-export class ReviewDTOModel {
+export class SellerReviewDtoModel {
 
 
     id: number;
@@ -24,7 +24,7 @@ export class ReviewDTOModel {
     status: number;
 
     @IsNotEmpty()
-    product_id: number;
+    seller_id: number;
 
     date: Date;
 
