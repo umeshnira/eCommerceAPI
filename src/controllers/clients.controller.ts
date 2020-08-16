@@ -67,11 +67,23 @@ class ClientsController {
                 return;
             }
 
-            const client = clientDto as ClientModel;
+            const client = new ClientModel();
+            client.name = clientDto.name;
+            client.email = clientDto.email;
+            client.address = clientDto.address;
+            client.landmark = clientDto.landmark;
+            client.pin_code = clientDto.pin_code;
+            client.phone = clientDto.phone;
+            client.created_by = clientDto.created_by;
             client.status = Status.Active;
             client.created_at = new Date();
 
-            const user = userDto as UserModel;
+            const user = new UserModel();
+            user.user_name = userDto.user_name;
+            user.password = userDto.password;
+            user.status = Status.Active;
+            user.role = userDto.role;
+            user.created_by = userDto.created_by;
             user.created_at = new Date();
 
             let data: any;

@@ -14,7 +14,7 @@ class SubCategoriesController {
             const connection = await connect();
             const [data] = await connection.query(
                 `SELECT id, name, description, status, parent_category_id, created_by, created_at, updated_by,
-                        updated_at FROM categories`
+                        updated_at FROM categories WHERE status = ?`,[Status.Active]
             );
 
             const categoriesListModels = data as CategoryListModel[];
@@ -53,7 +53,7 @@ class SubCategoriesController {
 
             const [data] = await connection.query(
                 `SELECT id, name, description, status, parent_category_id, created_by, created_at, updated_by,
-                        updated_at FROM categories WHERE parent_category_id IS NOT NULL`, [subCategoryId]
+                        updated_at FROM categories WHERE id = ?`, [subCategoryId]
             );
 
             const categories = data as CategoryModel[];
@@ -76,12 +76,12 @@ class SubCategoriesController {
                 `WITH RECURSIVE category_path (id, name,parent_category_id,created_by, created_at, status,path) AS
                 (
                    SELECT id, name,parent_category_id,created_by, created_at,status,name as path FROM categories
-                   WHERE parent_category_id IS NULL
+                   WHERE parent_category_id IS NULL && status = ?
                    UNION ALL
                    SELECT c.id, c.name,c.parent_category_id,c.created_by, c.created_at ,c.status,CONCAT(cp.path, ' > ',
                           c.name) FROM category_path AS cp JOIN categories AS c ON cp.id = c.parent_category_id
                )
-               SELECT * FROM category_path where status = ?;`,[Status.Active]
+               SELECT * FROM category_path where status = ?;`,[Status.Active,Status.Active ]
             );
 
             const categories = data as CategorypathHeirarchy[];
@@ -103,7 +103,7 @@ class SubCategoriesController {
 
             const [data] = await connection.query(
                 `SELECT id,name,created_by,created_at,parent_category_id
-             FROM Categories;`
+             FROM Categories WHERE status =?;`, [Status.Active]
             );
 
             const dataList = data as CategoryListModel[];
