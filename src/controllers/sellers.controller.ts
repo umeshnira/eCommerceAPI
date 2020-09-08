@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { validate } from 'class-validator';
-import { SellerModel, UserModel, AddSellerDTO, UpdateSellerDTO, AddUserDTO } from '../models';
+import { SellerModel, UserModel, AddSellerDTO, UpdateSellerDTO, AddUserDTO,SellerViewListModel } from '../models';
 import { connect, transaction } from '../context/db.context';
 import { Status } from '../enums';
 
@@ -11,20 +11,22 @@ class SellersController {
         try {
             const connection = await connect();
             const [data] = await connection.query(
-                `SELECT sellers.id, sellers.user_id, sellers.name, sellers.address,
+                `SELECT  sellers.id, sellers.user_id, sellers.name, sellers.address,
                  sellers.landmark, sellers.pincode, sellers.email,sellers.phone,sellers.aadhar_card_no,
                  sellers.pan_card_no, sellers.bank_name,sellers.bank_ac_no, sellers.branch_name, sellers.ifsc_code,
                  sellers.created_by, sellers.created_at,sellers.updated_by, sellers.updated_at,
-                 sellers.image, sellers.star_rate,
+                 sellers.image, sellers.star_rate,sellers.gst_reg_no,
                 users.user_name as username,
-                status.id as status
+                status.id as status,sp.product_id
                 FROM sellers
                 INNER JOIN users on sellers.user_id  = users.id
                 INNER JOIN status on sellers.status  = status.id
+                left join seller_products sp on sp.seller_id=sellers.user_id
+                group by sellers.id
                 ORDER By sellers.star_rate DESC`
             );
 
-            const sellers = data as SellerModel[];
+            const sellers = data as SellerViewListModel[];
             if (sellers.length) {
                 res.status(200).json(sellers);
             } else {
@@ -268,6 +270,43 @@ class SellersController {
             res.status(500).send(error.message);
         }
     };
+
+    static getSellerDetailsByProduct = async (req: Request, res: Response) => {
+
+        try {
+            const productId = req.params?.id;
+            const connection = await connect();
+
+            const [data] = await connection.query(
+                `select
+                s.name,
+                s.address
+                from
+                sellers s
+                inner join seller_products sp on sp.seller_id=s.user_id
+                where sp.product_id= ?`, [productId]
+            );
+
+            const sellers = data as SellerModel[];
+            const sellerDetails = new Array<SellerModel>();
+            sellers.forEach(prod => {
+                const sellerObj = new SellerModel();
+                sellerObj.name = prod.name;
+                sellerObj.address = prod.address;
+
+                sellerDetails.push(sellerObj);
+            });
+            if (sellerDetails) {
+                res.status(200).json(sellerDetails[0]);
+            } else {
+                res.status(404).send(`Seller with prdoct Id: ${productId} not found`);
+            }
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
+
+
 }
 
 export default SellersController;

@@ -11,6 +11,8 @@ import login from './login.routes';
 import wishlist from './wish-list.routes';
 import offer from './offer.routes';
 import review from './review.routes';
+import subcription from './subcription.routes';
+import coupon from './coupon.routes';
 
 const routes = Router();
 
@@ -26,6 +28,8 @@ routes.use('/', login);
 routes.use('/', wishlist);
 routes.use('/', offer);
 routes.use('/', review);
+routes.use('/', subcription);
+routes.use('/', coupon);
 
 
 export default routes;

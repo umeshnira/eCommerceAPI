@@ -7,3 +7,5 @@ export * from './hello-world.controller';
 export * from './carts.controller';
 export * from './offer.controller';
 export * from './review.controller';
+export * from './subscription.controller';
+export * from './coupon.controller';

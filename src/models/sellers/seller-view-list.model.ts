@@ -1,6 +1,6 @@
 import { Status } from '../../enums';
 
-export class SellerModel {
+export class SellerViewListModel {
 
   id: number;
   user_id: number;
@@ -22,6 +22,7 @@ export class SellerModel {
   ifsc_code: string;
   image: string;
   star_rate;
+  product_id: number;
   created_by: string;
   created_at: Date;
   updated_by: string;

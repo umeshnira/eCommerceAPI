@@ -1,8 +1,6 @@
 import { Router } from 'express';
 import orderController from '../controllers/order.controller';
-import file_upload from '../utils/image-upload';
-import settings from '../config/app-settings.json';
-import { setUploadPath } from '../middlewares';
+
 
 const router = Router();
 
@@ -25,15 +23,16 @@ router.put(
     '/orders/:id([0-9]+)/:detailId([0-9]+)', [], orderController.updateOrder);
 
 router.patch(
-        '/orders/:id([0-9]+)/status', [], orderController.orderStatusChange);
+    '/orders/:id([0-9]+)/status', [], orderController.orderStatusChange);
 
 router.delete(
     '/orders/:id([0-9]+)', [], orderController.deleteOrder);
 
+router.get(
+    '/orders/:id([0-9]+)/status', [], orderController.getUserOrdersByStatus);
 
-
-    router.get(
-        '/orders/:id([0-9]+)/status', [], orderController.getUserOrdersByStatus);
+router.get(
+    '/status/:status([0-9]+)/orders', [], orderController.getAllOrdersByStatus);
 
 router.post(
     '/orders/return', [], orderController.returnOrder);
