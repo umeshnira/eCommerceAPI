@@ -52,18 +52,18 @@ class WishListController {
             const pool = await connect();
 
             [data] = await pool.query(
-                `SELECT 1 FROM wishlist WHERE id = ?`, [wishListId]
+                `SELECT 1 FROM wishlist_products WHERE id = ?`, [wishListId]
             );
 
             const wishListExists = data as WishListModel[];
             if (!wishListExists.length) {
                 res.status(404).send(`Wish List with Id: ${wishListExists} not found`);
-            }
+            } else {
 
             let isDeleted: any;
             await transaction(pool, async connection => {
                 [data] = await connection.query(
-                    `DELETE FROM wishlist  WHERE id = ?`, [wishListId]
+                    `DELETE FROM wishlist_products  WHERE id = ?`, [wishListId]
                 );
                 isDeleted = data.affectedRows > 0;
             });
@@ -73,6 +73,7 @@ class WishListController {
             } else {
                 res.status(500).send(`Wish list with Id: ${wishListId} is not deleted`);
             }
+        }
 
         } catch (error) {
             res.status(500).send(error.message);

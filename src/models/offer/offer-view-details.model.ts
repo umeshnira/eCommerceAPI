@@ -5,8 +5,8 @@ export class OfferViewDetailsModel {
     description: string;
     price: number;
     percentage: number;
-    ValidFrom: Date;
-    ValidTo: Date;
+    validFrom: Date;
+    validTo: Date;
     status: string;
     created_by: string;
     created_at: Date;

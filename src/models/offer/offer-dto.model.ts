@@ -18,10 +18,10 @@ export class OfferDTOModel {
     percentage: number;
 
     @IsNotEmpty()
-    ValidFrom: Date;
+    validFrom: Date;
 
     @IsNotEmpty()
-    ValidTo: Date;
+    validTo: Date;
 
     status: number;
 

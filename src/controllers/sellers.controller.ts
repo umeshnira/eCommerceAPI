@@ -46,7 +46,7 @@ class SellersController {
             const [data] = await connection.query(
                 `SELECT id, user_id, name, address, landmark, pincode, email, phone, aadhar_card_no,
                         pan_card_no, bank_name, bank_ac_no, branch_name, ifsc_code, created_by, created_at,
-                        updated_by, updated_at FROM sellers WHERE id = ?`, [sellerId]
+                        updated_by, updated_at FROM sellers WHERE user_id = ?`, [sellerId]
             );
 
             const sellers = data as SellerModel[];
