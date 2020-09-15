@@ -5,6 +5,6 @@ export class WishListDTO {
 
     @IsNotEmpty()
     @MaxLength(255)
-    @IsNotBlank({  message: 'Value cannot contain empty spaces' })
+    // @IsNotBlank({  message: 'Value cannot contain empty spaces' })
     name: string;
 }

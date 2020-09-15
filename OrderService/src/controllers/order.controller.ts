@@ -590,8 +590,7 @@ class OrderController {
             inner join order_product p on p.order_details_id=d.id
             inner join order_status s on s.id=d.status
             WHERE  o.is_delete=0  and d.status=?
-            group by d.id
-            LIMIT ${limit} OFFSET ${offset};`, [status]);
+            group by d.id;`, [status]);
             if (data) {
                 const order = data as OrderViewListModel[];
                 const orderDetails = new Array<OrderViewListModel>();

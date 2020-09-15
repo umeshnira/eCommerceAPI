@@ -17,6 +17,9 @@ export class OrderViewListModel {
     order_status: string;
     bank_ac_no: string;
     gst_reg_no: string;
+    pan_card_no: string;
+    cust_name: string;
+    address: string;
     lanmark: string;
     seller_name:string;
     seller_address:string;

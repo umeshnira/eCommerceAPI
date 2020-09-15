@@ -29,7 +29,9 @@ class InvoiceController {
             p.name,
             p.image,
             s.name as order_status,
-            l.lanmark
+            l.lanmark,
+            l.name as cust_name,
+            l.address
             from orders o
             inner join order_details d on o.id=d.order_id
             inner join order_product p on p.order_details_id=d.id
@@ -63,6 +65,9 @@ class InvoiceController {
                             orderObj.lanmark = prod.lanmark;
                             orderObj.seller_address = seller.address;
                             orderObj.seller_name = seller.name;
+                            orderObj.pan_card_no = seller.pan_card_no;
+                            orderObj.cust_name = prod.cust_name;
+                            orderObj.address = prod.address;
                             orderObj.bank_ac_no = seller.bank_ac_no;
                             orderObj.gst_reg_no = seller.gst_reg_no;
                             orderObj.path = application.getImagePath.product + prod.image;
