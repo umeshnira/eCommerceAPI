@@ -8,7 +8,7 @@ export class SubscriptionViewListModel {
     subscription_start_date: Date;
     subscription_end_date: Date;
     offer_name: string;
-    no_days_valid: number;
+    type: string;
     status: number;
     created_by: string;
     created_at: Date;

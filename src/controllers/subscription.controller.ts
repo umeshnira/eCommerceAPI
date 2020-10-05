@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { connect, transaction } from '../context/db.context';
 import { validate } from 'class-validator';
-import { SubscriptionPlanDtoModel, SubscriptionPlanTableModel, SubscriptionViewListModel,SellerSubscriptionPlanUpdateDTO,SellerModel } from '../models';
+import { SubscriptionPlanDtoModel, SubscriptionPlanTableModel, SubscriptionViewListModel, SellerSubscriptionPlanUpdateDTO, SellerModel } from '../models';
 import { Status } from '../enums/status.enum'
 
 
@@ -21,7 +21,7 @@ class SubcriptionController {
             const subscription_plans = new SubscriptionPlanTableModel();
             subscription_plans.created_at = new Date();
             subscription_plans.amount = subDto.amount;
-            subscription_plans.no_days_valid = subDto.no_days_valid;
+            subscription_plans.type = subDto.type;
             subscription_plans.created_by = subDto.created_by;
             subscription_plans.description = subDto.description;
             subscription_plans.name = subDto.name;
@@ -62,7 +62,7 @@ class SubcriptionController {
                 description ,
                 amount ,
                 offer_id ,
-                no_days_valid
+                type
                 from
                 subscription_plans
                 where status=1`
@@ -74,7 +74,7 @@ class SubcriptionController {
                 Subscription.forEach(sub => {
                     const subscription_plans = new SubscriptionPlanTableModel();
                     subscription_plans.amount = sub.amount;
-                    subscription_plans.no_days_valid = sub.no_days_valid;
+                    subscription_plans.type = sub.type;
                     subscription_plans.created_by = sub.created_by;
                     subscription_plans.description = sub.description;
                     subscription_plans.name = sub.name;
@@ -83,6 +83,45 @@ class SubcriptionController {
 
                 });
                 res.status(200).json(subscriptionDetails);
+            } else {
+                res.status(404).send({ message: `Subscription_plans  not found` });
+            }
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    };
+
+    static getSubcription = async (req: Request, res: Response) => {
+
+        try {
+            const Id = req.params?.id;
+
+            const connection = await connect();
+
+            const [data] = await connection.query(
+                `select
+                id ,
+                name ,
+                description ,
+                amount ,
+                offer_id ,
+                type
+                from
+                subscription_plans
+                where status=1 and id=?`, [Id]
+            );
+
+            const Subscription = data[0] as SubscriptionPlanTableModel;
+            if (Subscription) {
+                const subscription_plans = new SubscriptionPlanTableModel();
+                subscription_plans.amount = Subscription.amount;
+                subscription_plans.type = Subscription.type;
+                subscription_plans.created_by = Subscription.created_by;
+                subscription_plans.description = Subscription.description;
+                subscription_plans.name = Subscription.name;
+                subscription_plans.offer_id = Subscription.offer_id;
+
+                res.status(200).json(subscription_plans);
             } else {
                 res.status(404).send({ message: `Subscription_plans  not found` });
             }
@@ -123,7 +162,7 @@ class SubcriptionController {
                     subscription_plans.offer_name = sub.offer_name;
                     subscription_plans.subscription_start_date = sub.subscription_start_date;
                     subscription_plans.subscription_end_date = sub.subscription_end_date;
-                    subscription_plans.no_days_valid = sub.no_days_valid;
+                    subscription_plans.type = sub.type;
                     subscription_plans.created_by = sub.created_by;
                     subscription_plans.description = sub.description;
                     subscription_plans.name = sub.name;
@@ -140,7 +179,7 @@ class SubcriptionController {
         }
     };
 
-    static editSubcription = async (req: Request, res: Response) => {
+    static editSellerSubcription = async (req: Request, res: Response) => {
         try {
 
             const subDto = Object.assign(new SellerSubscriptionPlanUpdateDTO(), req.body);
@@ -165,12 +204,55 @@ class SubcriptionController {
 
             await transaction(pool, async connection => {
                 [data] = await connection.query(
-                    `UPDATE seller SET=?  WHERE user_id=?`, [subscription_plans,userId]
+                    `UPDATE seller SET ?  WHERE user_id=?`, [subscription_plans, userId]
                 );
 
             });
 
-            if (data.insertId > 0) {
+            if (data.affectedRows > 0) {
+                res.status(201).send({ message: `Subscription_plans is Updated` });
+            } else {
+                res.status(500).send({ message: `Failed to Update Subscription_plans` });
+            }
+        }
+        catch (error) {
+            res.status(500).send(error.message);
+        }
+    }
+
+    static updateSubcription = async (req: Request, res: Response) => {
+        try {
+
+            const subId = req.params?.id;
+            const subDto = Object.assign(new SubscriptionPlanDtoModel(), req.body);
+
+            const errors = await validate(subDto);
+            if (errors.length > 0) {
+                res.status(400).send(errors);
+                return;
+            }
+
+            const subscription_plans = new SubscriptionPlanTableModel();
+            subscription_plans.created_at = new Date();
+            subscription_plans.amount = subDto.amount;
+            subscription_plans.type = subDto.type;
+            subscription_plans.created_by = subDto.created_by;
+            subscription_plans.description = subDto.description;
+            subscription_plans.name = subDto.name;
+            subscription_plans.offer_id = subDto.offer_id;
+            subscription_plans.status = Status.Active;
+
+            let data: any;
+            const pool = await connect();
+
+
+            await transaction(pool, async connection => {
+                [data] = await connection.query(
+                    `UPDATE subscription_plans  SET ? WHERE id=?`, [subscription_plans,subId]
+                );
+
+            });
+            if (data.affectedRows > 0) {
                 res.status(201).send({ message: `Subscription_plans is Updated` });
             } else {
                 res.status(500).send({ message: `Failed to Update Subscription_plans` });

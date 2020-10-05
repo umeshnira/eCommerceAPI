@@ -5,7 +5,7 @@ export class SubscriptionPlanTableModel {
     description: string;
     amount: number;
     offer_id: number;
-    no_days_valid: number;
+    type: string;
     status: number;
     created_by: string;
     created_at: Date;

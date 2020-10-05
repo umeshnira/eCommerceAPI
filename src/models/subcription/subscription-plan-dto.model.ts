@@ -1,16 +1,14 @@
 import { IsNotEmpty } from 'class-validator';
 import { IsNotBlank } from '../../validators';
 
-export class SubscriptionPlanDtoModel{
+export class SubscriptionPlanDtoModel {
 
     id: number;
 
     @IsNotEmpty()
-    @IsNotBlank({  message: 'Value cannot contain empty spaces' })
+    @IsNotBlank({ message: 'Value cannot contain empty spaces' })
     name: string;
 
-    @IsNotEmpty()
-    @IsNotBlank({  message: 'Value cannot contain empty spaces' })
     description: string;
 
     @IsNotEmpty()
@@ -18,7 +16,7 @@ export class SubscriptionPlanDtoModel{
 
     offer_id: number;
 
-    no_days_valid: number;
+    type: string;
 
     status: number;
 
