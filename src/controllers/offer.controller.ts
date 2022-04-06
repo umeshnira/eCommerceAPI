@@ -20,8 +20,8 @@ class OfferController {
 
             const offer = new OfferModel();
             offer.created_at = new Date();
-            offer.validFrom = offerDto.validFrom;
-            offer.validTo = offerDto.validTo;
+            offer.validFrom = new Date(offerDto.validFrom);
+            offer.validTo = new Date(offerDto.validTo);
             offer.created_by = offerDto.created_by;
             offer.description = offerDto.description;
             offer.name = offerDto.name;
@@ -117,10 +117,10 @@ class OfferController {
                 res.status(404).send({ message: `offer with Id: ${offerId} not found` });
             }
             const offer = new OfferModel();
-            offer.created_at = new Date();
-            offer.validFrom = offerDto.validFrom;
-            offer.validTo = offerDto.validTo;
-            offer.created_by = offerDto.created_by;
+            offer.updated_at = new Date();
+            offer.validFrom =  new Date(offerDto.validFrom);
+            offer.validTo =  new Date(offerDto.validTo);
+            offer.updated_by = offerDto.updated_by;
             offer.description = offerDto.description;
             offer.name = offerDto.name;
             offer.percentage = offerDto.percentage;
@@ -214,6 +214,7 @@ class OfferController {
                 const offerDetails = new Array<OfferViewDetailsModel>();
                 offers.forEach(x => {
                     const offer = new OfferViewDetailsModel();
+                    offer.id = x.id;
                     offer.validFrom = x.validFrom;
                     offer.validTo = x.validTo;
                     offer.description = x.description;
@@ -260,6 +261,7 @@ class OfferController {
                 const offerDetails = new Array<OfferViewDetailsModel>();
                 offers.forEach(x => {
                     const offer = new OfferViewDetailsModel();
+                    offer.id = x.id;
                     offer.validFrom = x.validFrom;
                     offer.validTo = x.validTo;
                     offer.description = x.description;
@@ -293,6 +295,7 @@ class OfferController {
                 f.percentage,
                 f.validFrom,
                 f.validTo,
+                f.created_by,
                 s.name as status
                 FROM offers f
                 inner join status s on s.id=f.status
@@ -305,7 +308,7 @@ class OfferController {
             if (offers) {
 
                 const offer = new OfferViewDetailsModel();
-
+                offer.id = offers.id;
                 offer.validFrom = offers.validFrom;
                 offer.validTo = offers.validTo;
                 offer.created_by = offers.created_by;
@@ -360,6 +363,7 @@ class OfferController {
                 const offerDetails = new Array<OfferViewDetailsModel>();
                 offers.forEach(x => {
                     const offer = new OfferViewDetailsModel();
+                    offer.id = x.id;
                     offer.validFrom = x.validFrom;
                     offer.validTo = x.validTo;
                     offer.description = x.description;
