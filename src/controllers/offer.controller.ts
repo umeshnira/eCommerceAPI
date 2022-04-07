@@ -204,9 +204,9 @@ class OfferController {
                 s.name as status
                 FROM offers f
                 inner join status s on s.id=f.status
-
+                where f.status != ?
                  `,
-                []
+                [Status.In_Active]
             );
 
             const offers = data as OfferViewDetailsModel[];
@@ -356,6 +356,62 @@ class OfferController {
                 where pf.product_id = ? and ((${tempStatus} is null ) or (f.status = ${tempStatus}))
                  `,
                 [productId]
+            );
+
+            const offers = data as OfferViewDetailsModel[];
+            if (offers.length) {
+                const offerDetails = new Array<OfferViewDetailsModel>();
+                offers.forEach(x => {
+                    const offer = new OfferViewDetailsModel();
+                    offer.id = x.id;
+                    offer.validFrom = x.validFrom;
+                    offer.validTo = x.validTo;
+                    offer.description = x.description;
+                    offer.name = x.name;
+                    offer.percentage = x.percentage;
+                    offer.price = x.price;
+                    offer.status = x.status;
+                    offerDetails.push(offer);
+
+                });
+                res.status(200).json(offerDetails);
+            } else {
+                res.status(404).send({ message: `offers not found` });
+            }
+        } catch (error) {
+            res.status(500).send(error.message);
+        }
+    }
+
+    static getAllOfferProducts = async (req: any, res: Response) => { //api not tested
+        try {
+            const offerId = req.params?.id;
+            const status = req.query?.status;
+            let tempStatus;
+            const connection = await connect();
+
+            if (status) {
+                tempStatus = status;
+            } else {
+                tempStatus = null;
+            }
+
+            const [data] = await connection.query(
+                `SELECT
+                f.id,
+                f.name,
+                f.description,
+                f.price,
+                f.percentage,
+                f.validFrom,
+                f.validTo,
+                s.name as status
+                FROM offers f
+                inner join status s on s.id=f.status
+                inner join product_offers pf on pf.offer_id=f.id
+                where f.id = ? and ((${tempStatus} is null ) or (f.status = ${tempStatus}))
+                 `,
+                [offerId]
             );
 
             const offers = data as OfferViewDetailsModel[];

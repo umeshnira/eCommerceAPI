@@ -19,5 +19,7 @@ router.patch('/offer/:id([0-9]+)', [], OfferController.statusChangeOffer);
 
 router.get('/product/:id([0-9]+)/offer', [], OfferController.getProductOffers);
 
+router.get('/offer/:id([0-9]+)/product', [], OfferController.getAllOfferProducts);  //api not tested
+
 
 export default router;
