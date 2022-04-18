@@ -66,25 +66,41 @@ class OfferController {
 
             let data: any;
             const pool = await connect();
+             let isInserted,isUpdated;
+            for (const x of offerDto) {
+                if(x?.product_offer_id){
+                    const offer = new ProductOffers();
+                    offer.updated_at = new Date();
+                    offer.product_id = x?.product_id;
+                    offer.updated_by = offerDto.updated_by;
+                    offer.offer_id = offerId;
 
-            for (const x of offerDto.product_id) {
-                const offer = new ProductOffers();
-                offer.created_at = new Date();
-                offer.product_id = x;
-                offer.created_by = offerDto.updated_by;
-                offer.offer_id = offerId;
-                console.log(JSON.stringify(offer));
-
-                await transaction(pool, async connection => {
-                    [data] = await connection.query(
-                        `INSERT INTO product_offers SET ?`, [offer]
-                    );
-                });
+                    await transaction(pool, async connection => {
+                        [data] = await connection.query(
+                            `UPDATE product_offers SET ? WHERE id = ?`, [offer,x?.product_offer_id]
+                        );
+                        isUpdated=data.affectedRows > 0;
+                    });
+                }else{
+                    const offer = new ProductOffers();
+                    offer.created_at = new Date();
+                    offer.product_id = x?.product_id;
+                    offer.created_by = offerDto.updated_by;
+                    offer.offer_id = offerId;
+                    console.log(JSON.stringify(offer));
+    
+                    await transaction(pool, async connection => {
+                        [data] = await connection.query(
+                            `INSERT INTO product_offers SET ?`, [offer]
+                        );
+                        isInserted= data.insertId > 0
+                    });
+                }
 
             }
 
 
-            if (data.insertId > 0) {
+            if (isInserted || isUpdated) {
                 res.status(201).send({ message: `Product offers are added` });
             } else {
                 res.status(500).send({ message: `Failed to add product offers` });
@@ -405,10 +421,14 @@ class OfferController {
                 f.percentage,
                 f.validFrom,
                 f.validTo,
-                s.name as status
+                s.name as status,
+                prod.id as product_id,
+                prod.name as product_name,
+                pf.id as product_offer_id
                 FROM offers f
                 inner join status s on s.id=f.status
                 inner join product_offers pf on pf.offer_id=f.id
+                INNER JOIN products prod  ON pf.product_id=prod.id
                 where f.id = ? and ((${tempStatus} is null ) or (f.status = ${tempStatus}))
                  `,
                 [offerId]
@@ -427,9 +447,12 @@ class OfferController {
                     offer.percentage = x.percentage;
                     offer.price = x.price;
                     offer.status = x.status;
+                    offer.product_id = x.product_id;
+                    offer.product_name = x.product_name;
+                    offer.product_offer_id = x.product_offer_id
                     offerDetails.push(offer);
 
-                });
+                });               
                 res.status(200).json(offerDetails);
             } else {
                 res.status(404).send({ message: `offers not found` });

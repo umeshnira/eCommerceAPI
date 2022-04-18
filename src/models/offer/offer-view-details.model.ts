@@ -12,4 +12,7 @@ export class OfferViewDetailsModel {
     created_at: Date;
     updated_by: string;
     updated_at: Date;
+    product_id: number;
+    product_name: string;
+    product_offer_id: string;
 }
